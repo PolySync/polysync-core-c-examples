@@ -1,0 +1,42 @@
+/******************************************************
+** FILE: my_dm.idl
+**
+** ABSTRACT: Example User Data Model
+**
+** DOCUMENTS:
+**
+** AUTHOR:
+** Harbrick LLC
+**
+** NOTES:
+**
+*******************************************************/
+
+// get PolySync Data Model
+#include<psync.idl>
+
+
+
+struct cable_s
+{
+	unsigned long                   pin_numbers[5];
+};
+
+
+
+struct toolbox_s
+{
+  cable_s                           cable;
+  sequence<char>                    owner;
+};
+
+
+struct site_info_msg
+{
+  ps_msg_header                     header;
+  unsigned long                     site_id;
+  sequence<toolbox_s>               toolboxes;
+};
+#pragma keylist site_info_msg       header.src_guid
+#pragma expose  site_info_msg
+
