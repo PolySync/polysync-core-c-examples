@@ -30,8 +30,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
-#include <glib-2.0/glib/gthread.h>
-#include <glib-2.0/glib/deprecated/gthread.h>
+#include <glib-2.0/glib.h>
 
 // API headers
 #include "polysync_core.h"
