@@ -198,14 +198,14 @@ static int init( unsigned int stdout_enabled )
 
 
 	// init polysync
-	if( (ret = psync_init( psync_nid, node_name, stdout_enabled )) != DTC_RET( DTC_NONE ) )
+	if( (ret = psync_init( psync_nid, node_name, stdout_enabled )) != DTC_NONE )
 	{
         psync_log_message( LOG_LEVEL_ERROR, "init -- psync_init failed - error_code: %d", ret );
 		return ret;
 	}
 
     // disable handlers, etc
-    if( (ret = psync_set_node_flags_bit( NODE_FLAG_HANDLERS_ACTIVE, 0 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_set_node_flags_bit( NODE_FLAG_HANDLERS_ACTIVE, 0 )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "init -- psync_set_node_flags_bit failed - error_code: %d", ret );
         return ret;
@@ -223,21 +223,21 @@ static int init( unsigned int stdout_enabled )
     }
 
     // get this nodes GUID
-    if( (ret = psync_get_GUID( &psync_guid )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_get_GUID( &psync_guid )) != DTC_NONE )
 	{
         psync_log_message( LOG_LEVEL_ERROR, "init -- psync_get_GUID failed - error_code: %d", ret );
 		return ret;
 	}
 
     // register a listener for video stream viewer messages
-    if( (ret = psync_message_register_listener( MSG_TYPE_VIDEO_STREAM , psync_handler_video_stream, video_stream_queue ) ) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_register_listener( MSG_TYPE_VIDEO_STREAM , psync_handler_video_stream, video_stream_queue ) ) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "init -- psync_message_register_listener failed - error_code: %d", ret );
         return ret;
     }
 
     // enable listener/handlers
-    if( (ret = psync_set_node_flags_bit( NODE_FLAG_HANDLERS_ACTIVE, 1 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_set_node_flags_bit( NODE_FLAG_HANDLERS_ACTIVE, 1 )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "init -- psync_set_node_flags_bit failed - error_code: %d", ret );
         return ret;
@@ -250,7 +250,7 @@ static int init( unsigned int stdout_enabled )
 	siginterrupt( SIGINT, 1 );
 
 
-	return DTC_RET( DTC_NONE );
+	return DTC_NONE;
 }
 
 
@@ -259,18 +259,18 @@ static int release()
 {
 	// local vars
     void            *q_element      = NULL;
-    int             ret             = DTC_RET( DTC_NONE );
+    int             ret             = DTC_NONE;
     unsigned int    stale_topics    = 0;
 
 
     // disable handlers, etc
-    if( (ret = psync_set_node_flags_bit( NODE_FLAG_HANDLERS_ACTIVE, 0 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_set_node_flags_bit( NODE_FLAG_HANDLERS_ACTIVE, 0 )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "release -- psync_set_node_flags_bit failed - error_code: %d", ret );
     }
 
     // wait a little
-    usleep( 10000 );
+    psync_sleep_micro( 10000 );
 
     // flush queue
     stale_topics = 0;
@@ -281,7 +281,7 @@ static int release()
         stale_topics++;
 
         // release instance
-        if( (ret = psync_message_release_instance( &q_element ) ) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_message_release_instance( &q_element ) ) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "release -- psync_message_release_instance failed - error_code: %d", ret );
             // don't return, attempt to continue
@@ -303,12 +303,12 @@ static int release()
 
 
     // release API
-    if( (ret = psync_release( 0 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_release( 0 )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "release -- psync_release failed - error_code: %d", ret );
     }
 
-	return DTC_RET( DTC_NONE );
+	return DTC_NONE;
 }
 
 
@@ -316,7 +316,7 @@ static int release()
 static void psync_handler_video_stream( void *usr_data, ps_msg_type msg_type, void *topic_data )
 {
     // local vars
-    int                     ret         = DTC_RET( DTC_NONE );
+    int                     ret         = DTC_NONE;
     ps_node_flags           node_flags  = 0;
 
     // storage for new message for the queue
@@ -332,7 +332,7 @@ static void psync_handler_video_stream( void *usr_data, ps_msg_type msg_type, vo
 
 
     // get flags
-    if( (ret = psync_get_node_flags( &node_flags )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_get_node_flags( &node_flags )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "psync_handler_video_stream -- psync_get_node_flags failed - error_code: %d", ret );
         return;
@@ -354,14 +354,14 @@ static void psync_handler_video_stream( void *usr_data, ps_msg_type msg_type, vo
 
 
     // get an instance
-    if( (ret = psync_message_request_instance( msg_type, &message ) ) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_request_instance( msg_type, &message ) ) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "psync_handler_video_stream -- psync_message_request_instance failed - error_code: %d", ret );
         return;
     }
 
     // copy message into new message
-    if( (ret = psync_message_copy( topic_data, message )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_copy( topic_data, message )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "psync_handler_video_stream -- psync_message_copy failed - error_code: %d", ret );
         return;
@@ -382,7 +382,7 @@ static int process_video_stream( ps_video_stream_msg *video_stream, unsigned int
     if( !video_stream || !frame_ready )
     {
         psync_log_message( LOG_LEVEL_ERROR, "process_video_stream -- bad arg" );
-        return DTC_RET( DTC_USAGE );
+        return DTC_USAGE;
     }
 
 
@@ -413,7 +413,7 @@ static int process_video_stream( ps_video_stream_msg *video_stream, unsigned int
     if( vsv_data.is_init == 0 )
     {
         // create decoder
-        if( (ret = psync_video_decoder_init( &video_decoder, frame_width, frame_height, viewer_format )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_video_decoder_init( &video_decoder, frame_width, frame_height, viewer_format )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "process_video_stream -- psync_video_decoder_init failed" );
             return ret;
@@ -430,7 +430,7 @@ static int process_video_stream( ps_video_stream_msg *video_stream, unsigned int
         if( SDL_Init( SDL_INIT_VIDEO) < 0 )
         {
             psync_log_message( LOG_LEVEL_ERROR, "process_video_stream -- SDL_Init failed" );
-            return DTC_RET( DTC_SOFTWARE );
+            return DTC_SOFTWARE ;
         }
 
         // create window name
@@ -452,7 +452,7 @@ static int process_video_stream( ps_video_stream_msg *video_stream, unsigned int
         if( !vsv_data.surface )
         {
             psync_log_message( LOG_LEVEL_ERROR, "process_video_stream -- SDL_SetVideoMode failed" );
-            return DTC_RET( DTC_SOFTWARE );
+            return DTC_SOFTWARE ;
         }
 
 
@@ -461,7 +461,7 @@ static int process_video_stream( ps_video_stream_msg *video_stream, unsigned int
 
 
     // get a pointer to the video stream message buffer
-    if( (ret = psync_video_stream_get_data( video_stream, &buffer_ptr, &buffer_size )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_video_stream_get_data( video_stream, &buffer_ptr, &buffer_size )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "process_video_stream -- psync_video_stream_get_data failed" );
         return ret;
@@ -470,7 +470,7 @@ static int process_video_stream( ps_video_stream_msg *video_stream, unsigned int
 
     // decode image data in buffer
     // NOTE: not capturing errors here, let av utils attempt to recover
-    if( (ret = psync_video_decoder_decode_image( &video_decoder, buffer_ptr, buffer_size, frame_ready )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_video_decoder_decode_image( &video_decoder, buffer_ptr, buffer_size, frame_ready )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_WARN, "process_video_stream -- psync_video_decoder_decode_image failed" );
         //return ret;
@@ -484,7 +484,7 @@ static int process_video_stream( ps_video_stream_msg *video_stream, unsigned int
         SDL_LockSurface( vsv_data.surface );
 
         // copy data into surface
-        if( (ret = psync_video_decoder_copy_buffer( &video_decoder, (unsigned char*) vsv_data.surface->pixels )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_video_decoder_copy_buffer( &video_decoder, (unsigned char*) vsv_data.surface->pixels )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "process_video_stream -- psync_video_decoder_copy_buffer failed" );
             return ret;
@@ -518,7 +518,7 @@ static int process_video_stream( ps_video_stream_msg *video_stream, unsigned int
     }
 
 
-    return DTC_RET( DTC_NONE );
+    return DTC_NONE;
 }
 
 
@@ -561,7 +561,7 @@ static ps_guid get_GUID( const char *guid_hex_string )
 int main( int argc, char **argv )
 {
     // local vars
-    int                                 ret                 = DTC_RET( DTC_NONE );
+    int                                 ret                 = DTC_NONE;
     // generic sleep ticker
     int                                 do_sleep            = 0;
     unsigned int                        frame_ready         = 0;
@@ -620,7 +620,7 @@ int main( int argc, char **argv )
 
 
     // init resources
-    if( (ret = init( stdout_enabled )) != DTC_RET( DTC_NONE ) )
+    if( (ret = init( stdout_enabled )) != DTC_NONE )
 	{
         psync_log_message( LOG_LEVEL_ERROR, "main -- init failed - error_code: %d", ret );
 		goto GRACEFUL_EXIT_STMNT;
@@ -665,7 +665,7 @@ int main( int argc, char **argv )
             ps_video_stream_msg *msg = (ps_video_stream_msg*) queue_element;
 
             // process data
-            if( (ret = process_video_stream( msg, &frame_ready ) ) != DTC_RET( DTC_NONE ) )
+            if( (ret = process_video_stream( msg, &frame_ready ) ) != DTC_NONE )
             {
                 psync_log_message( LOG_LEVEL_ERROR, "main -- process_video_stream failed - error_code: %d", ret );
                 goto GRACEFUL_EXIT_STMNT;
@@ -673,7 +673,7 @@ int main( int argc, char **argv )
 
 
             // release instance
-            if( (ret = psync_message_release_instance( &queue_element ) ) != DTC_RET( DTC_NONE ) )
+            if( (ret = psync_message_release_instance( &queue_element ) ) != DTC_NONE )
             {
                 psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_release_instance failed - error_code: %d", ret );
                 goto GRACEFUL_EXIT_STMNT;
@@ -700,7 +700,7 @@ int main( int argc, char **argv )
         // sleep ticker
         if( do_sleep >= 50 )
         {
-            usleep( 500 );
+            psync_sleep_micro( 500 );
             do_sleep = 50;
         }
         do_sleep++;
@@ -727,14 +727,14 @@ int main( int argc, char **argv )
     if( video_decoder.is_active )
     {
         //
-        if( (ret = psync_video_decoder_release( &video_decoder )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_video_decoder_release( &video_decoder )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_release failed - error_code: %d", ret );
         }
     }
 
 	// release
-    if( (ret = release()) != DTC_RET( DTC_NONE ) )
+    if( (ret = release()) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- release failed - error_code: %d", ret );
     }

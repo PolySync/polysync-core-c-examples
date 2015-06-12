@@ -99,7 +99,7 @@ static void psync_message_handler( void *usr_data, ps_msg_type msg_type, void *t
 static void psync_message_handler( void *usr_data, ps_msg_type msg_type, void *topic_data )
 {
     // local vars
-    int                     ret         = DTC_RET( DTC_NONE );
+    int                     ret         = DTC_NONE;
 
     // storage for new message for the queue
     void                    *message    = NULL;
@@ -131,14 +131,14 @@ static void psync_message_handler( void *usr_data, ps_msg_type msg_type, void *t
     }
 
     // get an instance
-    if( (ret = psync_message_request_instance( msg_type, &message ) ) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_request_instance( msg_type, &message ) ) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "psync_message_handler -- psync_message_request_instance failed - error_code: %d", ret );
         return;
     }
 
     // copy message into new message
-    if( (ret = psync_message_copy( topic_data, message )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_copy( topic_data, message )) != DTC_NONE)
     {
         psync_log_message( LOG_LEVEL_ERROR, "psync_message_handler -- psync_message_copy failed - error_code: %d", ret );
         return;
@@ -184,12 +184,12 @@ int node_register_message_listeners( ps_node_context *context, unsigned long ena
     if( !context )
     {
         psync_log_message( LOG_LEVEL_ERROR, "node_register_message_listeners -- bad arg" );
-        return DTC_RET( DTC_USAGE );
+        return DTC_USAGE;
     }
 
 
     // local vars
-    int             ret         = DTC_RET( DTC_NONE );
+    int             ret         = DTC_NONE;
     ps_msg_type     msg_type    = 0;
     node_data       *data       = NULL;
 
@@ -200,7 +200,7 @@ int node_register_message_listeners( ps_node_context *context, unsigned long ena
     if( !data )
     {
         psync_log_message( LOG_LEVEL_ERROR, "node_register_message_listeners -- bad node_data" );
-        return DTC_RET( DTC_USAGE );
+        return DTC_USAGE;
     }
 
     // create queue
@@ -221,7 +221,7 @@ int node_register_message_listeners( ps_node_context *context, unsigned long ena
         {
             psync_log_message( LOG_LEVEL_DEBUG, "node_register_message_listeners -- registering a listener for message: %s", MESSAGE_TYPE_STRING_TABLE[ msg_type ] );
 
-            if( (ret = psync_message_register_listener( msg_type, psync_message_handler, (void*) context )) != DTC_RET( DTC_NONE ) )
+            if( (ret = psync_message_register_listener( msg_type, psync_message_handler, (void*) context )) != DTC_NONE )
             {
                 psync_log_message( LOG_LEVEL_ERROR, "node_register_message_listeners -- psync_message_register_listener failed" );
                 return ret;
@@ -231,14 +231,14 @@ int node_register_message_listeners( ps_node_context *context, unsigned long ena
 
     // enable queues
     g_atomic_int_or( &data->received_message_queue_enabled, 1 );
-    if( (ret = psync_set_node_flags_bit( NODE_FLAG_HANDLERS_ACTIVE, 1 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_set_node_flags_bit( NODE_FLAG_HANDLERS_ACTIVE, 1 )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "node_register_message_listeners -- psync_set_node_flags_bit failed" );
 		return ret;
     }
 
 
-    return DTC_RET( DTC_NONE );
+    return DTC_NONE;
 }
 
 
@@ -248,7 +248,7 @@ int node_poll_for_message( ps_node_context *context, void **message_ptr )
     if( !context || !message_ptr )
     {
         psync_log_message( LOG_LEVEL_ERROR, "node_poll_for_message -- bad arg" );
-        return DTC_RET( DTC_USAGE );
+        return DTC_USAGE;
     }
 
 
@@ -262,7 +262,7 @@ int node_poll_for_message( ps_node_context *context, void **message_ptr )
     if( !data || !data->received_message_queue )
     {
         psync_log_message( LOG_LEVEL_ERROR, "node_poll_for_message -- bad node_data" );
-        return DTC_RET( DTC_USAGE );
+        return DTC_USAGE;
     }
 
 
@@ -270,7 +270,7 @@ int node_poll_for_message( ps_node_context *context, void **message_ptr )
     (*message_ptr) = g_async_queue_try_pop( data->received_message_queue );
 
 
-    return DTC_RET( DTC_NONE );
+    return DTC_NONE;
 }
 
 
@@ -280,7 +280,7 @@ int node_wait_for_message( ps_node_context *context, void **message_ptr, ps_time
     if( !context || !message_ptr )
     {
         psync_log_message( LOG_LEVEL_ERROR, "node_wait_for_message -- bad arg" );
-        return DTC_RET( DTC_USAGE );
+        return DTC_USAGE;
     }
 
 
@@ -294,14 +294,14 @@ int node_wait_for_message( ps_node_context *context, void **message_ptr, ps_time
     if( !data || !data->received_message_queue )
     {
         psync_log_message( LOG_LEVEL_ERROR, "node_wait_for_message -- bad node_data" );
-        return DTC_RET( DTC_USAGE );
+        return DTC_USAGE;
     }
 
     // poll for message
     (*message_ptr) = g_async_queue_timeout_pop( data->received_message_queue, timeout );
 
 
-    return DTC_RET( DTC_NONE );
+    return DTC_NONE;
 }
 
 
@@ -311,7 +311,7 @@ int node_release_user_data( ps_node_configuration_data *configuration )
     if( !configuration )
     {
         psync_log_message( LOG_LEVEL_ERROR, "node_release_user_data -- bad arg" );
-        return DTC_RET( DTC_USAGE );
+        return DTC_USAGE;
     }
 
 
@@ -338,7 +338,7 @@ int node_release_user_data( ps_node_configuration_data *configuration )
             stale_messages++;
 
             // release instance
-            if( (ret = psync_message_release_instance( &q_element ) ) != DTC_RET( DTC_NONE ) )
+            if( (ret = psync_message_release_instance( &q_element ) ) != DTC_NONE )
             {
                 psync_log_message( LOG_LEVEL_ERROR, "node_release_user_data -- psync_message_release_instance failed - error_code: %d", ret );
                 // try and continue
@@ -357,7 +357,7 @@ int node_release_user_data( ps_node_configuration_data *configuration )
     }
 
 
-    return DTC_RET( DTC_NONE );
+    return DTC_NONE;
 }
 
 
@@ -367,7 +367,7 @@ int node_create_user_data( ps_node_configuration_data *configuration )
     if( !configuration )
     {
         psync_log_message( LOG_LEVEL_ERROR, "node_create_user_data -- bad arg" );
-        return DTC_RET( DTC_USAGE );
+        return DTC_USAGE;
     }
 
 
@@ -381,7 +381,7 @@ int node_create_user_data( ps_node_configuration_data *configuration )
         // create data
         if( !(configuration->user_data = malloc( sizeof(*data) )) )
         {
-            return DTC_RET( DTC_SOFTWARE );
+            return DTC_SOFTWARE ;
         }
 
         // zero
@@ -389,5 +389,5 @@ int node_create_user_data( ps_node_configuration_data *configuration )
     }
 
 
-    return DTC_RET( DTC_NONE );
+    return DTC_NONE;
 }

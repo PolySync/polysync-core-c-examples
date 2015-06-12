@@ -85,7 +85,7 @@ extern const char               *MESSAGE_TYPE_STRING_TABLE[];
  * @param context Pointer to the node's context data.
  * @param enabled_message_types Bit flags indicating which message types to listen for.
  *
- * @return Error code, DTC_RET( DTC_NONE ) if success.
+ * @return Error code, DTC_NONE if success.
  *
  */
 int node_register_message_listeners( ps_node_context *context, unsigned long enabled_message_types );
@@ -100,7 +100,7 @@ int node_register_message_listeners( ps_node_context *context, unsigned long ena
  * @param context Pointer to the node's context data.
  * @param message_ptr Pointer to message pointer, set if message exist.
  *
- * @return Error code, DTC_RET( DTC_NONE ) if success.
+ * @return Error code, DTC_NONE if success.
  *
  */
 int node_poll_for_message( ps_node_context *context, void **message_ptr );
@@ -116,7 +116,7 @@ int node_poll_for_message( ps_node_context *context, void **message_ptr );
  * @param message_ptr Pointer to message pointer, set if message exist.
  * @param timeout Timeout in microseconds.
  *
- * @return Error code, DTC_RET( DTC_NONE ) if success.
+ * @return Error code, DTC_NONE if success.
  *
  */
 int node_wait_for_message( ps_node_context *context, void **message_ptr, ps_timestamp timeout );
@@ -127,7 +127,7 @@ int node_wait_for_message( ps_node_context *context, void **message_ptr, ps_time
  *
  * @param configuration Pointer to the node's context.configuration_data.
  *
- * @return Error code, DTC_RET( DTC_NONE ) if success.
+ * @return Error code, DTC_NONE if success.
  *
  */
 int node_release_user_data( ps_node_configuration_data *configuration );
@@ -138,7 +138,7 @@ int node_release_user_data( ps_node_configuration_data *configuration );
  *
  * @param configuration Pointer to the node's context.configuration_data.
  *
- * @return Error code, DTC_RET( DTC_NONE ) if success.
+ * @return Error code, DTC_NONE if success.
  *
  */
 int node_create_user_data( ps_node_configuration_data *configuration );

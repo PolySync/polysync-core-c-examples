@@ -195,7 +195,7 @@ int main( int argc, char **argv )
 
 
 		// sleep a little
-		usleep( 100000 );
+		psync_sleep_micro( 100000 );
 	}
 
 

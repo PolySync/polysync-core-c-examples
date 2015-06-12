@@ -131,21 +131,21 @@ static int init( unsigned int stdout_enabled )
 
 
 	// init polysync
-	if( (ret = psync_init( psync_nid, node_name, stdout_enabled )) != DTC_RET( DTC_NONE ) )
+	if( (ret = psync_init( psync_nid, node_name, stdout_enabled )) != DTC_NONE )
 	{
         psync_log_message( LOG_LEVEL_ERROR, "init -- psync_init failed - dtc_code: %d", ret );
 		return ret;
 	}
 
 	// set logger packet message publishers to have RELIABLE QoS
-    if( (ret = psync_set_publisher_reliability_qos( MSG_TYPE_LOGGER_PACKET, RELIABILITY_QOS_RELIABLE )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_set_publisher_reliability_qos( MSG_TYPE_LOGGER_PACKET, RELIABILITY_QOS_RELIABLE )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "init -- psync_set_subscriber_reliability_qos - dtc_code: %d", ret );
         return ret;
     }
 
     // request message
-    if( (ret = psync_message_request_instance( MSG_TYPE_LOGGER_PACKET, (void**) &logger_packet_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_request_instance( MSG_TYPE_LOGGER_PACKET, (void**) &logger_packet_msg )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "init -- psync_message_request_instance failed - dtc_code: %d", ret );
         return ret;
@@ -153,7 +153,7 @@ static int init( unsigned int stdout_enabled )
 
 
     // get this nodes GUID
-    if( (ret = psync_get_GUID( &psync_guid )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_get_GUID( &psync_guid )) != DTC_NONE )
 	{
         psync_log_message( LOG_LEVEL_ERROR, "init -- psync_get_GUID failed - dtc_code: %d", ret );
 		return ret;
@@ -167,7 +167,7 @@ static int init( unsigned int stdout_enabled )
 	siginterrupt( SIGINT, 1 );
 
 
-	return DTC_RET( DTC_NONE );
+	return DTC_NONE;
 }
 
 
@@ -175,22 +175,22 @@ static int init( unsigned int stdout_enabled )
 static int release()
 {
 	// local vars
-    int             ret             = DTC_RET( DTC_NONE );
+    int             ret             = DTC_NONE;
 
 
     // release message
-    if( (ret = psync_message_release_instance( (void**) &logger_packet_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_release_instance( (void**) &logger_packet_msg )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "release -- psync_message_release_instance failed - dtc_code: %d", ret );
     }
 
     // release API
-    if( (ret = psync_release( 0 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_release( 0 )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "release -- psync_release failed - dtc_code: %d", ret );
     }
 
-	return DTC_RET( DTC_NONE );
+	return DTC_NONE;
 }
 
 
@@ -202,7 +202,7 @@ static int release()
 int main( int argc, char **argv )
 {
     // local vars
-    int                     ret                 = DTC_RET( DTC_NONE );
+    int                     ret                 = DTC_NONE;
 
     // flags from command line arguments
     unsigned int            stdout_enabled      = 0;
@@ -280,7 +280,7 @@ int main( int argc, char **argv )
 
 
     // init resources
-    if( (ret = init( stdout_enabled )) != DTC_RET( DTC_NONE ) )
+    if( (ret = init( stdout_enabled )) != DTC_NONE )
 	{
         psync_log_message( LOG_LEVEL_ERROR, "main -- init failed - dtc_code: %d", ret );
 		goto GRACEFUL_EXIT_STMNT;
@@ -302,7 +302,7 @@ int main( int argc, char **argv )
 
         //
         // set message data and publish command
-        if( (ret = psync_rnr_set_mode( logger_packet_msg, LOGGER_MODE_OFF, 0 )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_rnr_set_mode( logger_packet_msg, LOGGER_MODE_OFF, 0 )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "main -- psync_rnr_set_mode - dtc_code: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
@@ -321,7 +321,7 @@ int main( int argc, char **argv )
 
         //
         // set message data and publish command
-        if( (ret = psync_rnr_set_mode( logger_packet_msg, LOGGER_MODE_WRITE, session_time )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_rnr_set_mode( logger_packet_msg, LOGGER_MODE_WRITE, session_time )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "main -- psync_rnr_set_mode - dtc_code: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
@@ -329,7 +329,7 @@ int main( int argc, char **argv )
 
         //
         // let app process message
-        usleep( 10000 );
+        psync_sleep_micro( 10000 );
 
         psync_log_message( LOG_LEVEL_DEBUG, "main -- start_time: %llu", start_time );
 
@@ -359,7 +359,7 @@ int main( int argc, char **argv )
 
         //
         // set message data and publish command
-        if( (ret = psync_rnr_enable_active_mode( logger_packet_msg, 1, start_time, !start_time_is_abs )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_rnr_enable_active_mode( logger_packet_msg, 1, start_time, !start_time_is_abs )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "main -- psync_rnr_enable_active_mode - dtc_code: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
@@ -374,7 +374,7 @@ int main( int argc, char **argv )
 
         //
         // set message data and publish command
-        if( (ret = psync_rnr_set_mode( logger_packet_msg, LOGGER_MODE_REPLAY, session_time )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_rnr_set_mode( logger_packet_msg, LOGGER_MODE_REPLAY, session_time )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "main -- psync_rnr_set_mode - dtc_code: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
@@ -382,7 +382,7 @@ int main( int argc, char **argv )
 
         //
         // let app process message
-        usleep( 10000 );
+        psync_sleep_micro( 10000 );
 
         psync_log_message( LOG_LEVEL_DEBUG, "main -- start_time: %llu", start_time );
 
@@ -412,7 +412,7 @@ int main( int argc, char **argv )
 
         //
         // set message data and publish command
-        if( (ret = psync_rnr_enable_active_mode( logger_packet_msg, 1, start_time, !start_time_is_abs )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_rnr_enable_active_mode( logger_packet_msg, 1, start_time, !start_time_is_abs )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "main -- psync_rnr_enable_active_mode - dtc_code: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
@@ -434,7 +434,7 @@ int main( int argc, char **argv )
 
 
 	// release
-    if( (ret = release()) != DTC_RET( DTC_NONE ) )
+    if( (ret = release()) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- release failed - dtc_code: %d", ret );
     }

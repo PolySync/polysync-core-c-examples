@@ -113,7 +113,7 @@ static void sig_handler( int signal )
 int main( int argc, char **argv )
 {
     // polysync return status
-    int             ret = DTC_RET( DTC_NONE );
+    int             ret = DTC_NONE;
 
     // polysync node name
     const char      *node_name = "load-logfile";
@@ -157,7 +157,7 @@ int main( int argc, char **argv )
 
 
     // init core API
-    if( (ret = psync_init( PSYNC_NID_API, node_name, stdout_logging_enabled )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_init( PSYNC_NID_API, node_name, stdout_logging_enabled )) != DTC_NONE )
     {
         printf( "main -- psync_init - returned: %d\n", ret );
         return EXIT_FAILURE;
@@ -173,42 +173,42 @@ int main( int argc, char **argv )
 #endif
 
     // get this node's GUID
-    if( (ret = psync_get_GUID( &node_guid )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_get_GUID( &node_guid )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_get_GUID returned: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // init logger
-    if( (ret = psync_logfile_init( &logfile, node_name, node_guid, 0, 0 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_logfile_init( &logfile, node_name, node_guid, 0, 0 )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_logfile_init returned: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // enable the replay output queue so we can parse outgoing messages without listening to the bus
-    if( (ret = psync_logfile_enable_replay_queue( &logfile, 1 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_logfile_enable_replay_queue( &logfile, 1 )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_logfile_enable_replay_queue returned: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // set manual file name
-    if( (ret = psync_logfile_set_logfile_name( &logfile, logfile_path )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_logfile_set_logfile_name( &logfile, logfile_path )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_logfile_set_logfile_name returned: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // enable mode - starts loading logfile data - returns when entire log is loaded in memory (could take a while)
-    if( (ret = psync_logfile_update_mode( &logfile, LOGGER_MODE_REPLAY )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_logfile_update_mode( &logfile, LOGGER_MODE_REPLAY )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_logfile_update_mode returned: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // set desired state, starting replay
-    if( (ret = psync_logfile_update_state( &logfile, LOGGER_STATE_REPLAY )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_logfile_update_state( &logfile, LOGGER_STATE_REPLAY )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_logfile_update_state returned: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
@@ -237,21 +237,21 @@ int main( int argc, char **argv )
             ps_timestamp msg_timestamp = 0;
 
             // get message type
-            if( (ret = psync_message_get_type( msg, &msg_type )) != DTC_RET( DTC_NONE ) )
+            if( (ret = psync_message_get_type( msg, &msg_type )) != DTC_NONE )
             {
                 psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_get_type returned: %d", ret );
                 goto GRACEFUL_EXIT_STMNT;
             }
 
             // get message timestamp
-            if( (ret = psync_message_get_timestamp( msg, &msg_timestamp )) != DTC_RET( DTC_NONE ) )
+            if( (ret = psync_message_get_timestamp( msg, &msg_timestamp )) != DTC_NONE )
             {
                 psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_get_timestamp returned: %d", ret );
                 goto GRACEFUL_EXIT_STMNT;
             }
 
             // release the message
-            if( (ret = psync_message_release_instance( (void**) &msg )) != DTC_RET( DTC_NONE ) )
+            if( (ret = psync_message_release_instance( (void**) &msg )) != DTC_NONE )
             {
                 psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_release_instance returned: %d", ret );
                 goto GRACEFUL_EXIT_STMNT;
@@ -263,7 +263,7 @@ int main( int argc, char **argv )
 
 
         // wait a little
-        usleep( 20000 );
+        psync_sleep_micro( 20000 );
     }
 
 
@@ -276,13 +276,13 @@ GRACEFUL_EXIT_STMNT:
 
 
     // release logger
-    if( (ret = psync_logfile_release( &logfile )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_logfile_release( &logfile )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_logfile_release returned: %d", ret );
     }
 
 	// release core API
-    if( (ret = psync_release( 0 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_release( 0 )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_release returned: %d", ret );
     }

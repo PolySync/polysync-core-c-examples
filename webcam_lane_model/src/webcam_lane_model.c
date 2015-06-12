@@ -178,7 +178,7 @@ static void update_image_data( unsigned char *pixels, unsigned int width, unsign
 int main( int argc, char **argv )
 {
     // polysync return status
-    int ret = DTC_RET( DTC_NONE );
+    int ret = DTC_NONE;
     // flag to enable stdout logs in addition to the normal syslog output
     unsigned int stdout_logging_enabled = 1;
     // data flag
@@ -191,9 +191,9 @@ int main( int argc, char **argv )
 
 
     // init polysync
-    if( (ret = psync_init( psync_nid, node_name, stdout_logging_enabled )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_init( psync_nid, node_name, stdout_logging_enabled )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_init - ret: %d" );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_init - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
@@ -205,23 +205,23 @@ int main( int argc, char **argv )
 
 
     // get this node's GUID
-    if( (ret = psync_get_GUID( &psync_guid )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_get_GUID( &psync_guid )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_get_GUID - ret: %d" );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_get_GUID - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // request instance
-    if( (ret = psync_message_request_instance( MSG_TYPE_VIDEO_STREAM, (void**) &video_stream_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_request_instance( MSG_TYPE_VIDEO_STREAM, (void**) &video_stream_msg )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_request_instance - ret: %d" );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_request_instance - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // request instance
-    if( (ret = psync_message_request_instance( MSG_TYPE_LANE_MODEL, (void**) &lane_model_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_request_instance( MSG_TYPE_LANE_MODEL, (void**) &lane_model_msg )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_request_instance - ret: %d" );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_request_instance - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
@@ -234,16 +234,16 @@ int main( int argc, char **argv )
 
     // init image device handle
     // specify RGB to have the image data converted to desired format when data is ready
-    if( (ret = psync_image_device_init( &image_device_handle, image_device_name, PIXEL_FORMAT_RGB24 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_image_device_init( &image_device_handle, image_device_name, PIXEL_FORMAT_RGB24 )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_image_device_init - ret: %d" );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_image_device_init - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // init video stream encoder, using image device info
-    if( (ret = psync_video_encoder_init( &video_encoder, image_device_handle.width, image_device_handle.height, image_device_handle.video_format, COMPRESSION_PROFILE_LOW_QUALITY )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_video_encoder_init( &video_encoder, image_device_handle.width, image_device_handle.height, image_device_handle.video_format, COMPRESSION_PROFILE_LOW_QUALITY )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_encoder_init - ret: %d" );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_encoder_init - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
@@ -261,9 +261,9 @@ int main( int argc, char **argv )
 
 
     // start image device data capture
-    if( (ret = psync_image_device_start_capture( &image_device_handle )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_image_device_start_capture( &image_device_handle )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_image_device_start_capture - ret: %d" );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_image_device_start_capture - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
@@ -291,9 +291,9 @@ int main( int argc, char **argv )
 
 
         // poll for image device data
-        if( (ret = psync_image_device_poll_frame( &image_device_handle, NULL, &video_stream_msg->header.timestamp, &data_ready )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_image_device_poll_frame( &image_device_handle, NULL, &video_stream_msg->header.timestamp, &data_ready )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_image_device_poll_frame - ret: %d" );
+            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_image_device_poll_frame - ret: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
         }
 
@@ -308,9 +308,9 @@ int main( int argc, char **argv )
 
 
             // encode data
-            if( (ret = psync_video_encoder_encode_image( &video_encoder, image_device_handle.active_buffer, &data_ready )) != DTC_RET( DTC_NONE ) )
+            if( (ret = psync_video_encoder_encode_image( &video_encoder, image_device_handle.active_buffer, &data_ready )) != DTC_NONE )
             {
-                psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_encoder_encode_image - ret: %d" );
+                psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_encoder_encode_image - ret: %d", ret );
                 goto GRACEFUL_EXIT_STMNT;
             }
 
@@ -318,25 +318,25 @@ int main( int argc, char **argv )
             if( data_ready )
             {
                 // put encoded bytes in video stream message
-                if( (ret = psync_video_stream_set_data( video_stream_msg, video_encoder.buffer, data_ready )) != DTC_RET( DTC_NONE ) )
+                if( (ret = psync_video_stream_set_data( video_stream_msg, video_encoder.buffer, data_ready )) != DTC_NONE )
                 {
-                    psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_stream_set_data - ret: %d" );
+                    psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_stream_set_data - ret: %d", ret );
                     goto GRACEFUL_EXIT_STMNT;
                 }
 
                 // publish encoded video stream message
-                if( (ret = psync_message_publish_instance( (void*) video_stream_msg )) != DTC_RET( DTC_NONE ) )
+                if( (ret = psync_message_publish_instance( (void*) video_stream_msg )) != DTC_NONE )
                 {
-                    psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_publish_instance - ret: %d" );
+                    psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_publish_instance - ret: %d", ret );
                     goto GRACEFUL_EXIT_STMNT;
                 }
             }
 
 
             // publish lane model message
-            if( (ret = psync_message_publish_instance( (void*) lane_model_msg )) != DTC_RET( DTC_NONE ) )
+            if( (ret = psync_message_publish_instance( (void*) lane_model_msg )) != DTC_NONE )
             {
-                psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_publish_instance - ret: %d" );
+                psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_publish_instance - ret: %d", ret );
                 goto GRACEFUL_EXIT_STMNT;
             }
         }
@@ -344,7 +344,7 @@ int main( int argc, char **argv )
 
 
         // wait a little
-        usleep( 10000 );
+        psync_sleep_micro( 10000 );
 	}// end while
 
 
@@ -358,15 +358,15 @@ GRACEFUL_EXIT_STMNT:
     if( image_device_handle.is_init )
     {
         // stop image device data capture
-        if( (ret = psync_image_device_stop_capture( &image_device_handle )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_image_device_stop_capture( &image_device_handle )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_image_device_stop_capture - ret: %d" );
+            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_image_device_stop_capture - ret: %d", ret );
         }
 
         // release
-        if( (ret = psync_image_device_release( &image_device_handle )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_image_device_release( &image_device_handle )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_image_device_release - ret: %d" );
+            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_image_device_release - ret: %d", ret );
         }
     }
 
@@ -375,31 +375,31 @@ GRACEFUL_EXIT_STMNT:
     if( video_encoder.is_active )
     {
         // release
-        if( (ret = psync_video_encoder_release( &video_encoder )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_video_encoder_release( &video_encoder )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_encoder_release - ret: %d" );
+            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_encoder_release - ret: %d", ret );
         }
     }
 
 
     // release instance
-    if( (ret = psync_message_release_instance( (void**) &video_stream_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_release_instance( (void**) &video_stream_msg )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_release_instance - ret: %d" );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_release_instance - ret: %d", ret );
     }
 
     // release instance
-    if( (ret = psync_message_release_instance( (void**) &lane_model_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_release_instance( (void**) &lane_model_msg )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_release_instance - ret: %d" );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_release_instance - ret: %d", ret );
     }
 
 
 
     // release polysync
-    if( (ret = psync_release( 0 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_release( 0 )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_release - ret: %d" );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_release - ret: %d", ret );
     }
 
 

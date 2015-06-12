@@ -338,7 +338,7 @@ static void print_boundary_type( ps_lane_boundary_kind type )
 int main( int argc, char **argv )
 {
     // polysync return status
-    int ret = DTC_RET( DTC_NONE );
+    int ret = DTC_NONE;
 
     // polysync node name
     const char *node_name = "ex-reader";
@@ -349,7 +349,7 @@ int main( int argc, char **argv )
 
 
 	// init core API
-    if( (ret = psync_init( PSYNC_NID_API, node_name, stdout_logging_enabled )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_init( PSYNC_NID_API, node_name, stdout_logging_enabled )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_init - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
@@ -357,7 +357,7 @@ int main( int argc, char **argv )
 
     //
     // set event message subscribers to have RELIABLE QoS
-    if( (ret = psync_set_subscriber_reliability_qos( MSG_TYPE_EVENT, RELIABILITY_QOS_RELIABLE )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_set_subscriber_reliability_qos( MSG_TYPE_EVENT, RELIABILITY_QOS_RELIABLE )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_set_subscriber_reliability_qos - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
@@ -372,35 +372,35 @@ int main( int argc, char **argv )
 
 
     // register a listener for object stream messages
-    if( (ret = psync_message_register_listener( MSG_TYPE_OBJECT_STREAM, on_psync_data_ps_object_stream_msg, NULL )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_register_listener( MSG_TYPE_OBJECT_STREAM, on_psync_data_ps_object_stream_msg, NULL )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_register_listener - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // register a listener for lane model messages
-    if( (ret = psync_message_register_listener( MSG_TYPE_LANE_MODEL, on_psync_data_ps_lane_model_msg, NULL )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_register_listener( MSG_TYPE_LANE_MODEL, on_psync_data_ps_lane_model_msg, NULL )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_register_listener - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // register a listener for platform motion messages
-    if( (ret = psync_message_register_listener( MSG_TYPE_PLATFORM_MOTION, on_psync_data_ps_platform_motion_msg, NULL )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_register_listener( MSG_TYPE_PLATFORM_MOTION, on_psync_data_ps_platform_motion_msg, NULL )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_register_listener - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // register a listener for event messages
-    if( (ret = psync_message_register_listener( MSG_TYPE_EVENT, on_psync_data_ps_event_msg, NULL )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_register_listener( MSG_TYPE_EVENT, on_psync_data_ps_event_msg, NULL )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_register_listener - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // register a listener for parameter stream messages
-    if( (ret = psync_message_register_listener( MSG_TYPE_PARAMETER_STREAM, on_psync_data_ps_parameter_stream_msg, NULL )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_register_listener( MSG_TYPE_PARAMETER_STREAM, on_psync_data_ps_parameter_stream_msg, NULL )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_register_listener - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
@@ -418,7 +418,7 @@ int main( int argc, char **argv )
 
 
 		// sleep a little
-		usleep( 100000 );
+		psync_sleep_micro( 100000 );
 	}
 
 
@@ -429,7 +429,7 @@ GRACEFUL_EXIT_STMNT:
 
 
 	// release
-	if( (ret = psync_release( 0 )) != DTC_RET( DTC_NONE ) )
+	if( (ret = psync_release( 0 )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_release - ret: %d", ret );
     }
