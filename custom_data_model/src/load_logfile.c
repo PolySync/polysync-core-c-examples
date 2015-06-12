@@ -23,7 +23,7 @@
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
-#include <glib-2.0/glib/gasyncqueue.h>
+#include <glib-2.0/glib.h>
 
 // API headers
 #include "polysync_core.h"
