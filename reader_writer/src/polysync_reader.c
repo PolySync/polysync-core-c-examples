@@ -217,7 +217,7 @@ static void on_psync_data_ps_event_msg( void *usr_data, ps_msg_type msg_type, vo
     {
         printf( "PolySync\n" );
     }
-    printf( "value: %.4f\n", message->value );
+    printf( "value: %.4f\n", message->value._u.d_value );
     printf( "dest_guid: 0x%016llX\n\n", message->dest_guid );
 }
 
