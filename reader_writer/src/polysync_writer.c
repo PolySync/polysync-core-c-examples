@@ -109,16 +109,16 @@ static int get_all_supported_parameters( ps_parameter_stream_msg *msg )
     int ret = 0;
 
     // set buffer length, 1 for "get all" command
-    if( (ret = psync_message_ensure_stream_length( (void*) msg, 1 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_ensure_stream_length( (void*) msg, 1 )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "get_all_supported_parameters -- psync_message_ensure_stream_length - ret: %d", ret, ret );
+        psync_log_message( LOG_LEVEL_ERROR, "get_all_supported_parameters -- psync_message_ensure_stream_length - ret: %d", ret );
         return ret;
     }
 
     // update timestamp, not really needed by good practice
-    if( (ret = psync_get_timestamp_micro( &msg->header.timestamp )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_get_timestamp_micro( &msg->header.timestamp )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "get_all_supported_parameters -- psync_get_timestamp_micro - ret: %d", ret, ret );
+        psync_log_message( LOG_LEVEL_ERROR, "get_all_supported_parameters -- psync_get_timestamp_micro - ret: %d", ret );
         return ret;
     }
 
@@ -129,13 +129,13 @@ static int get_all_supported_parameters( ps_parameter_stream_msg *msg )
     msg->parameters._buffer[ 0 ].id = 0;
 
     // publish request
-    if( (ret = psync_message_publish_instance( (void*) msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_publish_instance( (void*) msg )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "get_all_supported_parameters -- psync_message_publish_instance - ret: %d", ret, ret );
+        psync_log_message( LOG_LEVEL_ERROR, "get_all_supported_parameters -- psync_message_publish_instance - ret: %d", ret );
         return ret;
     }
 
-    return DTC_RET( DTC_NONE );
+    return DTC_NONE;
 }
 
 
@@ -147,7 +147,7 @@ static int get_all_supported_parameters( ps_parameter_stream_msg *msg )
 int main( int argc, char **argv )
 {
     // polysync return status
-    int ret = DTC_RET( DTC_NONE );
+    int ret = DTC_NONE;
 
     // polysync node name
     const char *node_name = "ex-writer";
@@ -157,14 +157,14 @@ int main( int argc, char **argv )
 
 
 	// init core API
-    if( (ret = psync_init( PSYNC_NID_API, node_name, stdout_logging_enabled )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_init( PSYNC_NID_API, node_name, stdout_logging_enabled )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_init - ret: %d", ret, ret );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_init - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // set event message publishers to have RELIABLE QoS
-    if( (ret = psync_set_publisher_reliability_qos( MSG_TYPE_EVENT, RELIABILITY_QOS_RELIABLE )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_set_publisher_reliability_qos( MSG_TYPE_EVENT, RELIABILITY_QOS_RELIABLE )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_set_publisher_reliability_qos - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
@@ -181,35 +181,35 @@ int main( int argc, char **argv )
 
 
     // get an object message
-    if( (ret = psync_message_request_instance( MSG_TYPE_OBJECT_STREAM, (void**) &object_stream_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_request_instance( MSG_TYPE_OBJECT_STREAM, (void**) &object_stream_msg )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_request_instance - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // get a lane model message
-    if( (ret = psync_message_request_instance( MSG_TYPE_LANE_MODEL, (void**) &lane_model_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_request_instance( MSG_TYPE_LANE_MODEL, (void**) &lane_model_msg )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_request_instance - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // get an event message
-    if( (ret = psync_message_request_instance( MSG_TYPE_EVENT, (void**) &event_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_request_instance( MSG_TYPE_EVENT, (void**) &event_msg )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_request_instance - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // setup space for 2 objects
-    if( (ret = psync_message_ensure_stream_length( (void*) object_stream_msg, 2 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_ensure_stream_length( (void*) object_stream_msg, 2 )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_ensure_stream_length - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // get an parameter stream message
-    if( (ret = psync_message_request_instance( MSG_TYPE_PARAMETER_STREAM, (void**) &parameter_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_request_instance( MSG_TYPE_PARAMETER_STREAM, (void**) &parameter_msg )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_request_instance - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
@@ -218,7 +218,8 @@ int main( int argc, char **argv )
     // set object data
     object_stream_msg->sensor_descriptor.serial_number = 123;
     object_stream_msg->objects._buffer[ 0 ].classification_type = CLASSIFICATION_PEDESTRIAN;
-    object_stream_msg->objects._buffer[ 0 ].pos[ 0 ] = 10.0;
+    object_stream_msg->objects._buffer[ 0 ].pos[ 0 ] = 60.0;
+    object_stream_msg->objects._buffer[ 1 ].pos[ 1 ] = 80.0;
     object_stream_msg->objects._buffer[ 0 ].size[ 0 ] = 1.0;
     object_stream_msg->objects._buffer[ 0 ].size[ 1 ] = 1.0;
     object_stream_msg->objects._buffer[ 0 ].size[ 2 ] = 1.0;
@@ -226,9 +227,10 @@ int main( int argc, char **argv )
 
     object_stream_msg->objects._buffer[ 1 ].classification_type = CLASSIFICATION_CAR;
     object_stream_msg->objects._buffer[ 1 ].pos[ 0 ] = 25.0;
-    object_stream_msg->objects._buffer[ 1 ].size[ 0 ] = 1.0;
-    object_stream_msg->objects._buffer[ 1 ].size[ 1 ] = 1.0;
-    object_stream_msg->objects._buffer[ 1 ].size[ 2 ] = 1.0;
+    object_stream_msg->objects._buffer[ 1 ].pos[ 1 ] = 25.0;
+    object_stream_msg->objects._buffer[ 1 ].size[ 0 ] = 3.0;
+    object_stream_msg->objects._buffer[ 1 ].size[ 1 ] = 6.0;
+    object_stream_msg->objects._buffer[ 1 ].size[ 2 ] = 8.0;
     object_stream_msg->objects._buffer[ 1 ].id = 2;
 
 
@@ -270,14 +272,14 @@ int main( int argc, char **argv )
 
     // start off by publishing a command to get all parameters from all nodes
     // set the destination GUID in the parameter command to all node types
-    if( (ret = psync_set_node_type( PSYNC_NID_ALL, &parameter_msg->dest_guid )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_set_node_type( PSYNC_NID_ALL, &parameter_msg->dest_guid )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_set_node_type - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // package up and publish the parameter command
-    if( (ret = get_all_supported_parameters( parameter_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = get_all_supported_parameters( parameter_msg )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- get_all_supported_parameters - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
@@ -295,21 +297,21 @@ int main( int argc, char **argv )
 
 
         // get timestamp
-        if( (ret = psync_get_timestamp_micro( &object_stream_msg->header.timestamp )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_get_timestamp_micro( &object_stream_msg->header.timestamp )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "main -- psync_get_timestamp_micro - ret: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
         }
 
         // get timestamp
-        if( (ret = psync_get_timestamp_micro( &lane_model_msg->header.timestamp )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_get_timestamp_micro( &lane_model_msg->header.timestamp )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "main -- psync_get_timestamp_micro - ret: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
         }
 
         // get timestamp
-        if( (ret = psync_get_timestamp_micro( &event_msg->header.timestamp )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_get_timestamp_micro( &event_msg->header.timestamp )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "main -- psync_get_timestamp_micro - ret: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
@@ -317,21 +319,21 @@ int main( int argc, char **argv )
 
 
         // publish object message
-        if( (ret = psync_message_publish_instance( (void*) object_stream_msg )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_message_publish_instance( (void*) object_stream_msg )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_publish_instance - ret: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
         }
 
         // publish lane model message
-        if( (ret = psync_message_publish_instance( (void*) lane_model_msg )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_message_publish_instance( (void*) lane_model_msg )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_publish_instance - ret: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
         }
 
         // publish lane model message
-        if( (ret = psync_message_publish_instance( (void*) event_msg )) != DTC_RET( DTC_NONE ) )
+        if( (ret = psync_message_publish_instance( (void*) event_msg )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_publish_instance - ret: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
@@ -356,7 +358,7 @@ int main( int argc, char **argv )
 
 
         // wait a little
-        usleep( 20000 );
+        psync_sleep_micro( 20000 );
     }
 
 
@@ -368,25 +370,25 @@ GRACEFUL_EXIT_STMNT:
 
 
     // release object message
-    if( (ret = psync_message_release_instance( (void**) &object_stream_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_release_instance( (void**) &object_stream_msg )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_release_instance - ret: %d", ret );
     }
 
     // release lane model message
-    if( (ret = psync_message_release_instance( (void**) &lane_model_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_release_instance( (void**) &lane_model_msg )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_release_instance - ret: %d", ret );
     }
 
     // release event message
-    if( (ret = psync_message_release_instance( (void**) &event_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_release_instance( (void**) &event_msg )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_release_instance - ret: %d", ret );
     }
 
     // release event message
-    if( (ret = psync_message_release_instance( (void**) &parameter_msg )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_message_release_instance( (void**) &parameter_msg )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_release_instance - ret: %d", ret );
     }
@@ -394,7 +396,7 @@ GRACEFUL_EXIT_STMNT:
 
 
 	// release core API
-    if( (ret = psync_release( 0 )) != DTC_RET( DTC_NONE ) )
+    if( (ret = psync_release( 0 )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_release - ret: %d", ret );
     }
