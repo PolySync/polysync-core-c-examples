@@ -2,6 +2,8 @@
  * @file ps_interface.h
  * @brief PolySync Interface.
  *
+ * @todo fix docs.
+ *
  */
 
 
@@ -14,10 +16,26 @@
 
 
 #include <glib-2.0/glib.h>
-
 #include "polysync_core.h"
+
 #include "gui.h"
 
+
+
+
+
+typedef struct
+{
+    //
+    //
+    ps_node_ref node;
+    //
+    //
+    GAsyncQueue *msg_queue;
+    //
+    //
+    ps_msg_type msg_type_radar_targets;
+} node_data_s;
 
 
 
@@ -26,6 +44,13 @@
  *
  */
 extern const char       PS_NODE_NAME[];
+
+
+/**
+ * @brief PolySync radar targets message name.
+ *
+ */
+extern const char       PS_RADAR_TARGETS_MSG_NAME[];
 
 
 
@@ -38,7 +63,7 @@ extern const char       PS_NODE_NAME[];
  * @return A newly created PolySync message queue on success, NULL on failure.
  *
  */
-GAsyncQueue *init_polysync( void );
+node_data_s *init_polysync( void );
 
 
 /**
@@ -49,70 +74,7 @@ GAsyncQueue *init_polysync( void );
  * @param [in] msg_queue A pointer to GAsyncQueue which possibly contains PolySync messages.
  *
  */
-void release_polysync( GAsyncQueue * const msg_queue );
-
-
-/**
- * @brief Parse \ref ps_object_stream_msg into GUI entities.
- *
- * Adds/updates the entities list with the message data.
- *
- * @param [in] gui A pointer to \ref gui_context_s which specifies the configuration(s).
- * @param [in] msg A pointer to \ref ps_object_stream_msg which specifies the message to parse.
- * @param [in] parent_list A pointer to GList which specifies the parent entities list.
- * @param [in] update_time Update timestamp to give objects.
- *
- * @return The (possibly new) parent entities list, NULL means empty list.
- *
- */
-GList *ps_parse_push_object_stream( const gui_context_s * const gui, const ps_object_stream_msg * const msg, GList * const parent_list, const unsigned long long update_time );
-
-
-/**
- * @brief Parse \ref ps_radar_track_stream_msg into GUI entities.
- *
- * Adds/updates the entities list with the message data.
- *
- * @param [in] gui A pointer to \ref gui_context_s which specifies the configuration(s).
- * @param [in] msg A pointer to \ref ps_radar_track_stream_msg which specifies the message to parse.
- * @param [in] parent_list A pointer to GList which specifies the parent entities list.
- * @param [in] update_time Update timestamp to give objects.
- *
- * @return The (possibly new) parent entities list, NULL means empty list.
- *
- */
-GList *ps_parse_push_radar_track_stream( const gui_context_s * const gui, const ps_radar_track_stream_msg * const msg, GList * const parent_list, const unsigned long long update_time );
-
-
-/**
- * @brief Parse \ref ps_lidar_point_stream_msg into GUI entities.
- *
- * Adds/updates the entities list with the message data.
- *
- * @param [in] gui A pointer to \ref gui_context_s which specifies the configuration(s).
- * @param [in] msg A pointer to \ref ps_lidar_point_stream_msg which specifies the message to parse.
- * @param [in] parent_list A pointer to GList which specifies the parent entities list.
- * @param [in] update_time Update timestamp to give objects.
- *
- * @return The (possibly new) parent entities list, NULL means empty list.
- *
- */
-GList *ps_parse_push_lidar_point_stream( const gui_context_s * const gui, const ps_lidar_point_stream_msg * const msg, GList * const parent_list, const unsigned long long update_time );
-
-
-/**
- * @brief Parse \ref ps_platform_motion_msg into GUI entity.
- *
- * Updates platform data with message data.
- *
- * @param [in] gui A pointer to \ref gui_context_s which specifies the configuration(s).
- * @param [in] msg A pointer to \ref ps_platform_motion_msg which specifies the message to parse.
- * @param [in] platform A pointer to \ref platform_data_s which specifies the platform data to update.
- * @param [in] update_time Update timestamp to set.
- *
- */
-void ps_parse_platform_motion( const gui_context_s * const gui, const ps_platform_motion_msg * const msg, platform_data_s * const platform, const unsigned long long update_time );
-
+void release_polysync( node_data_s * const node_data );
 
 
 /**
@@ -131,7 +93,7 @@ void ps_parse_platform_motion( const gui_context_s * const gui, const ps_platfor
  * @return The (possibly new) parent entities list, NULL means empty list.
  *
  */
-GList *ps_process_message( const gui_context_s * const gui, GAsyncQueue * const msg_queue, GList * const parent_list, const unsigned long long update_time, unsigned int * const msg_read );
+GList *ps_process_message( node_data_s * const node_data, const gui_context_s * const gui, GList * const parent_list, const unsigned long long update_time, unsigned int * const msg_read );
 
 
 

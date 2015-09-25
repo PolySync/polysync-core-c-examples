@@ -298,78 +298,6 @@ static void on_key( unsigned char key, const int x, int y )
         // redraw
         glutPostRedisplay();
     }
-    else if( key == GUI_KEY_PS_OBJECTS )
-    {
-        // toggle ruler
-        global_gui_context->config.registered_ps_types[ MSG_TYPE_OBJECT_STREAM ] = !global_gui_context->config.registered_ps_types[ MSG_TYPE_OBJECT_STREAM ];
-
-        // set listener
-        if( global_gui_context->config.registered_ps_types[ MSG_TYPE_OBJECT_STREAM ] != 0 )
-        {
-            ps_register_listener( MSG_TYPE_OBJECT_STREAM, global_gui_context->msg_queue );
-        }
-        else
-        {
-            ps_unregister_listener( MSG_TYPE_OBJECT_STREAM );
-        }
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_PS_RADAR_TRACKS )
-    {
-        // toggle ruler
-        global_gui_context->config.registered_ps_types[ MSG_TYPE_RADAR_TRACK_STREAM ] = !global_gui_context->config.registered_ps_types[ MSG_TYPE_RADAR_TRACK_STREAM ];
-
-        // set listener
-        if( global_gui_context->config.registered_ps_types[ MSG_TYPE_RADAR_TRACK_STREAM ] != 0 )
-        {
-            ps_register_listener( MSG_TYPE_RADAR_TRACK_STREAM, global_gui_context->msg_queue );
-        }
-        else
-        {
-            ps_unregister_listener( MSG_TYPE_RADAR_TRACK_STREAM );
-        }
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_PS_LIDAR_POINTS )
-    {
-        // toggle ruler
-        global_gui_context->config.registered_ps_types[ MSG_TYPE_LIDAR_POINT_STREAM ] = !global_gui_context->config.registered_ps_types[ MSG_TYPE_LIDAR_POINT_STREAM ];
-
-        // set listener
-        if( global_gui_context->config.registered_ps_types[ MSG_TYPE_LIDAR_POINT_STREAM ] != 0 )
-        {
-            ps_register_listener( MSG_TYPE_LIDAR_POINT_STREAM, global_gui_context->msg_queue );
-        }
-        else
-        {
-            ps_unregister_listener( MSG_TYPE_LIDAR_POINT_STREAM );
-        }
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_PS_PLATFORM_MOTION )
-    {
-        // toggle ruler
-        global_gui_context->config.registered_ps_types[ MSG_TYPE_PLATFORM_MOTION ] = !global_gui_context->config.registered_ps_types[ MSG_TYPE_PLATFORM_MOTION ];
-
-        // set listener
-        if( global_gui_context->config.registered_ps_types[ MSG_TYPE_PLATFORM_MOTION ] != 0 )
-        {
-            ps_register_listener( MSG_TYPE_PLATFORM_MOTION, global_gui_context->msg_queue );
-        }
-        else
-        {
-            ps_unregister_listener( MSG_TYPE_PLATFORM_MOTION );
-        }
-
-        // redraw
-        glutPostRedisplay();
-    }
     else if( key == GUI_KEY_CIRCLE_VISIBLE )
     {
         // toggle visibility
@@ -390,14 +318,6 @@ static void on_key( unsigned char key, const int x, int y )
     {
         // toggle visibility
         global_gui_context->config.ellipse_visible = !global_gui_context->config.ellipse_visible;
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_POINTS_VISIBLE )
-    {
-        // toggle visibility
-        global_gui_context->config.points_visible = !global_gui_context->config.points_visible;
 
         // redraw
         glutPostRedisplay();
@@ -902,22 +822,6 @@ static void on_draw( void )
         snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_VIEW_MODE, "Toggle view mode", "BIRDSEYE" );
         render_text_2d( 5.0, text_y, string, NULL );
         text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_PS_OBJECTS, "object messages",
-                global_gui_context->config.registered_ps_types[MSG_TYPE_OBJECT_STREAM] ? "ON" : "OFF" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_PS_RADAR_TRACKS, "radar track messages",
-                global_gui_context->config.registered_ps_types[MSG_TYPE_RADAR_TRACK_STREAM] ? "ON" : "OFF" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_PS_LIDAR_POINTS, "lidar point messages",
-                global_gui_context->config.registered_ps_types[MSG_TYPE_LIDAR_POINT_STREAM] ? "ON" : "OFF" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_PS_PLATFORM_MOTION, "platform motion messages",
-                global_gui_context->config.registered_ps_types[MSG_TYPE_PLATFORM_MOTION] ? "ON" : "OFF" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
         snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_CIRCLE_VISIBLE, "radar visible",
                 global_gui_context->config.circle_visible ? "ON" : "OFF" );
         render_text_2d( 5.0, text_y, string, NULL );
@@ -928,10 +832,6 @@ static void on_draw( void )
         text_y -= text_delta;
         snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_ELLIPSE_VISIBLE, "fusion object visible",
                 global_gui_context->config.ellipse_visible ? "ON" : "OFF" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_POINTS_VISIBLE, "points visible",
-                global_gui_context->config.points_visible ? "ON" : "OFF" );
         render_text_2d( 5.0, text_y, string, NULL );
         text_y -= text_delta;
         text_y -= text_delta;

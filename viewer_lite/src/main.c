@@ -61,7 +61,7 @@ static void sig_handler( int sig );
  * @param [in] data_queue A pointer to GAsyncQueue which specifies the PolySync message queue to free. NULL is acceptable.
  *
  */
-static void release( gui_context_s * const gui, GAsyncQueue * const data_queue );
+static void release( gui_context_s * const gui, node_data_s * const node_data );
 
 
 
@@ -82,13 +82,15 @@ static void sig_handler( int sig )
 
 
 //
-static void release( gui_context_s * const gui, GAsyncQueue * const data_queue )
+static void release( gui_context_s * const gui, node_data_s * const node_data )
 {
-    // check data queue
-    if( data_queue != NULL )
+    // check node data
+    if( node_data != NULL )
     {
         // release
-        release_polysync( data_queue );
+        release_polysync( node_data );
+
+        free( node_data );
     }
 
     // check GUI
@@ -150,7 +152,7 @@ int main( int argc, char *argv[] )
 {
     // local vars
     gui_context_s   *gui            = NULL;
-    GAsyncQueue     *msg_queue      = NULL;
+    node_data_s     *node_data      = NULL;
     ps_timestamp    timestamp       = 0;
     ps_timestamp    time_to_draw    = 0;
     size_t          sleep_tick      = 0;
@@ -164,10 +166,10 @@ int main( int argc, char *argv[] )
     siginterrupt( SIGINT, 1 );
 
     // init PolySync
-    if( (msg_queue = init_polysync()) == NULL )
+    if( (node_data = init_polysync()) == NULL )
     {
         printf( "failed to initialize PolySync\n" );
-        release( gui, msg_queue );
+        release( gui, node_data );
         return EXIT_FAILURE;
     }
 
@@ -175,18 +177,9 @@ int main( int argc, char *argv[] )
     if( (gui = gui_init( PS_NODE_NAME, GUI_DEFAULT_WIDTH, GUI_DEFAULT_HEIGHT, GUI_DEFAULT_GRID_SCALE )) == NULL )
     {
         printf( "failed to initialize GUI\n" );
-        release( gui, msg_queue );
+        release( gui, node_data );
         return EXIT_FAILURE;
     }
-
-    // set message queue
-    gui->msg_queue = msg_queue;
-
-    // set initial types
-    gui->config.registered_ps_types[ MSG_TYPE_OBJECT_STREAM ] = 1;
-    gui->config.registered_ps_types[ MSG_TYPE_RADAR_TRACK_STREAM ] = 1;
-    gui->config.registered_ps_types[ MSG_TYPE_LIDAR_POINT_STREAM ] = 1;
-    gui->config.registered_ps_types[ MSG_TYPE_PLATFORM_MOTION ] = 1;
 
     // main event loop
     while( 1 )
@@ -198,7 +191,7 @@ int main( int argc, char *argv[] )
         // check for an exit signal
         if( global_exit_signal != 0 )
         {
-            release( gui, msg_queue );
+            release( gui, node_data );
             return EXIT_SUCCESS;
         }
 
@@ -206,10 +199,10 @@ int main( int argc, char *argv[] )
         timestamp = get_micro_tick();
 
         // check and process message queue
-        gui->entity_list = ps_process_message( gui, msg_queue, gui->entity_list, timestamp, &msg_read );
+        gui->entity_list = ps_process_message( node_data, gui, gui->entity_list, timestamp, &msg_read );
 
         // if message processed
-        if( msg_read )
+        if( msg_read != 0 )
         {
             // reset ticker
             sleep_tick = 0;
@@ -248,7 +241,7 @@ int main( int argc, char *argv[] )
     // shouldn't get here
 
     // release
-    release( gui, msg_queue );
+    release( gui, node_data );
 
 
     // exit

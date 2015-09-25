@@ -30,13 +30,6 @@ include $(PSYNC_HOME)/build_res.mk
 # compiler
 CC = gcc
 
-# base target compiler flags, provided by build_res.mk for now
-#CCFLAGS += -Wall -std=gnu99
-#CCFLAGS += -Wextra \
-#          -Wformat=2 -Wno-unused-parameter -Wshadow \
-#          -Wwrite-strings -Wstrict-prototypes -Wold-style-definition \
-#          -Wnested-externs -Wmissing-include-dirs
-
 # include GL EXT
 CCFLAGS += -DGL_GLEXT_PROTOTYPES -DGLX_GLXEXT_PROTOTYPES
 
@@ -44,7 +37,7 @@ CCFLAGS += -DGL_GLEXT_PROTOTYPES -DGLX_GLXEXT_PROTOTYPES
 INCLUDE	+= -Iinclude
 
 # libraries
-LIBS	+= -lglut -lGLU -lGL -lX11 -lm
+LIBS	+= -lglut -lGLU -lGL -lX11 -lm -lpolysync_data_model
 
 #
 all: dirs $(TARGET)
@@ -79,16 +72,8 @@ docs: dirs
 	cd doc/latex && make clean && make && cp refman.pdf ../pdf/refman.pdf
 
 #
-point-gen:
-	$(CC) $(INCLUDE) $(CCFLAGS) -o bin/$@ tools/point_gen.c $(LIBS)
-
-#
-obj-gen:
-	$(CC) $(INCLUDE) $(CCFLAGS) -o bin/$@ tools/obj_gen.c $(LIBS)
-
-#
-track-gen:
-	$(CC) $(INCLUDE) $(CCFLAGS) -o bin/$@ tools/track_gen.c $(LIBS)
+radar-target-gen:
+	$(CC) $(INCLUDE) $(CCFLAGS) -o bin/$@ tools/radar_target_gen.c $(LIBS)
 
 #
 clean:

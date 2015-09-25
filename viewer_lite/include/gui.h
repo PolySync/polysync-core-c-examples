@@ -14,9 +14,9 @@
 
 
 #include <glib-2.0/glib.h>
-#include <signal.h>
-
+//#include <signal.h>
 #include "polysync_core.h"
+
 #include "gl_headers.h"
 #include "drawable_type.h"
 
@@ -87,41 +87,6 @@
 
 
 /**
- * @brief Toggle fusion object rectangles key.
- *
- */
-//#define         GUI_KEY_FUSION_RECT_MODE  	'o'
-
-
-/**
- * @brief Toggle object message listener key.
- *
- */
-#define         GUI_KEY_PS_OBJECTS          '1'
-
-
-/**
- * @brief Toggle radar track message listener key.
- *
- */
-#define         GUI_KEY_PS_RADAR_TRACKS     '2'
-
-
-/**
- * @brief Toggle lidar point message listener key.
- *
- */
-#define         GUI_KEY_PS_LIDAR_POINTS     '3'
-
-
-/**
- * @brief Toggle platform motion message listener key.
- *
- */
-#define         GUI_KEY_PS_PLATFORM_MOTION  '4'
-
-
-/**
  * @brief Toggle circle primitive visibility key.
  *
  */
@@ -140,13 +105,6 @@
  *
  */
 #define         GUI_KEY_ELLIPSE_VISIBLE     '7'
-
-
-/**
- * @brief Toggle points visibility key.
- *
- */
-#define         GUI_KEY_POINTS_VISIBLE      '6'
 
 
 /**
@@ -271,9 +229,6 @@ typedef struct
     //
     //
     GLdouble                    view_pos[3]; /*!< Position of the viewing center. [xyz] */
-    //
-    //
-    unsigned long               registered_ps_types[1024]; /*!< List of registered type flags. ie list[MSG_TYPE_OBJECT_STREAM] = 1 if enabled. */
 } gui_configuration_s;
 
 
@@ -341,9 +296,6 @@ typedef struct
     //
     //
     GList                       *entity_list; /*!< GList of on-bus parent entities and their children (\ref object_container_parent_s). */
-    //
-    //
-    GAsyncQueue                 *msg_queue; /*!< Asynchronous PolySync message queue. */
 } gui_context_s;
 
 
