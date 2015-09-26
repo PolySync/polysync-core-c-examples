@@ -1,6 +1,0 @@
-feedgnuplot can be obtained from:
-https://github.com/dkogan/feedgnuplot
-
-See the machine's syslog (/var/log/syslog) for logging messages.
-
-Requires gnuplot: sudo apt-get install gnuplot gnuplot-x11
