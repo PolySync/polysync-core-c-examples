@@ -60,11 +60,11 @@ $(TARGET): $(OBJS)
 
 #
 $(OBJS): %.o: %.c %.dep
-	$(CC) $(INCLUDE) $(CCFLAGS) -o $@ -c $<
+	$(CC) $(CCFLAGS) $(INCLUDE) -o $@ -c $<
 
 #
 $(DEPS): %.dep: %.c Makefile
-	$(CC) $(INCLUDE) $(CCFLAGS) -MM $< > $@
+	$(CC) $(CCFLAGS) $(INCLUDE) -MM $< > $@
 
 #
 docs: dirs
@@ -73,7 +73,7 @@ docs: dirs
 
 #
 radar-target-gen:
-	$(CC) $(INCLUDE) $(CCFLAGS) -o bin/$@ tools/radar_target_gen.c $(LIBS)
+	$(CC) $(CCFLAGS) $(INCLUDE) -o bin/$@ tools/radar_target_gen.c $(LIBS)
 
 #
 clean:

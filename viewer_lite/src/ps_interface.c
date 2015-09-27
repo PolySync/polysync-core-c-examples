@@ -109,24 +109,31 @@ static GList *ps_parse_push_radar_targets( const gui_context_s * const gui, cons
 // *****************************************************
 
 //
-static double db_to_cross_section( const double db )
+static double clamp_cross_section( const double cs )
 {
-    // cross section (m^2) = 10 ^ (db/10)
-    double rcs = pow( 10, (db/10.0) );
-
-    // cap
-    if( rcs < 1.5 )
+    // clamp
+    if( cs < 1.5 )
     {
         return 1.5;
     }
-    else if( rcs > 25.0 )
+    else if( cs > 20.0 )
     {
-        return 25.0;
+        return 20.0;
     }
     else
     {
-        return rcs;
+        return cs;
     }
+}
+
+//
+static double db_to_cross_section( const double db )
+{
+    // cross section (m^2) = 10 ^ (db/10)
+    double rcs_sqrt = sqrt( pow( 10, (db/10.0) ) );
+
+    // clamp
+    return clamp_cross_section( rcs_sqrt );
 }
 
 
@@ -240,7 +247,7 @@ static GList *ps_parse_push_radar_targets( const gui_context_s * const gui, cons
         object.container_id = (unsigned long long) msg->sensor_descriptor.id;
 
         // timeout interval
-        object.timeout_interval = DEFAULT_OBJECT_TIMEOUT;
+        object.timeout_interval = 230000;
 
         // update time
         object.update_time = update_time;
@@ -251,11 +258,20 @@ static GList *ps_parse_push_radar_targets( const gui_context_s * const gui, cons
         // default radius
         object.radius = 1.25;
 
-        // adjusted radius = half the cross section
-//        object.adjusted_radius = db_to_cross_section( target->amplitude );
-//        object.adjusted_radius /= 2.0;
-#warning "todo fix radar amplitude"
-        object.adjusted_radius = 0.3;
+        // if amplitude provided
+        if( target->cross_section != PSYNC_RADAR_CROSS_SECTION_NOT_AVAILABLE )
+        {
+            // use rcs
+            object.adjusted_radius = clamp_cross_section( sqrt( target->cross_section ) );
+        }
+        else if( target->amplitude != PSYNC_AMPLITUDE_NOT_AVAILABLE )
+        {
+            object.adjusted_radius = db_to_cross_section( target->amplitude );
+        }
+        else
+        {
+            object.adjusted_radius = 0.3;
+        }
 
         // position x,y,z
         object.x = target->position[ 0 ];
@@ -263,14 +279,32 @@ static GList *ps_parse_push_radar_targets( const gui_context_s * const gui, cons
         object.z = target->position[ 2 ];
 
         // size x,y,z
-        object.length = target->size[ 0 ];
-        object.width = target->size[ 1 ];
-        object.height = target->size[ 2 ];
+        if( target->size[ 0 ] != PSYNC_SIZE_NOT_AVAILABLE )
+        {
+            object.length = target->size[ 0 ];
+        }
+        if( target->size[ 1 ] != PSYNC_SIZE_NOT_AVAILABLE )
+        {
+            object.width = target->size[ 1 ];
+        }
+        if( target->size[ 2 ] != PSYNC_SIZE_NOT_AVAILABLE )
+        {
+            object.height = target->size[ 2 ];
+        }
 
         // velocity  x,y,z
-        object.vx = target->velocity[ 0 ];
-        object.vy = target->velocity[ 1 ];
-        object.vz = target->velocity[ 2 ];
+        if( target->velocity[ 0 ] != PSYNC_VELOCITY_NOT_AVAILABLE )
+        {
+            object.vx = target->velocity[ 0 ];
+        }
+        if( target->velocity[ 1 ] != PSYNC_VELOCITY_NOT_AVAILABLE )
+        {
+            object.vy = target->velocity[ 1 ];
+        }
+        if( target->velocity[ 2 ] != PSYNC_VELOCITY_NOT_AVAILABLE )
+        {
+            object.vz = target->velocity[ 2 ];
+        }
 
         // add/update list with object
         list = entity_object_update_copy( list, object.parent_id, object.container_id, &object );

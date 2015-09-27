@@ -1,46 +1,54 @@
 ##########################################################
-#
+# makefile for rnr-control
 ##########################################################
 
-TARGET  := rnr-control
-SRCS    := src/rnr_control.c
-OBJS    := ${SRCS:.c=.o}
-DEPS    := ${SRCS:.c=.dep}
-XDEPS   := $(wildcard ${DEPS})
+# target
+TARGET	:= bin/rnr-control
+
+# sources
+SRCS    :=  src/rnr_control.c
+
+# object files, dep files
+OBJS    := $(SRCS:.c=.o)
+DEPS    := $(SRCS:.c=.dep)
+XDEPS   := $(wildcard $(DEPS))
+
+# PolySync, defaults to x86_64.linux
+PSYNC_HOME ?= /usr/local/polysync
+OSPL_HOME ?= $(PSYNC_HOME)/util/x86_64.linux
+include $(PSYNC_HOME)/build_res.mk
+
+# compiler
+CC = gcc
 
 #
-CC      = gcc
+all: dirs $(TARGET)
 
 #
-include ${PSYNC_HOME}/build_res.mk
-
-
-
-.PHONY: all clean install uninstall
-all: ${TARGET}
-
-ifneq (${XDEPS},)
-include ${XDEPS}
+ifneq ($(XDEPS),)
+include $(XDEPS)
 endif
 
-${TARGET}: ${OBJS}
-	${CC} ${LDFLAGS} -o $@ $^ ${INCLUDE} ${LIBS}
-	-mkdir -p bin
-	-mv ${TARGET} bin/${TARGET}
+# directories
+dirs::
+	mkdir -p bin
 
-${OBJS}: %.o: %.c %.dep
-	${CC} ${INCLUDE} ${CCFLAGS} -o $@ -c $<
+#
+$(TARGET): $(OBJS)
+	$(CC) $(LDFLAGS) $(INCLUDE) -o $@ $^ $(LIBS)
 
-${DEPS}: %.dep: %.c Makefile
-	${CC} ${INCLUDE} ${CCFLAGS} -MM $< > $@
+#
+$(OBJS): %.o: %.c %.dep
+	$(CC) $(CCFLAGS) $(INCLUDE) -o $@ -c $<
 
-clean::
-	-rm -f src/*.o src/*.dep bin/${TARGET}
-	-rm -f ospl-*.log
+#
+$(DEPS): %.dep: %.c Makefile
+	$(CC) $(CCFLAGS) $(INCLUDE) -MM $< > $@
 
-install: ${TARGET}
-	-cp bin/${TARGET} ${PSYNC_HOME}/bin/${TARGET}
-
-uninstall::
-	-rm -f ${PSYNC_HOME}/bin/${TARGET}
-
+#
+clean:
+	-rm -f src/*.o
+	-rm -f src/*.dep
+	-rm -f $(TARGET)
+	-rm -f bin/*
+	-rm -rf ospl-*.log
