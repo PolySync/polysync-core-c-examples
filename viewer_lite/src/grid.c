@@ -63,7 +63,7 @@ void grid_draw_cartesian( const gui_context_s * const gui, const double range, c
     glColor4d( 0.4, 0.4, 0.4, 0.5 );
 
     // line width
-    glLineWidth( 0.15f );
+    glLineWidth( 1.1f );
 
     // start lines
     glBegin( GL_LINES );
@@ -100,7 +100,7 @@ void grid_draw_radial( const gui_context_s * const gui, const double range, cons
     glColor4d( 0.4, 0.4, 0.4, 0.5 );
 
     // line width
-    glLineWidth( 0.15f );
+    glLineWidth( 1.1f );
 
     // for each radial
     for( val = step; val <= range; val += step )

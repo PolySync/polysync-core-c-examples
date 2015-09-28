@@ -153,7 +153,7 @@
  * @brief Default line width. [meters]
  *
  */
-#define         GUI_DEFAULT_LINE_WIDTH      (1.0)
+#define         GUI_DEFAULT_LINE_WIDTH      (1.1)
 
 
 /**

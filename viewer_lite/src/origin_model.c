@@ -82,7 +82,7 @@ void origin_model_draw( const gui_context_s * const gui, const platform_data_s *
     glColor4d( 0.5, 0.5, 0.5, 0.8 );
 
     // line width
-    glLineWidth( 0.5f );
+    glLineWidth( 1.1f );
 
     // draw vertical origin line
     glVertex2d( -platform->length/2.0, 0.0 );

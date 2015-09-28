@@ -735,6 +735,9 @@ static void on_draw( void )
     // set default point size
     glPointSize( 1.0f );
 
+    // enable blending
+    glEnable( GL_BLEND );
+
     // check view mode
     if( global_gui_context->config.view_mode == VIEW_MODE_BIRDSEYE )
     {
@@ -759,8 +762,97 @@ static void on_draw( void )
     }
 
     //
+    // setup coordinate system
+    //
+
+    // get into view mode's coordinate system
+    glMatrixMode( GL_PROJECTION );
+    glLoadIdentity();
+    if( global_gui_context->config.view_mode == VIEW_MODE_BIRDSEYE )
+    {
+        // 2D ortho
+        gluOrtho2D( -width/2.0, width/2.0, -height/2.0, height/2.0 );
+    }
+    else if( global_gui_context->config.view_mode == VIEW_MODE_PERSPECTIVE )
+    {
+        // 3D perspective
+        gluPerspective( 60.0, width / height, 1.0, 228.0 );
+    }
+    else if( global_gui_context->config.view_mode == VIEW_MODE_SIDE )
+    {
+        // 2D ortho
+        gluOrtho2D( -width/2.0, width/2.0, -height/2.0, height/2.0 );
+    }
+    else
+    {
+        // default 2D ortho
+        gluOrtho2D( -width/2.0, width/2.0, -height/2.0, height/2.0 );
+    }
+    glMatrixMode( GL_MODELVIEW );
+    glLoadIdentity();
+
+    // save state
+    glPushMatrix();
+
+    // rotate 90 degrees counter clockwise to get into PolySync coordinates
+    glRotated( 90.0, 0.0, 0.0, 1.0 );
+
+    // apply zoom scale and translation
+    if( global_gui_context->config.view_mode == VIEW_MODE_BIRDSEYE )
+    {
+        // scale
+        glScaled( global_gui_context->config.zoom_scale, global_gui_context->config.zoom_scale, 1.0 );
+
+        // translate
+        glTranslated( -global_gui_context->config.camera_pos[ 0 ], -global_gui_context->config.camera_pos[ 1 ], 0.0 );
+    }
+
+    // save state
+    glPushMatrix();
+
+    //
+    // rendering, order defines the depth test
+    //
+
+    // disable blending
+    glDisable( GL_BLEND );
+
+    // draw ground plane
+    ground_plane_draw( global_gui_context, 0.01, 0.01, 0.01 );
+
+    // draw cartesian grid
+    grid_draw_cartesian( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
+
+    // draw radial grid
+    grid_draw_radial( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
+
+    // draw origin model
+    origin_model_draw( global_gui_context, &global_gui_context->platform );
+
+    // draw entities
+    entity_draw_all( global_gui_context, global_gui_context->entity_list );
+
+    // draw ruler
+    if( global_gui_context->config.ruler != 0 )
+    {
+        ruler_draw( global_gui_context, &global_gui_context->ruler );
+    }
+
+    // restore state from zoom/translation
+    glPopMatrix();
+
+    // restore state from rotation
+    glPopMatrix();
+
+    //
     // draw screen text
     //
+
+    // disable blending
+    glDisable( GL_BLEND );
+
+    // text color
+    glColor4d( 1.0, 1.0, 1.0, 1.0 );
 
     // set screen coordinate system
     glMatrixMode( GL_PROJECTION );
@@ -867,86 +959,6 @@ static void on_draw( void )
         render_text_2d( 5.0, 30.0, global_gui_context->ruler.p2_string, NULL );
         render_text_2d( 5.0, 50.0, global_gui_context->ruler.distance_string, NULL );
     }
-
-    //
-    // setup coordinate system
-    //
-
-    // get into view mode's coordinate system
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
-    if( global_gui_context->config.view_mode == VIEW_MODE_BIRDSEYE )
-    {
-        // 2D ortho
-        gluOrtho2D( -width/2.0, width/2.0, -height/2.0, height/2.0 );
-    }
-    else if( global_gui_context->config.view_mode == VIEW_MODE_PERSPECTIVE )
-    {
-        // 3D perspective
-        gluPerspective( 60.0, width / height, 1.0, 228.0 );
-    }
-    else if( global_gui_context->config.view_mode == VIEW_MODE_SIDE )
-    {
-        // 2D ortho
-        gluOrtho2D( -width/2.0, width/2.0, -height/2.0, height/2.0 );
-    }
-    else
-    {
-        // default 2D ortho
-        gluOrtho2D( -width/2.0, width/2.0, -height/2.0, height/2.0 );
-    }
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
-
-    // save state
-    glPushMatrix();
-
-    // rotate 90 degrees counter clockwise to get into PolySync coordinates
-    glRotated( 90.0, 0.0, 0.0, 1.0 );
-
-    // apply zoom scale and translation
-    if( global_gui_context->config.view_mode == VIEW_MODE_BIRDSEYE )
-    {
-        // scale
-        glScaled( global_gui_context->config.zoom_scale, global_gui_context->config.zoom_scale, 1.0 );
-
-        // translate
-        glTranslated( -global_gui_context->config.camera_pos[ 0 ], -global_gui_context->config.camera_pos[ 1 ], 0.0 );
-    }
-
-    // save state
-    glPushMatrix();
-
-    //
-    // rendering, order is reversed
-    //
-
-    // draw ruler
-    if( global_gui_context->config.ruler != 0 )
-    {
-        ruler_draw( global_gui_context, &global_gui_context->ruler );
-    }
-
-    // draw entities
-    entity_draw_all( global_gui_context, global_gui_context->entity_list );
-
-    // draw origin model
-    origin_model_draw( global_gui_context, &global_gui_context->platform );
-
-    // draw radial grid
-    grid_draw_radial( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
-
-    // draw cartesian grid
-    grid_draw_cartesian( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
-
-    // draw ground plane
-    ground_plane_draw( global_gui_context, 0.01, 0.01, 0.01 );
-
-    // restore state from zoom/translation
-    glPopMatrix();
-
-    // restore state from rotation
-    glPopMatrix();
 
     // swap buffers
     glutSwapBuffers();
@@ -1058,10 +1070,10 @@ gui_context_s *gui_init( const char *win_title, const unsigned int win_width, co
     glutDisplayFunc( on_draw );
 
     // set config flags
-    glEnable( GL_DEPTH );
+    glDisable( GL_DEPTH );
     glDisable( GL_LIGHTING );
     glShadeModel( GL_SMOOTH );
-    glEnable( GL_DEPTH_TEST );
+    glDisable( GL_DEPTH_TEST );
 
     // smoothness
     glEnable( GL_LINE_SMOOTH );
