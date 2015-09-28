@@ -2,6 +2,12 @@
 # makefile for rnr-control
 ##########################################################
 
+
+# source PolySync environment if not already done, assumes x86_64 if set here
+# usually, the environment has these set
+PSYNC_HOME ?= /usr/local/polysync
+OSPL_HOME ?= $(PSYNC_HOME)/util/x86_64.linux
+
 # target
 TARGET	:= bin/rnr-control
 
@@ -13,9 +19,7 @@ OBJS    := $(SRCS:.c=.o)
 DEPS    := $(SRCS:.c=.dep)
 XDEPS   := $(wildcard $(DEPS))
 
-# PolySync, defaults to x86_64.linux
-PSYNC_HOME ?= /usr/local/polysync
-OSPL_HOME ?= $(PSYNC_HOME)/util/x86_64.linux
+# get standard PolySync build resources
 include $(PSYNC_HOME)/build_res.mk
 
 # compiler
@@ -44,6 +48,10 @@ $(OBJS): %.o: %.c %.dep
 #
 $(DEPS): %.dep: %.c Makefile
 	$(CC) $(CCFLAGS) $(INCLUDE) -MM $< > $@
+
+# install to system
+install: all
+	cp $(TARGET) $(PSYNC_HOME)/bin/
 
 #
 clean:

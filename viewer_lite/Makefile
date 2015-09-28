@@ -2,6 +2,12 @@
 # makefile for viewer-lite
 ##########################################################
 
+
+# source PolySync environment if not already done, assumes x86_64 if set here
+# usually, the environment has these set
+PSYNC_HOME ?= /usr/local/polysync
+OSPL_HOME ?= $(PSYNC_HOME)/util/x86_64.linux
+
 # target
 TARGET	:= bin/viewer-lite
 
@@ -22,9 +28,7 @@ OBJS    := $(SRCS:.c=.o)
 DEPS    := $(SRCS:.c=.dep)
 XDEPS   := $(wildcard $(DEPS))
 
-# PolySync, defaults to x86_64.linux
-PSYNC_HOME ?= /usr/local/polysync
-OSPL_HOME ?= $(PSYNC_HOME)/util/x86_64.linux
+# get standard PolySync build resources
 include $(PSYNC_HOME)/build_res.mk
 
 # compiler
@@ -74,6 +78,10 @@ docs: dirs
 #
 radar-target-gen:
 	$(CC) $(CCFLAGS) $(INCLUDE) -o bin/$@ tools/radar_target_gen.c $(LIBS)
+
+# install to system
+install: all
+	cp $(TARGET) $(PSYNC_HOME)/bin/
 
 #
 clean:
