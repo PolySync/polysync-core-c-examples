@@ -188,7 +188,7 @@ static void psync_default_handler( const ps_msg_type msg_type, const ps_msg_ref 
     }
 
     // get an instance
-    if( psync_message_request_instance( node_data->node, msg_type, &msg_copy ) != DTC_NONE )
+    if( psync_message_alloc( node_data->node, msg_type, &msg_copy ) != DTC_NONE )
     {
         return;
     }
@@ -426,7 +426,7 @@ void release_polysync( node_data_s * const node_data )
         while( (msg = g_async_queue_try_pop( node_data->msg_queue )) != NULL )
         {
             // release message
-            (void) psync_message_release_instance( node_data->node, &msg );
+            (void) psync_message_free( node_data->node, &msg );
         }
 
         // unref
@@ -482,7 +482,7 @@ GList *ps_process_message( node_data_s * const node_data, const gui_context_s * 
         }
 
         // release
-        (void) psync_message_release_instance( node_data->node, &msg );
+        (void) psync_message_free( node_data->node, &msg );
     }
 
 

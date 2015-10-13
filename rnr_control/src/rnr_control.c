@@ -174,9 +174,9 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
     }
 
     // get instance of RnR message
-    if( (ret = psync_message_request_instance( node_ref, rnr_msg_type, &msg )) != DTC_NONE )
+    if( (ret = psync_message_alloc( node_ref, rnr_msg_type, &msg )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_request_instance returned: %d\n", __LINE__, ret );
+        psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_alloc returned: %d\n", __LINE__, ret );
         return;
     }
 
@@ -192,15 +192,15 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         if( (ret = psync_rnr_fill_logfile_set_mode( node_ref, LOGFILE_MODE_OFF, PSYNC_RNR_SESSION_ID_INVALID, rnr_msg )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_rnr_fill_logfile_set_mode returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
         // publish command
-        if( (ret = psync_message_publish_instance( node_ref, msg )) != DTC_NONE )
+        if( (ret = psync_message_publish( node_ref, msg )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish_instance returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish returned: %d\n", __LINE__, ret );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
     }
@@ -210,7 +210,7 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         if( session_id == PSYNC_RNR_SESSION_ID_INVALID )
         {
             psync_log_message( LOG_LEVEL_ERROR, "(%u) : invalid session identifier, expects a positive integer", __LINE__ );
-            (void) psync_message_release_instance( node_ref, &msg );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
@@ -218,15 +218,15 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         if( (ret = psync_rnr_fill_logfile_set_mode( node_ref, LOGFILE_MODE_OFF, PSYNC_RNR_SESSION_ID_INVALID, rnr_msg )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_rnr_fill_logfile_set_mode returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
         // publish command
-        if( (ret = psync_message_publish_instance( node_ref, msg )) != DTC_NONE )
+        if( (ret = psync_message_publish( node_ref, msg )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish_instance returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish returned: %d\n", __LINE__, ret );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
@@ -240,15 +240,15 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         if( (ret = psync_rnr_fill_logfile_set_mode( node_ref, LOGFILE_MODE_WRITE, session_id, rnr_msg )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_rnr_fill_logfile_set_mode returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
         // publish command
-        if( (ret = psync_message_publish_instance( node_ref, msg )) != DTC_NONE )
+        if( (ret = psync_message_publish( node_ref, msg )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish_instance returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish returned: %d\n", __LINE__, ret );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
@@ -259,15 +259,15 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         if( (ret = psync_rnr_fill_logfile_set_state( node_ref, LOGFILE_STATE_ENABLED, start_time, rnr_msg )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_rnr_fill_logfile_set_state returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
         // publish command
-        if( (ret = psync_message_publish_instance( node_ref, msg )) != DTC_NONE )
+        if( (ret = psync_message_publish( node_ref, msg )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish_instance returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish returned: %d\n", __LINE__, ret );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
     }
@@ -279,7 +279,7 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         if( session_id == PSYNC_RNR_SESSION_ID_INVALID )
         {
             psync_log_message( LOG_LEVEL_ERROR, "(%u) : invalid session identifier, expects a positive integer", __LINE__ );
-            (void) psync_message_release_instance( node_ref, &msg );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
@@ -287,15 +287,15 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         if( (ret = psync_rnr_fill_logfile_set_mode( node_ref, LOGFILE_MODE_OFF, PSYNC_RNR_SESSION_ID_INVALID, rnr_msg )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_rnr_fill_logfile_set_mode returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
         // publish command
-        if( (ret = psync_message_publish_instance( node_ref, msg )) != DTC_NONE )
+        if( (ret = psync_message_publish( node_ref, msg )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish_instance returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish returned: %d\n", __LINE__, ret );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
@@ -309,15 +309,15 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         if( (ret = psync_rnr_fill_logfile_set_mode( node_ref, LOGFILE_MODE_READ, session_id, rnr_msg )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_rnr_fill_logfile_set_mode returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
         // publish command
-        if( (ret = psync_message_publish_instance( node_ref, msg )) != DTC_NONE )
+        if( (ret = psync_message_publish( node_ref, msg )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish_instance returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish returned: %d\n", __LINE__, ret );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
@@ -328,22 +328,22 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         if( (ret = psync_rnr_fill_logfile_set_state( node_ref, LOGFILE_STATE_ENABLED, start_time, rnr_msg )) != DTC_NONE )
         {
             psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_rnr_fill_logfile_set_state returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
 
         // publish command
-        if( (ret = psync_message_publish_instance( node_ref, msg )) != DTC_NONE )
+        if( (ret = psync_message_publish( node_ref, msg )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish_instance returned: %d\n", __LINE__, ret );
-            (void) psync_message_release_instance( node_ref, &msg );
+            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_message_publish returned: %d\n", __LINE__, ret );
+            (void) psync_message_free( node_ref, &msg );
             return;
         }
     }
 
 
     // release message instance
-    (void) psync_message_release_instance( node_ref, &msg );
+    (void) psync_message_free( node_ref, &msg );
 }
 
 

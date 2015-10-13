@@ -108,9 +108,9 @@ int main( int argc, char **argv )
     }
 
 
-    if( (ret = psync_message_request_instance( node_ref, radar_targets_msg_type, &msg )) != DTC_NONE )
+    if( (ret = psync_message_alloc( node_ref, radar_targets_msg_type, &msg )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_request_instance - ret: %d", ret );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_alloc - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
@@ -165,9 +165,9 @@ int main( int argc, char **argv )
             goto GRACEFUL_EXIT_STMNT;
         }
 
-        if( (ret = psync_message_publish_instance( node_ref, msg )) != DTC_NONE )
+        if( (ret = psync_message_publish( node_ref, msg )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_publish_instance - ret: %d", ret );
+            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_message_publish - ret: %d", ret );
             goto GRACEFUL_EXIT_STMNT;
         }
 
@@ -182,7 +182,7 @@ GRACEFUL_EXIT_STMNT:
     exit_signaled = 1;
 
 
-    (void) psync_message_release_instance( node_ref, &msg );
+    (void) psync_message_free( node_ref, &msg );
 
 	// release core API
     if( (ret = psync_release( &node_ref, 0 )) != DTC_NONE )
