@@ -9,6 +9,8 @@
  */
 
 
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -27,6 +29,7 @@
 // *****************************************************
 // static global data
 // *****************************************************
+
 
 /**
  * @brief Flag indicating exit signal was caught.
@@ -62,6 +65,7 @@ static const char NODE_NAME[] = "rnr-control";
 // static declarations
 // *****************************************************
 
+
 /**
  * @brief Signal handler.
  *
@@ -74,6 +78,7 @@ static void sig_handler( int signal );
 // *****************************************************
 // static definitions
 // *****************************************************
+
 
 //
 static void sig_handler( int sig )
@@ -394,15 +399,15 @@ int main( int argc, char **argv )
         else if( optret == GETOP_NOARG_FLAG )
         {
             printf( "invalid usage, check help\n" );
-            return 1;
+            return EXIT_FAILURE;
         }
     }
 
 	// init core API
-    if( (ret = psync_init( NODE_NAME, PSYNC_NODE_TYPE_API_USER, PSYNC_DEFAULT_DOMAIN, PSYNC_SDF_KEY_INVALID, 0, &node_ref )) != DTC_NONE )
+    if( (ret = psync_init( NODE_NAME, PSYNC_NODE_TYPE_API_USER, PSYNC_DEFAULT_DOMAIN, PSYNC_SDF_KEY_INVALID, PSYNC_INIT_FLAG_STDOUT_LOGGING, &node_ref )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_init - ret: %d", ret );
-        return 1;
+        return EXIT_FAILURE;
     }
 
     // nodes typically should shutdown after handling SIGINT
@@ -422,5 +427,5 @@ int main( int argc, char **argv )
     }
 
 
-	return 0;
+	return EXIT_SUCCESS;
 }
