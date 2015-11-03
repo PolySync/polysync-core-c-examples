@@ -173,6 +173,7 @@ static void ps_parameters_msg__handler( const ps_msg_type msg_type, const ps_msg
         printf( "- [%lu]\n", idx );
         printf( "    ID: 0x%llX (%llu)\n", (unsigned long long) param->id, (unsigned long long) param->id );
         printf( "    description: '%s'\n", param->description._buffer );
+        printf( "    value type: %u\n", (unsigned int) param->value._d );
         printf( "    flags: 0x%X", (unsigned int) param->flags );
 
         // format flag bit strings if set
