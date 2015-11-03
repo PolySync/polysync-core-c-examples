@@ -1,7 +1,7 @@
 /**
  * \example video_encode_decode.c
  *
- * Video Device Data Encode and Decode.
+ * Video Device Data Encode and Decode Example.
  *
  * Shows how to use the Video API routines to communicate with a video device,
  * and encode/decode the data.
@@ -159,7 +159,7 @@ int main( int argc, char **argv )
     }
 
     // nodes typically should shutdown after handling SIGINT
-    // hook up the control-c signal handler, sets exit_signaled flag
+    // hook up the control-c signal handler, sets exit signaled flag
     signal( SIGINT, sig_handler );
 
     // allow signals to interrupt
