@@ -306,7 +306,7 @@ int main( int argc, char **argv )
     }
 
 	// release core API
-    if( (ret = psync_release( &node_ref, 0 )) != DTC_NONE )
+    if( (ret = psync_release( &node_ref )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_release - ret: %d", ret );
     }

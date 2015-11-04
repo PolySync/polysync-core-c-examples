@@ -349,7 +349,7 @@ node_data_s *init_polysync( void )
     // create queue
     if( (node_data->msg_queue = g_async_queue_new()) == NULL )
     {
-        (void) psync_release( &node_data->node, 0 );
+        (void) psync_release( &node_data->node );
         free( node_data );
         return NULL;
     }
@@ -357,7 +357,7 @@ node_data_s *init_polysync( void )
     // disable handlers
     if( psync_node_set_flag( node_data->node, NODE_FLAG_HANDLERS_ENABLED, 0 ) != DTC_NONE )
     {
-        (void) psync_release( &node_data->node, 0 );
+        (void) psync_release( &node_data->node );
         g_async_queue_unref( node_data->msg_queue );
         free( node_data );
         return NULL;
@@ -371,7 +371,7 @@ node_data_s *init_polysync( void )
     // get type
     if( psync_message_get_type_by_name( node_data->node, PS_RADAR_TARGETS_MSG_NAME, &node_data->msg_type_radar_targets ) != DTC_NONE )
     {
-        (void) psync_release( &node_data->node, 0 );
+        (void) psync_release( &node_data->node );
         g_async_queue_unref( node_data->msg_queue );
         free( node_data );
         return NULL;
@@ -380,7 +380,7 @@ node_data_s *init_polysync( void )
     // register listener
     if( psync_message_register_listener( node_data->node, node_data->msg_type_radar_targets , psync_default_handler, node_data ) != DTC_NONE )
     {
-        (void) psync_release( &node_data->node, 0 );
+        (void) psync_release( &node_data->node );
         g_async_queue_unref( node_data->msg_queue );
         free( node_data );
         return NULL;
@@ -389,7 +389,7 @@ node_data_s *init_polysync( void )
     // enable handlers
     if( psync_node_set_flag( node_data->node, NODE_FLAG_HANDLERS_ENABLED, 1 ) != DTC_NONE )
     {
-        (void) psync_release( &node_data->node, 0 );
+        (void) psync_release( &node_data->node );
         g_async_queue_unref( node_data->msg_queue );
         free( node_data );
         return NULL;
@@ -434,7 +434,7 @@ void release_polysync( node_data_s * const node_data )
     }
 
     // release polysync
-    (void) psync_release( &node_data->node, 0 );
+    (void) psync_release( &node_data->node );
 }
 
 

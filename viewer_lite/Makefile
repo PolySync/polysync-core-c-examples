@@ -75,10 +75,6 @@ docs: dirs
 	cd doc && doxygen Doxyfile;
 	cd doc/latex && make clean && make && cp refman.pdf ../pdf/refman.pdf
 
-#
-radar-target-gen:
-	$(CC) $(CCFLAGS) $(INCLUDE) -o bin/$@ tools/radar_target_gen.c $(LIBS)
-
 # install to system
 install: all
 	cp $(TARGET) $(PSYNC_HOME)/bin/
