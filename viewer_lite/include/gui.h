@@ -106,6 +106,12 @@
  */
 #define         GUI_KEY_ELLIPSE_VISIBLE     '7'
 
+/**
+ * @brief Toggle points visibility key.
+ *
+ */
+#define         GUI_KEY_POINTS_VISIBLE      '6'
+
 
 /**
  * @brief Invalid \ref gui_context_s.win_id value.

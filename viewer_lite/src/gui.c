@@ -322,6 +322,14 @@ static void on_key( unsigned char key, const int x, int y )
         // redraw
         glutPostRedisplay();
     }
+    else if( key == GUI_KEY_POINTS_VISIBLE )
+    {
+        // toggle visibility
+        global_gui_context->config.points_visible = !global_gui_context->config.points_visible;
+
+        // redraw
+        glutPostRedisplay();
+    }
 }
 
 
@@ -922,8 +930,8 @@ static void on_draw( void )
                 global_gui_context->config.rectangle_visible ? "ON" : "OFF" );
         render_text_2d( 5.0, text_y, string, NULL );
         text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_ELLIPSE_VISIBLE, "fusion object visible",
-                global_gui_context->config.ellipse_visible ? "ON" : "OFF" );
+        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_POINTS_VISIBLE, "points visible",
+                global_gui_context->config.points_visible ? "ON" : "OFF" );
         render_text_2d( 5.0, text_y, string, NULL );
         text_y -= text_delta;
         text_y -= text_delta;

@@ -44,8 +44,12 @@
 const char       PS_NODE_NAME[]     = "viewer-lite";
 
 
-//
+// docs in ps_interface.h
 const char       PS_RADAR_TARGETS_MSG_NAME[] = "ps_radar_targets_msg";
+
+
+// docs in ps_interface.h
+const char       PS_LIDAR_POINTS_MSG_NAME[] = "ps_lidar_points_msg";
 
 
 
@@ -87,7 +91,7 @@ static void psync_default_handler( const ps_msg_type msg_type, const ps_msg_ref 
 
 
 /**
- * @brief Parse \ref ps_radar_track_stream_msg into GUI entities.
+ * @brief Parse \ref ps_radar_targets_msg into GUI entities.
  *
  * Adds/updates the entities list with the message data.
  *
@@ -100,6 +104,22 @@ static void psync_default_handler( const ps_msg_type msg_type, const ps_msg_ref 
  *
  */
 static GList *ps_parse_push_radar_targets( const gui_context_s * const gui, const ps_radar_targets_msg * const msg, GList * const parent_list, const unsigned long long update_time );
+
+
+/**
+ * @brief Parse \ref ps_lidar_points_msg into GUI entities.
+ *
+ * Adds/updates the entities list with the message data.
+ *
+ * @param [in] gui A pointer to \ref gui_context_s which specifies the configuration(s).
+ * @param [in] msg A pointer to \ref ps_radar_targets_msg which specifies the message to parse.
+ * @param [in] parent_list A pointer to GList which specifies the parent entities list.
+ * @param [in] update_time Update timestamp to give objects.
+ *
+ * @return The (possibly new) parent entities list, NULL means empty list.
+ *
+ */
+static GList *ps_parse_push_lidar_points( const gui_context_s * const gui, const ps_lidar_points_msg * const msg, GList * const parent_list, const unsigned long long update_time );
 
 
 
@@ -316,6 +336,78 @@ static GList *ps_parse_push_radar_targets( const gui_context_s * const gui, cons
 }
 
 
+//
+static GList *ps_parse_push_lidar_points( const gui_context_s * const gui, const ps_lidar_points_msg * const msg, GList * const parent_list, const unsigned long long update_time )
+{
+    if( (gui == NULL) || (msg == NULL) )
+    {
+        return NULL;
+    }
+
+    // local vars
+    object_s                object;
+    GList                   *list       = NULL;
+    unsigned long           idx         = 0;
+
+
+    // ignore if no points
+    if( msg->points._length == 0 )
+    {
+        return parent_list;
+    }
+
+    // set list
+    list = parent_list;
+
+    // init, object ID = 0
+    entity_object_init( 0, &object );
+
+    // parent ID = node GUID
+    object.parent_id = (unsigned long long) msg->header.src_guid;
+
+    // container ID = sensor SN
+    object.container_id = (unsigned long long) msg->sensor_descriptor.id;
+
+    // timeout interval
+    object.timeout_interval = DEFAULT_OBJECT_TIMEOUT;
+
+    // update time
+    object.update_time = update_time;
+
+    // primitive
+    object.primitive = PRIMITIVE_POINTS;
+
+    // radius = point size / 2.0
+    object.radius = 0.5;
+
+    // create points
+    if( (object.points_3d = g_try_new0( ps_lidar_point, msg->points._length )) == NULL)
+    {
+        return list;
+    }
+
+    // num points
+    object.num_points = (unsigned long) msg->points._length;
+
+    // for each point
+    for( idx = 0; idx < object.num_points; idx++ )
+    {
+        // copy
+        object.points_3d[ idx ].position[ 0 ] = msg->points._buffer[ idx ].position[ 0 ];
+        object.points_3d[ idx ].position[ 1 ] = msg->points._buffer[ idx ].position[ 1 ];
+        object.points_3d[ idx ].position[ 2 ] = msg->points._buffer[ idx ].position[ 2 ];
+        object.points_3d[ idx ].intensity = msg->points._buffer[ idx ].intensity;
+    }
+
+    // add/update list with object
+    list = entity_object_update_copy( list, object.parent_id, object.container_id, &object );
+
+
+    // return parent list
+    return list;
+}
+
+
 
 
 // *****************************************************
@@ -377,8 +469,26 @@ node_data_s *init_polysync( void )
         return NULL;
     }
 
+    // get type
+    if( psync_message_get_type_by_name( node_data->node, PS_LIDAR_POINTS_MSG_NAME, &node_data->msg_type_lidar_points ) != DTC_NONE )
+    {
+        (void) psync_release( &node_data->node );
+        g_async_queue_unref( node_data->msg_queue );
+        free( node_data );
+        return NULL;
+    }
+
     // register listener
     if( psync_message_register_listener( node_data->node, node_data->msg_type_radar_targets , psync_default_handler, node_data ) != DTC_NONE )
+    {
+        (void) psync_release( &node_data->node );
+        g_async_queue_unref( node_data->msg_queue );
+        free( node_data );
+        return NULL;
+    }
+
+    // register listener
+    if( psync_message_register_listener( node_data->node, node_data->msg_type_lidar_points , psync_default_handler, node_data ) != DTC_NONE )
     {
         (void) psync_release( &node_data->node );
         g_async_queue_unref( node_data->msg_queue );
@@ -477,6 +587,10 @@ GList *ps_process_message( node_data_s * const node_data, const gui_context_s * 
                 if( type == node_data->msg_type_radar_targets )
                 {
                     list = ps_parse_push_radar_targets( gui, (const ps_radar_targets_msg*) msg, list, update_time );
+                }
+                else if( type == node_data->msg_type_lidar_points )
+                {
+                    list = ps_parse_push_lidar_points( gui, (const ps_lidar_points_msg*) msg, list, update_time );
                 }
             }
         }

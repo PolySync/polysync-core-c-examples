@@ -64,6 +64,9 @@ typedef enum
     PRIMITIVE_ELLIPSE, /*!< Ellipse with length and width in 2D, ellipse with length and width above the ground plane in 3D. */
     //
     //
+    PRIMITIVE_POINTS, /*!< Points with radius in 2D, points with size in 3D. */
+    //
+    //
     PRIMITIVE_KIND_COUNT, /*!< Number of \ref primitive_kind values. */
 } primitive_kind;
 
@@ -304,6 +307,12 @@ typedef struct
     //
     //
     double                  orientation;
+    //
+    //
+    unsigned long           num_points;
+    //
+    //
+    ps_lidar_point          *points_3d;
 } object_s;
 
 
