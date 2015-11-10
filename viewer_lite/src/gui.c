@@ -832,7 +832,7 @@ static void on_draw( void )
     grid_draw_cartesian( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
 
     // draw radial grid
-    grid_draw_radial( global_gui_context, global_gui_context->grid_scale/2.0, 10.0 );
+    //grid_draw_radial( global_gui_context, global_gui_context->grid_scale/2.0, 10.0 );
 
     // draw origin model
     origin_model_draw( global_gui_context, &global_gui_context->platform );
