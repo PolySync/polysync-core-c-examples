@@ -56,6 +56,12 @@ static void object_release_function( gpointer data )
     // if valid
     if( obj != NULL )
     {
+        // free points
+        if( obj->points_3d != NULL )
+        {
+            g_free( obj->points_3d );
+        }
+
         // free
         g_free( obj );
     }
@@ -721,6 +727,13 @@ GList *entity_object_update_copy( GList * const parent_list, const unsigned long
         cntnr->objects = g_list_append( cntnr->objects, obj );
     }
 
+    // free points if any before we overwrite
+    if( obj->points_3d != NULL )
+    {
+        g_free( obj->points_3d );
+        obj->points_3d = NULL;
+    }
+
     // copy object
     memcpy( obj, object, sizeof(*obj) );
 
@@ -747,15 +760,19 @@ void entity_draw_object( const gui_context_s * const gui, const object_s * const
     const GLdouble *color = color_rgba;
 
     // ignore if disabled
-    if( (gui->config.circle_visible == 0 ) && (object->primitive == PRIMITIVE_CIRCLE) )
+    if( (gui->config.circle_visible == 0) && (object->primitive == PRIMITIVE_CIRCLE) )
     {
         return;
     }
-    else if( (gui->config.rectangle_visible == 0 ) && (object->primitive == PRIMITIVE_RECTANGLE) )
+    else if( (gui->config.rectangle_visible == 0) && (object->primitive == PRIMITIVE_RECTANGLE) )
     {
         return;
     }
-    else if( (gui->config.ellipse_visible == 0 ) && (object->primitive == PRIMITIVE_ELLIPSE) )
+    else if( (gui->config.ellipse_visible == 0) && (object->primitive == PRIMITIVE_ELLIPSE) )
+    {
+        return;
+    }
+    else if( (gui->config.points_visible == 0) && (object->primitive == PRIMITIVE_POINTS) )
     {
         return;
     }
@@ -865,6 +882,34 @@ void entity_draw_object( const gui_context_s * const gui, const object_s * const
 
             // restore state
             glPopMatrix();
+        }
+        else if( object->primitive == PRIMITIVE_POINTS )
+        {
+            // NOTE: must be last in list since it pops state
+            unsigned long idx = 0;
+
+            // restore state
+            glPopMatrix();
+
+            // if points exist
+            if( (object->points_3d != NULL) && (object->num_points > 0) )
+            {
+                // set point size
+                glPointSize( (GLfloat) (object->radius * 2.0) );
+
+                // begin points
+                glBegin( GL_POINTS );
+
+                // for each point
+                for( idx = 0; idx < object->num_points; idx++ )
+                {
+                    // vertex
+                    glVertex2d( object->points_3d[ idx ].position[ 0 ], object->points_3d[ idx ].position[ 1 ] );
+                }
+
+                // end points
+                glEnd();
+            }
         }
     }
 }

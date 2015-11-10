@@ -35,6 +35,9 @@ typedef struct
     //
     //
     ps_msg_type msg_type_radar_targets;
+    //
+    //
+    ps_msg_type msg_type_lidar_points;
 } node_data_s;
 
 
@@ -51,6 +54,13 @@ extern const char       PS_NODE_NAME[];
  *
  */
 extern const char       PS_RADAR_TARGETS_MSG_NAME[];
+
+
+/**
+ * @brief PolySync LiDAR points message name.
+ *
+ */
+extern const char       PS_LIDAR_POINTS_MSG_NAME[];
 
 
 
