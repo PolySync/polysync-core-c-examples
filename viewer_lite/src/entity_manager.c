@@ -869,20 +869,6 @@ void entity_draw_object( const gui_context_s * const gui, const object_s * const
             // restore state
             glPopMatrix();
         }
-        else if( object->primitive == PRIMITIVE_ELLIPSE )
-        {
-            // render gated ellipse
-            render_ellipse_2d( 0.0, 0.0, object->gate_x, object->gate_y );
-
-			// rectangle is transparent
-			glColor4d( color[0], color[1], color[2], 0.4 );
-
-			// render size rectangle
-            render_rectangle_2d( 0.0, 0.0, object->length, object->width );
-
-            // restore state
-            glPopMatrix();
-        }
         else if( object->primitive == PRIMITIVE_POINTS )
         {
             // NOTE: must be last in list since it pops state

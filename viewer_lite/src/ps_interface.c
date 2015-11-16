@@ -40,16 +40,20 @@
 // *****************************************************
 
 
-// docs in ps_interface.h
+// docs in \ref ps_interface.h
 const char       PS_NODE_NAME[]     = "viewer-lite";
 
 
-// docs in ps_interface.h
+// docs in \ref ps_interface.h
 const char       PS_RADAR_TARGETS_MSG_NAME[] = "ps_radar_targets_msg";
 
 
-// docs in ps_interface.h
+// docs in \ref ps_interface.h
 const char       PS_LIDAR_POINTS_MSG_NAME[] = "ps_lidar_points_msg";
+
+
+// docs in \ref ps_interface.h
+const char       PS_OBJECTS_MSG_NAME[] = "ps_objects_msg";
 
 
 
@@ -120,6 +124,24 @@ static GList *ps_parse_push_radar_targets( const gui_context_s * const gui, cons
  *
  */
 static GList *ps_parse_push_lidar_points( const gui_context_s * const gui, const ps_lidar_points_msg * const msg, GList * const parent_list, const unsigned long long update_time );
+
+
+/**
+ * @brief Parse \ref ps_objects_msg into GUI entities.
+ *
+ * Adds/updates the entities list with the message data.
+ *
+ * @note Assumes objects have valid x/y position values.
+ *
+ * @param [in] gui A pointer to \ref gui_context_s which specifies the configuration(s).
+ * @param [in] msg A pointer to \ref ps_objects_msg which specifies the message to parse.
+ * @param [in] parent_list A pointer to GList which specifies the parent entities list.
+ * @param [in] update_time Update timestamp to give objects.
+ *
+ * @return The (possibly new) parent entities list, NULL means empty list.
+ *
+ */
+static GList *ps_parse_push_objects( const gui_context_s * const gui, const ps_objects_msg * const msg, GList * const parent_list, const unsigned long long update_time );
 
 
 
@@ -408,6 +430,107 @@ static GList *ps_parse_push_lidar_points( const gui_context_s * const gui, const
 }
 
 
+//
+static GList *ps_parse_push_objects( const gui_context_s * const gui, const ps_objects_msg * const msg, GList * const parent_list, const unsigned long long update_time )
+{
+    if( (gui == NULL) || (msg == NULL) )
+    {
+        return NULL;
+    }
+
+    // local vars
+    object_s                object;
+    GList                   *list       = NULL;
+    unsigned long           idx         = 0;
+    ps_object               *obj        = NULL;
+
+
+    // set list
+    list = parent_list;
+
+    // for each object
+    for( idx = 0; idx < (unsigned long) msg->objects._length; idx++ )
+    {
+        // cast
+        obj = &msg->objects._buffer[ idx ];
+
+        // init, object ID = obj ID
+        entity_object_init( (unsigned long long) obj->id, &object );
+
+        // defaults/unused
+        object.radius = 1.25;
+        object.adjusted_radius = 1.25;
+
+        // parent ID = node GUID
+        object.parent_id = (unsigned long long) msg->header.src_guid;
+
+        // container ID = sensor SN
+        object.container_id = (unsigned long long) msg->sensor_descriptor.id;
+
+        // timeout interval
+        object.timeout_interval = DEFAULT_OBJECT_TIMEOUT;
+
+        // update time
+        object.update_time = update_time;
+
+        // rectangles
+        object.primitive = PRIMITIVE_RECTANGLE;
+
+        // position x,y,z
+        object.x = obj->position[ 0 ];
+        object.y = obj->position[ 1 ];
+
+        // if z valid
+        if( obj->position[ 2 ] != PSYNC_POSITION_NOT_AVAILABLE )
+        {
+            object.z = obj->position[ 2 ];
+        }
+
+        // size x,y,z
+        if( obj->size[ 0 ] != PSYNC_SIZE_NOT_AVAILABLE )
+        {
+            object.length = obj->size[ 0 ];
+        }
+        if( obj->size[ 1 ] != PSYNC_SIZE_NOT_AVAILABLE )
+        {
+            object.width = obj->size[ 1 ];
+        }
+        if( obj->size[ 2 ] != PSYNC_SIZE_NOT_AVAILABLE )
+        {
+            object.height = obj->size[ 2 ];
+        }
+
+        // velocity  x,y,z
+        if( obj->velocity[ 0 ] != PSYNC_VELOCITY_NOT_AVAILABLE )
+        {
+            object.vx = obj->velocity[ 0 ];
+        }
+        if( obj->velocity[ 1 ] != PSYNC_VELOCITY_NOT_AVAILABLE )
+        {
+            object.vy = obj->velocity[ 1 ];
+        }
+        if( obj->velocity[ 2 ] != PSYNC_VELOCITY_NOT_AVAILABLE )
+        {
+            object.vz = obj->velocity[ 2 ];
+        }
+
+        // if valid
+        if( obj->course_angle != PSYNC_ANGLE_NOT_AVAILABLE )
+        {
+            // orientation radians
+            object.orientation = obj->course_angle;
+        }
+
+        // add/update list with object
+        list = entity_object_update_copy( list, object.parent_id, object.container_id, &object );
+    }
+
+
+    // return parent list
+    return list;
+}
+
+
 
 
 // *****************************************************
@@ -432,7 +555,13 @@ node_data_s *init_polysync( void )
     node_data->msg_type_radar_targets = PSYNC_MSG_TYPE_INVALID;
 
     // init polysync
-    if( psync_init( PS_NODE_NAME, PSYNC_NODE_TYPE_API_USER, PSYNC_DEFAULT_DOMAIN, PSYNC_SDF_KEY_INVALID, 0, &node_data->node ) != DTC_NONE )
+    if( psync_init(
+            PS_NODE_NAME,
+            PSYNC_NODE_TYPE_API_USER,
+            PSYNC_DEFAULT_DOMAIN,
+            PSYNC_SDF_KEY_INVALID,
+            PSYNC_INIT_FLAG_STDOUT_LOGGING,
+            &node_data->node ) != DTC_NONE )
     {
         free( node_data );
         return NULL;
@@ -458,7 +587,7 @@ node_data_s *init_polysync( void )
     // check for 'sensor' module
 #warning "TODO add psync get module info routine"
 
-    // check version ?
+    // TODO check version
 
     // get type
     if( psync_message_get_type_by_name( node_data->node, PS_RADAR_TARGETS_MSG_NAME, &node_data->msg_type_radar_targets ) != DTC_NONE )
@@ -478,6 +607,15 @@ node_data_s *init_polysync( void )
         return NULL;
     }
 
+    // get type
+    if( psync_message_get_type_by_name( node_data->node, PS_OBJECTS_MSG_NAME, &node_data->msg_type_objects ) != DTC_NONE )
+    {
+        (void) psync_release( &node_data->node );
+        g_async_queue_unref( node_data->msg_queue );
+        free( node_data );
+        return NULL;
+    }
+
     // register listener
     if( psync_message_register_listener( node_data->node, node_data->msg_type_radar_targets , psync_default_handler, node_data ) != DTC_NONE )
     {
@@ -489,6 +627,15 @@ node_data_s *init_polysync( void )
 
     // register listener
     if( psync_message_register_listener( node_data->node, node_data->msg_type_lidar_points , psync_default_handler, node_data ) != DTC_NONE )
+    {
+        (void) psync_release( &node_data->node );
+        g_async_queue_unref( node_data->msg_queue );
+        free( node_data );
+        return NULL;
+    }
+
+    // register listener
+    if( psync_message_register_listener( node_data->node, node_data->msg_type_objects , psync_default_handler, node_data ) != DTC_NONE )
     {
         (void) psync_release( &node_data->node );
         g_async_queue_unref( node_data->msg_queue );
@@ -592,6 +739,10 @@ GList *ps_process_message( node_data_s * const node_data, const gui_context_s * 
                 {
                     list = ps_parse_push_lidar_points( gui, (const ps_lidar_points_msg*) msg, list, update_time );
                 }
+                else if( type == node_data->msg_type_objects )
+                {
+                    list = ps_parse_push_objects( gui, (const ps_objects_msg*) msg, list, update_time );
+                }
             }
         }
 
@@ -604,7 +755,7 @@ GList *ps_process_message( node_data_s * const node_data, const gui_context_s * 
     return list;
 }
 
-#warning "TODO - un/reg listeners"
+#warning "TODO - register/unregister listeners"
 //
 void ps_register_listener( const ps_msg_type type, GAsyncQueue * const msg_queue )
 {

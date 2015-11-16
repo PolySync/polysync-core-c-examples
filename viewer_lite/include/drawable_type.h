@@ -262,15 +262,6 @@ typedef struct
     //
     //
     double                  z;
-	//
-    //
-    double                  sigma_x;
-    //
-    //
-    double                  sigma_y;
-    //
-    //
-    double                  sigma_z;
     //
     //
     double                  vx;
@@ -280,15 +271,6 @@ typedef struct
     //
     //
     double                  vz;
-	//
-    //
-    double                  gate_x;
-    //
-    //
-    double                  gate_y;
-    //
-    //
-    double                  gate_z;
     //
     //
     double                  length;

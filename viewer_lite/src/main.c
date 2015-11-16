@@ -2,6 +2,9 @@
  * @file main.c
  * @brief Main entry for viewer-lite.
  *
+ * @note Some machines need the Ubuntu package 'nvidia-current' to view radial
+ * grid lines correctly.
+ *
  */
 
 

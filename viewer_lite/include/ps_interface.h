@@ -38,6 +38,9 @@ typedef struct
     //
     //
     ps_msg_type msg_type_lidar_points;
+    //
+    //
+    ps_msg_type msg_type_objects;
 } node_data_s;
 
 
@@ -61,6 +64,13 @@ extern const char       PS_RADAR_TARGETS_MSG_NAME[];
  *
  */
 extern const char       PS_LIDAR_POINTS_MSG_NAME[];
+
+
+/**
+ * @brief PolySync objects message name.
+ *
+ */
+extern const char       PS_OBJECTS_MSG_NAME[];
 
 
 
@@ -106,11 +116,11 @@ void release_polysync( node_data_s * const node_data );
 GList *ps_process_message( node_data_s * const node_data, const gui_context_s * const gui, GList * const parent_list, const unsigned long long update_time, unsigned int * const msg_read );
 
 
-
-
+// not implemented yet
 void ps_register_listener( const ps_msg_type type, GAsyncQueue * const msg_queue );
 
 
+// not implemented yet
 void ps_unregister_listener( const ps_msg_type type );
 
 

@@ -832,7 +832,7 @@ static void on_draw( void )
     grid_draw_cartesian( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
 
     // draw radial grid
-    //grid_draw_radial( global_gui_context, global_gui_context->grid_scale/2.0, 10.0 );
+    grid_draw_radial( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
 
     // draw origin model
     origin_model_draw( global_gui_context, &global_gui_context->platform );
@@ -926,7 +926,7 @@ static void on_draw( void )
                 global_gui_context->config.circle_visible ? "ON" : "OFF" );
         render_text_2d( 5.0, text_y, string, NULL );
         text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_RECTANGLE_VISIBLE, "object visible",
+        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_RECTANGLE_VISIBLE, "objects visible",
                 global_gui_context->config.rectangle_visible ? "ON" : "OFF" );
         render_text_2d( 5.0, text_y, string, NULL );
         text_y -= text_delta;
