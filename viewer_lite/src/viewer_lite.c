@@ -1,6 +1,7 @@
 /**
- * @file main.c
- * @brief Main entry for viewer-lite.
+ * \example viewer_lite.c
+ *
+ * General PolySync data handling and visualization example.
  *
  * @note Some machines need the Ubuntu package 'nvidia-current' to view radial
  * grid lines correctly.
