@@ -12,8 +12,8 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
- * 
+ *
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -248,7 +248,10 @@ int main( int argc, char **argv )
             desired_device_format,
             DEFAULT_VIDEO_WIDTH,
             DEFAULT_VIDEO_HEIGHT,
-            PSYNC_VIDEO_DEFAULT_FRAMES_PER_SECOND )) != DTC_NONE )
+            PSYNC_VIDEO_DEFAULT_FRAMES_PER_SECOND,
+            PIXEL_FORMAT_H264
+            DEFAULT_VIDEO_WIDTH,
+            DEFAULT_VIDEO_HEIGHT )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_encoder_init - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
@@ -257,6 +260,9 @@ int main( int argc, char **argv )
     // initialize h264 decoder, frame-rate will be determined by stream if possible, otherwise use default
     if( (ret = psync_video_decoder_init(
             &video_decoder,
+            PIXEL_FORMAT_H264,
+            DEFAULT_VIDEO_WIDTH,
+            DEFAULT_VIDEO_HEIGHT,
             desired_decoder_format,
             DEFAULT_VIDEO_WIDTH,
             DEFAULT_VIDEO_HEIGHT,
