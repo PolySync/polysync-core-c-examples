@@ -249,7 +249,7 @@ int main( int argc, char **argv )
             DEFAULT_VIDEO_WIDTH,
             DEFAULT_VIDEO_HEIGHT,
             PSYNC_VIDEO_DEFAULT_FRAMES_PER_SECOND,
-            PIXEL_FORMAT_H264
+            PIXEL_FORMAT_H264,
             DEFAULT_VIDEO_WIDTH,
             DEFAULT_VIDEO_HEIGHT )) != DTC_NONE )
     {
