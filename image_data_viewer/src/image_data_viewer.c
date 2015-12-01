@@ -179,6 +179,9 @@ int main( int argc, char **argv )
     unsigned long publisher_width = 0;
     unsigned long publisher_height = 0;
 
+    // publisher pixel format
+    ps_pixel_format_kind publisher_format = PIXEL_FORMAT_INVALID;
+
     // video decoder - converts compressed stream into raw image
     ps_video_decoder video_decoder;
 
@@ -263,12 +266,17 @@ int main( int argc, char **argv )
             const ps_image_data_msg * const image_data_msg = (ps_image_data_msg*) msg;
 
             // check for supported pixel format
-            if(image_data_msg->pixel_format == PIXEL_FORMAT_H264 )
+            if( (image_data_msg->pixel_format == PIXEL_FORMAT_H264)
+                    || (image_data_msg->pixel_format == PIXEL_FORMAT_MJPEG) )
             {
                 // found
-                printf( "found publisher GUID 0x%016llX (%llu)\n",
+                printf( "found publisher GUID 0x%016llX (%llu) - pixel_format: '%s'\n",
                         (unsigned long long) image_data_msg->header.src_guid,
-                        (unsigned long long) image_data_msg->header.src_guid );
+                        (unsigned long long) image_data_msg->header.src_guid,
+                        (image_data_msg->pixel_format == PIXEL_FORMAT_H264) ? "H264" : "MJPEG" );
+
+                // set publisher format
+                publisher_format = image_data_msg->pixel_format;
 
                 // set publisher GUID
                 publisher_guid = image_data_msg->header.src_guid;
@@ -289,7 +297,7 @@ int main( int argc, char **argv )
     // initialize h264 decoder, frame-rate will be determined by stream if possible, otherwise use default
     if( (ret = psync_video_decoder_init(
             &video_decoder,
-            PIXEL_FORMAT_H264,
+            publisher_format,
             publisher_width,
             publisher_height,
             desired_decoder_format,
