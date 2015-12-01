@@ -294,7 +294,7 @@ int main( int argc, char **argv )
         }
     }
 
-    // initialize h264 decoder, frame-rate will be determined by stream if possible, otherwise use default
+    // initialize decoder, frame-rate will be determined by stream if possible, otherwise use default
     if( (ret = psync_video_decoder_init(
             &video_decoder,
             publisher_format,
