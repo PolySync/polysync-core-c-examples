@@ -346,8 +346,10 @@ int main( int argc, char **argv )
             // cast
             const ps_image_data_msg * const image_data_msg = (ps_image_data_msg*) msg;
 
-            // check if publisher is what we've initialized to
-            if( image_data_msg->header.src_guid == publisher_guid )
+            // check if publisher is what we've initialized to using its GUID and pixel format
+            if(
+                    (image_data_msg->header.src_guid == publisher_guid) &&
+                    (image_data_msg->pixel_format == publisher_format) )
             {
                 // decode the data
                 if( (ret = psync_video_decoder_decode(
