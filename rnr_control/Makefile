@@ -6,7 +6,7 @@
 # source PolySync environment if not already done, assumes x86_64 if set here
 # usually, the environment has these set
 PSYNC_HOME ?= /usr/local/polysync
-OSPL_HOME ?= $(PSYNC_HOME)/util/x86_64.linux
+OSPL_HOME ?= $(PSYNC_HOME)/utils/x86_64.linux
 
 # target
 TARGET	:= bin/rnr-control
