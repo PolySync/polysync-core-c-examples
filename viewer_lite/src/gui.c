@@ -1009,6 +1009,7 @@ gui_context_s *gui_init( const char *win_title, const unsigned int win_width, co
     gui->config.rectangle_visible = 1;
     gui->config.ellipse_visible = 1;
     gui->config.points_visible = 1;
+    gui->config.help_visible = 1;
 
     // platform color
     gui->platform.color_rgba[ 1 ] = 1.0;
