@@ -569,7 +569,7 @@ gui_context_s *gui_init( const char *win_title, const unsigned int win_width, co
 
     // default configurations
     gui->config.freeze_frame = 0;
-    gui->config.help_visible = 0;
+    gui->config.help_visible = 1;
     gui->config.zoom_scale = 1.0;
     gui->config.rotation = 0.0;
 
