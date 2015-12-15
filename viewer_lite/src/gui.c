@@ -214,6 +214,14 @@ static void on_key( unsigned char key, const int x, int y )
         // redraw
         glutPostRedisplay();
     }
+    else if( key == GUI_KEY_RADIAL_GRID )
+    {
+        // toggle radial grid lines
+        global_gui_context->config.radial_grid_visible = !global_gui_context->config.radial_grid_visible;
+
+        // redraw
+        glutPostRedisplay();
+    }
     else if( key == GUI_KEY_VEL_VECTORS )
     {
         // toggle velocity vectors
@@ -832,7 +840,10 @@ static void on_draw( void )
     grid_draw_cartesian( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
 
     // draw radial grid
-    grid_draw_radial( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
+    if( global_gui_context->config.radial_grid_visible != 0 )
+    {
+        grid_draw_radial( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
+    }
 
     // draw origin model
     origin_model_draw( global_gui_context, &global_gui_context->platform );
@@ -884,6 +895,9 @@ static void on_draw( void )
         render_text_2d( 5.0, text_y, string, NULL );
         text_y -= text_delta;
         snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_FREE_FRAME, "freeze frame", global_gui_context->config.freeze_frame ? "ON" : "OFF" );
+        render_text_2d( 5.0, text_y, string, NULL );
+        text_y -= text_delta;
+        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_RADIAL_GRID, "radial grid", global_gui_context->config.radial_grid_visible ? "ON" : "OFF" );
         render_text_2d( 5.0, text_y, string, NULL );
         text_y -= text_delta;
         snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_VEL_VECTORS, "velocity vectors", global_gui_context->config.velocity_vectors_visible ? "ON" : "OFF" );

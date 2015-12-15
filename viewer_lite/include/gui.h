@@ -12,8 +12,8 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
- * 
+ *
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -67,6 +67,13 @@
  *
  */
 #define         GUI_KEY_FREE_FRAME          'f'
+
+
+/**
+ * @brief Toggle radial grid lines key.
+ *
+ */
+#define         GUI_KEY_RADIAL_GRID         'g'
 
 
 /**
@@ -251,6 +258,10 @@ typedef struct
     //
     unsigned int                help_visible; /*!< Help message visibility enabled/disabled.
                                                * Value zero means not visible. Value one means visisble. */
+    //
+    //
+    unsigned int                radial_grid_visible; /*!< Radial grid lines visibility enabled/disabled.
+                                                      * Value zero means not visible. Value one means visisble. */
     //
     //
     GLdouble                    zoom_scale; /*!< Zoom scalar, 1.0 is no scale, 2.0 is twice as close. */
