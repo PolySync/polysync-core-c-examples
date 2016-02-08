@@ -321,7 +321,9 @@ int main( int argc, char **argv )
         const unsigned char * buffer_ptr = decoder_buffer;
 
         // check for data
-        if( psync_shdmem_queue_try_pop( &shdmem_queue, shdmem_buffer, shdmem_buffer_size ) == DTC_NONE )
+        ret = psync_shdmem_queue_try_pop( &shdmem_queue, shdmem_buffer, shdmem_buffer_size );
+
+		if( ret == DTC_NONE )
         {
             // cast header
             ps_shdmem_message_header * const header =
@@ -405,6 +407,10 @@ int main( int argc, char **argv )
                     }
                 }
             }
+        }
+		else if( ret != DTC_UNAVAILABLE )                                                                                                                                                             
+        {                                                                                                                                                                                             
+            global_exit_signal = 1;                                                                                                                                                                   
         }
 
         // get timestamp
