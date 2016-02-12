@@ -102,7 +102,7 @@ const char GEAR_POSITION_COMMAND_MSG_NAME[] = "ps_platform_gear_command_msg";
  */
 const char TURN_SIGNAL_COMMAND_MSG_NAME[] = "ps_platform_turn_signal_command_msg";
 
-#warning "BLOCK UNTIL THROTTLE IS AT ZERO"
+
 
 
 // *****************************************************

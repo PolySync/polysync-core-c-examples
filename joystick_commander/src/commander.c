@@ -959,7 +959,6 @@ int commander_joystick_update(
         // validate control kinds
         messages->brake_cmd->brake_command_type = BRAKE_COMMAND_PEDAL;
         messages->throttle_cmd->throttle_command_type = THROTTLE_COMMAND_PEDAL;
-#warning "TYPO - kind -> type"
         messages->steer_cmd->steering_command_kind = STEERING_COMMAND_ANGLE;
 
         // enable controls
@@ -971,6 +970,9 @@ int commander_joystick_update(
         messages->brake_cmd->brake_command = (DDS_float) brake_setpoint;
         messages->throttle_cmd->throttle_command = (DDS_float) throttle_setpoint;
         messages->steer_cmd->steering_wheel_angle = (DDS_float) steering_setpoint;
+
+        // steering rate limit
+        messages->steer_cmd->max_steering_wheel_rotation_rate = (DDS_float) STEERING_WHEEL_ANGLE_RATE_LIMIT;
 
         // copy state commands
         messages->gear_cmd->gear_position = gear_position;
