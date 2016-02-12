@@ -201,6 +201,21 @@ static int update_turn_signal_selection(
 
 
 /**
+ * @brief Update send enable-controls state.
+ *
+ * @param [in] jstick A pointer to \ref joystick_device_s which specifies the joystick handle.
+ * @param [out] enabled A pointer to unsigned int which receives the enabled state.
+ *
+ * @return DTC code:
+ * \li \ref DTC_NONE (zero) if success.
+ *
+ */
+static int update_enable_controls_state(
+        joystick_device_s * const jstick,
+        unsigned int * const enabled );
+
+
+/**
  * @brief Set control command message 'ps_platform_brake_command_msg' to its safe state.
  *
  * @param [in] control_msg A pointer to \ref ps_platform_brake_command_msg which receives the safe state values.
@@ -503,6 +518,46 @@ static int update_turn_signal_selection(
 
 
 //
+static int update_enable_controls_state(
+        joystick_device_s * const jstick,
+        unsigned int * const enabled )
+{
+    // local vars
+    int ret = DTC_NONE;
+    unsigned int btn_state = JOYSTICK_BUTTON_STATE_NOT_PRESSED;
+
+    // invalidate
+    (*enabled) = 0;
+
+    // read enable-controls button state
+    ret |= jstick_get_button(
+            jstick,
+            JSTICK_BUTTON_ENABLE_CONTROLS,
+            &btn_state );
+
+    // if succeeded
+    if( ret == DTC_NONE )
+    {
+        // if button depressed
+        if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
+        {
+            (*enabled) = 1;
+        }
+    }
+
+    // set return if anything failed
+    if( ret != DTC_NONE )
+    {
+        // joystick get routine failed
+        ret = DTC_IOERR;
+    }
+
+
+    return ret;
+}
+
+
+//
 static int set_safe_brake_command_msg(
         ps_platform_brake_command_msg * const brake_msg )
 {
@@ -789,6 +844,9 @@ int commander_set_safe(
     int ret = DTC_NONE;
 
 
+    // zero
+    messages->send_enable_controls = 0;
+
     // if brake command message valid
     if( messages->brake_cmd != NULL )
     {
@@ -939,6 +997,9 @@ int commander_joystick_update(
 
         // update turn signal selection
         ret |= update_turn_signal_selection( jstick, &turn_signal );
+
+        // update enable-controls state
+        ret |= update_enable_controls_state( jstick, &messages->send_enable_controls );
     }
 
     // don't allow throttle if gear command is to be sent
@@ -1011,6 +1072,7 @@ int commander_send_commands(
     messages->steer_cmd->header.timestamp = now;
     messages->gear_cmd->header.timestamp = now;
     messages->turn_signal_cmd->header.timestamp = now;
+    messages->parameters_cmd->header.timestamp = now;
 
     // publish brake command message
     ret |= psync_message_publish( node_ref, messages->brake_cmd );
@@ -1033,6 +1095,13 @@ int commander_send_commands(
     {
         // publish turn signal command message
         ret |= psync_message_publish( node_ref, messages->turn_signal_cmd );
+    }
+
+    // if enable-controls set
+    if( messages->send_enable_controls == 1 )
+    {
+        // publish get/set command message
+        ret |= psync_message_publish( node_ref, messages->parameters_cmd );
     }
 
     // handle return if anything failed

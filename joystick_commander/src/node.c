@@ -80,6 +80,13 @@ typedef struct
 // *****************************************************
 
 /**
+ * @brief Enable controls parameter identifier.
+ *
+ */
+static const ps_parameter_id ENABLE_CONTROLS_PARAMETER_ID = 4011;
+
+
+/**
  * @brief Platform brake command message type name.
  *
  */
@@ -112,6 +119,13 @@ static const char GEAR_POSITION_COMMAND_MSG_NAME[] = "ps_platform_gear_command_m
  *
  */
 static const char TURN_SIGNAL_COMMAND_MSG_NAME[] = "ps_platform_turn_signal_command_msg";
+
+
+/**
+ * @brief Turn signal command message type name.
+ *
+ */
+static const char PARAMETERS_MSG_NAME[] = "ps_parameters_msg";
 
 
 /**
@@ -318,7 +332,7 @@ static int set_configuration(
 
     // show warning string
     printf( WARNING_STRING );
-    
+
     // set defaults
     // node type
     node_config->node_type = PSYNC_NODE_TYPE_API_USER;
@@ -483,6 +497,45 @@ static void on_init(
         return;
     }
 
+    // get parameters message type
+    if( (ret = psync_message_get_type_by_name(
+            node_ref,
+            PARAMETERS_MSG_NAME,
+            &msg_type )) != DTC_NONE )
+    {
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // get parameters message
+    if( (ret = psync_message_alloc(
+            node_ref,
+            msg_type,
+            (ps_msg_ref*) &node_data->messages.parameters_cmd )) != DTC_NONE )
+    {
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // set destination GUID to all
+    node_data->messages.parameters_cmd->dest_guid = 0xFFFFFFFF00000000;
+
+    // parameter command type is set-value
+    node_data->messages.parameters_cmd->type = PARAMETER_MESSAGE_SET_VALUE;
+
+    // create a single parameter
+    node_data->messages.parameters_cmd->parameters._buffer =
+            (ps_parameter*) DDS_sequence_allocbuf( NULL, sizeof(ps_parameter), 1 );
+    node_data->messages.parameters_cmd->parameters._length = 1;
+    node_data->messages.parameters_cmd->parameters._maximum = 1;
+    node_data->messages.parameters_cmd->parameters._release = 1;
+
+    // set parameter value to enabled
+    node_data->messages.parameters_cmd->parameters._buffer[0].id = ENABLE_CONTROLS_PARAMETER_ID;
+    node_data->messages.parameters_cmd->parameters._buffer[0].value._d = PARAMETER_VALUE_ULONGLONG;
+    node_data->messages.parameters_cmd->parameters._buffer[0].value._u.ull_value = 1;
+
+
     // init joystick subsystem
     if( (ret = jstick_init_subsystem()) != DTC_NONE )
     {
@@ -603,6 +656,9 @@ static void on_release(
         (void) psync_message_free(
                 node_ref,
                 (ps_msg_ref*) &node_data->messages.turn_signal_cmd );
+        (void) psync_message_free(
+                node_ref,
+                (ps_msg_ref*) &node_data->messages.parameters_cmd );
 
         // zero
         memset( node_data, 0, sizeof(*node_data) );

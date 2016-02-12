@@ -98,6 +98,12 @@ typedef struct
     //
     //
     ps_platform_turn_signal_command_msg *turn_signal_cmd; /*!< Platform turn signal command message. */
+    //
+    //
+    ps_parameters_msg *parameters_cmd; /*!< Parameter(s) get/set command message. */
+    //
+    //
+    unsigned int send_enable_controls; /*!< Flag indicating whether or not to send an enable-controls get/set command. */
 } commander_messages_s;
 
 
