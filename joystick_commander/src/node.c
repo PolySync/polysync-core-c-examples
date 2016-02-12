@@ -69,10 +69,24 @@ typedef struct
 // *****************************************************
 
 /**
- * @brief Platform control message type name.
+ * @brief Platform brake command message type name.
  *
  */
-const char CONTROL_MSG_NAME[] = "ps_platform_control_msg";
+const char BRAKE_COMMAND_MSG_NAME[] = "ps_platform_brake_command_msg";
+
+
+/**
+ * @brief Platform throttle command message type name.
+ *
+ */
+const char THROTTLE_COMMAND_MSG_NAME[] = "ps_platform_throttle_command_msg";
+
+
+/**
+ * @brief Platform steering command message type name.
+ *
+ */
+const char STEERING_COMMAND_MSG_NAME[] = "ps_platform_steering_command_msg";
 
 
 /**
@@ -88,7 +102,7 @@ const char GEAR_POSITION_COMMAND_MSG_NAME[] = "ps_platform_gear_command_msg";
  */
 const char TURN_SIGNAL_COMMAND_MSG_NAME[] = "ps_platform_turn_signal_command_msg";
 
-
+#warning "BLOCK UNTIL THROTTLE IS AT ZERO"
 
 
 // *****************************************************
@@ -337,21 +351,61 @@ static void on_init(
         return;
     }
 
-    // get control message type
+    // get brake command message type
     if( (ret = psync_message_get_type_by_name(
             node_ref,
-            CONTROL_MSG_NAME,
+            BRAKE_COMMAND_MSG_NAME,
             &msg_type )) != DTC_NONE )
     {
         psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
         return;
     }
 
-    // get control message
+    // get brake command message
     if( (ret = psync_message_alloc(
             node_ref,
             msg_type,
-            (ps_msg_ref*) &node_data->messages.control_msg )) != DTC_NONE )
+            (ps_msg_ref*) &node_data->messages.brake_cmd )) != DTC_NONE )
+    {
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // get throttle command message type
+    if( (ret = psync_message_get_type_by_name(
+            node_ref,
+            THROTTLE_COMMAND_MSG_NAME,
+            &msg_type )) != DTC_NONE )
+    {
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // get throttle command message
+    if( (ret = psync_message_alloc(
+            node_ref,
+            msg_type,
+            (ps_msg_ref*) &node_data->messages.throttle_cmd )) != DTC_NONE )
+    {
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // get steering command message type
+    if( (ret = psync_message_get_type_by_name(
+            node_ref,
+            STEERING_COMMAND_MSG_NAME,
+            &msg_type )) != DTC_NONE )
+    {
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // get steering command message
+    if( (ret = psync_message_alloc(
+            node_ref,
+            msg_type,
+            (ps_msg_ref*) &node_data->messages.steer_cmd )) != DTC_NONE )
     {
         psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
         return;
@@ -371,7 +425,7 @@ static void on_init(
     if( (ret = psync_message_alloc(
             node_ref,
             msg_type,
-            (ps_msg_ref*) &node_data->messages.gear_msg )) != DTC_NONE )
+            (ps_msg_ref*) &node_data->messages.gear_cmd )) != DTC_NONE )
     {
         psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
         return;
@@ -391,7 +445,7 @@ static void on_init(
     if( (ret = psync_message_alloc(
             node_ref,
             msg_type,
-            (ps_msg_ref*) &node_data->messages.turn_signal_msg )) != DTC_NONE )
+            (ps_msg_ref*) &node_data->messages.turn_signal_cmd )) != DTC_NONE )
     {
         psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
         return;
@@ -442,6 +496,31 @@ static void on_init(
             psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
             return;
         }
+
+        // wait for safe state
+        psync_log_message( LOG_LEVEL_INFO,
+                "node : wait for joystick controls to zero" );
+        do
+        {
+            ret = commander_check_for_safe_joystick( &node_data->joystick );
+
+            if( ret == DTC_UNAVAILABLE )
+            {
+                // wait a little for the next try
+                (void) psync_sleep_micro( COMMANDER_UPDATE_INTERVAL );
+            }
+            else if( ret != DTC_NONE )
+            {
+                psync_log_message( LOG_LEVEL_ERROR,
+                        "node : (%u) -- failed to wait for joystick to zero the control values",
+                        __LINE__ );
+                psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+
+                // return now
+                break;
+            }
+        }
+        while( ret != DTC_NONE );
     }
     else
     {
@@ -479,13 +558,19 @@ static void on_release(
         // free messages
         (void) psync_message_free(
                 node_ref,
-                (ps_msg_ref*) &node_data->messages.control_msg );
+                (ps_msg_ref*) &node_data->messages.brake_cmd );
         (void) psync_message_free(
                 node_ref,
-                (ps_msg_ref*) &node_data->messages.gear_msg );
+                (ps_msg_ref*) &node_data->messages.throttle_cmd );
         (void) psync_message_free(
                 node_ref,
-                (ps_msg_ref*) &node_data->messages.turn_signal_msg );
+                (ps_msg_ref*) &node_data->messages.steer_cmd );
+        (void) psync_message_free(
+                node_ref,
+                (ps_msg_ref*) &node_data->messages.gear_cmd );
+        (void) psync_message_free(
+                node_ref,
+                (ps_msg_ref*) &node_data->messages.turn_signal_cmd );
 
         // zero
         memset( node_data, 0, sizeof(*node_data) );
@@ -564,9 +649,11 @@ static void on_warn(
 
     // if messages not valid
     if(
-            (node_data->messages.control_msg == PSYNC_MSG_REF_INVALID) ||
-            (node_data->messages.gear_msg == PSYNC_MSG_REF_INVALID) ||
-            (node_data->messages.turn_signal_msg == PSYNC_MSG_REF_INVALID) )
+            (node_data->messages.brake_cmd == PSYNC_MSG_REF_INVALID) ||
+            (node_data->messages.throttle_cmd == PSYNC_MSG_REF_INVALID) ||
+            (node_data->messages.steer_cmd == PSYNC_MSG_REF_INVALID) ||
+            (node_data->messages.gear_cmd == PSYNC_MSG_REF_INVALID) ||
+            (node_data->messages.turn_signal_cmd == PSYNC_MSG_REF_INVALID) )
     {
         // activate DTC
         psync_node_activate_fault( node_ref, DTC_NOINTERFACE, NODE_STATE_FATAL );
@@ -602,9 +689,11 @@ static void on_ok(
 
     // if messages not valid
     if(
-            (node_data->messages.control_msg == PSYNC_MSG_REF_INVALID) ||
-            (node_data->messages.gear_msg == PSYNC_MSG_REF_INVALID) ||
-            (node_data->messages.turn_signal_msg == PSYNC_MSG_REF_INVALID) )
+            (node_data->messages.brake_cmd == PSYNC_MSG_REF_INVALID) ||
+            (node_data->messages.throttle_cmd == PSYNC_MSG_REF_INVALID) ||
+            (node_data->messages.steer_cmd == PSYNC_MSG_REF_INVALID) ||
+            (node_data->messages.gear_cmd == PSYNC_MSG_REF_INVALID) ||
+            (node_data->messages.turn_signal_cmd == PSYNC_MSG_REF_INVALID) )
     {
         // activate DTC
         psync_node_activate_fault( node_ref, DTC_NOINTERFACE, NODE_STATE_FATAL );

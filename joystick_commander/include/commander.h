@@ -36,6 +36,15 @@
 
 
 /**
+ * @brief Minimum brake value to be considered enabled. [normalized]
+ *
+ * Throttle is disabled when brake value is greate than this value.
+ *
+ */
+#define BRAKES_ENABLED_MIN (0.05)
+
+
+/**
  * @brief Minimum allowed steering wheel angle value. [radians]
  *
  * Negative value means turning to the right.
@@ -91,6 +100,22 @@ typedef struct
     ps_platform_turn_signal_command_msg *turn_signal_cmd; /*!< Platform turn signal command message. */
 } commander_messages_s;
 
+
+
+
+/**
+ * @brief Wait for joystick throttle/brake values to be zero.
+ *
+ * @param [in] jstick A pointer to \ref joystick_device_s which specifies the joystick handle.
+ *
+ * @return DTC code:
+ * \li \ref DTC_NONE (zero) if joystick values safe.
+ * \li \ref DTC_CONFIG if configuration invalid.
+ * \li \ref DTC_UNAVAILABLE if joystick values NOT safe.
+ *
+ */
+int commander_check_for_safe_joystick(
+        joystick_device_s * const jstick );
 
 
 /**
