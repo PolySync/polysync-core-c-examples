@@ -69,10 +69,10 @@
 
 
 /**
- * @brief Honk horn button index.
+ * @brief Enable controls button index.
  *
  */
-#define JSTICK_BUTTON_HONK_HORN (0)
+#define JSTICK_BUTTON_ENABLE_CONTROLS (0)
 
 
 /**
