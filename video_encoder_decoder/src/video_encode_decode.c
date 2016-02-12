@@ -177,7 +177,7 @@ int main( int argc, char **argv )
     memset( &video_decoder, 0, sizeof(video_decoder) );
 
 	// init core API
-    if( (ret = psync_init( NODE_NAME, PSYNC_NODE_TYPE_API_USER, PSYNC_DEFAULT_DOMAIN, PSYNC_SDF_KEY_INVALID, PSYNC_INIT_FLAG_STDOUT_LOGGING, &node_ref )) != DTC_NONE )
+    if( (ret = psync_init( NODE_NAME, PSYNC_NODE_TYPE_API_USER, PSYNC_DEFAULT_DOMAIN, PSYNC_SDF_ID_INVALID, PSYNC_INIT_FLAG_STDOUT_LOGGING, &node_ref )) != DTC_NONE )
     {
         psync_log_message( LOG_LEVEL_ERROR, "main -- psync_init - ret: %d", ret );
         return EXIT_FAILURE;

@@ -281,7 +281,7 @@ static int set_configuration(
     node_config->domain_id = PSYNC_DEFAULT_DOMAIN;
 
     // set node SDF key
-    node_config->sdf_key = PSYNC_SDF_KEY_INVALID;
+    node_config->sdf_key = PSYNC_SDF_ID_INVALID;
 
     // set node flags
     node_config->flags = NODE_FLAGS_VALUE | PSYNC_INIT_FLAG_STDOUT_LOGGING;

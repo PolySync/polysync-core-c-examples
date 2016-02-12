@@ -559,7 +559,7 @@ node_data_s *init_polysync( void )
             PS_NODE_NAME,
             PSYNC_NODE_TYPE_API_USER,
             PSYNC_DEFAULT_DOMAIN,
-            PSYNC_SDF_KEY_INVALID,
+            PSYNC_SDF_ID_INVALID,
             PSYNC_INIT_FLAG_STDOUT_LOGGING,
             &node_data->node ) != DTC_NONE )
     {
