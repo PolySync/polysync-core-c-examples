@@ -22,49 +22,42 @@
 
 
 /**
- * @brief Minimum allowed steering curvature value. [1/meters]
- *
- * 0.05 [1/meters] ==> road radius of 20 [meters]
+ * @brief Maximum allowed throttle pedal position value. [normalized]
  *
  */
-#define MIN_CURVATURE (-0.05)
+#define MAX_THROTTLE_PEDAL (0.3)
 
 
 /**
- * @brief Maximum allowed steering curvature value. [1/meters]
- *
- * 0.05 [1/meters] ==> road radius of 20 [meters]
+ * @brief Maximum allowed brake pedal position value. [normalized]
  *
  */
-#define MAX_CURVATURE (0.05)
+#define MAX_BRAKE_PEDAL (0.8)
 
 
 /**
- * @brief Maximum allowed absolute steering curvature rate value. [1/meters^2]
+ * @brief Minimum allowed steering wheel angle value. [radians]
+ *
+ * Negative value means turning to the right.
  *
  */
-#define CURVATURE_RATE_LIMIT (0.0001)
+#define MIN_STEERING_WHEEL_ANGLE (-M_PI * 2.0)
 
 
 /**
- * @brief Maximum allowed speed value. [meters/second]
+ * @brief Maximum allowed steering wheel angle value. [radians]
+ *
+ * Positive value means turning to the left.
  *
  */
-#define MAX_SPEED (5.0)
+#define MAX_STEERING_WHEEL_ANGLE (M_PI * 2.0)
 
 
 /**
- * @brief Maximum allowed acceleration value. [meters/second^2]
+ * @brief Maximum allowed absolute steering wheel angle rate value. [radians/second]
  *
  */
-#define ACCELERATION_LIMIT (2.0)
-
-
-/**
- * @brief Maximum allowed deceleration value. [meters/second^2]
- *
- */
-#define DECELERATION_LIMIT (0.0)
+#define STEERING_WHEEL_ANGLE_RATE_LIMIT (M_PI_2)
 
 
 /**
@@ -83,13 +76,19 @@ typedef struct
 {
     //
     //
-    ps_platform_control_msg *control_msg; /*!< Platform control message. */
+    ps_platform_brake_command_msg *brake_cmd; /*!< Platform brake command message. */
     //
     //
-    ps_platform_gear_command_msg *gear_msg; /*!< Platform gear command message. */
+    ps_platform_throttle_command_msg *throttle_cmd; /*!< Platform throttle command message. */
     //
     //
-    ps_platform_turn_signal_command_msg *turn_signal_msg; /*!< Platform turn signal command message. */
+    ps_platform_steering_command_msg *steer_cmd; /*!< Platform steering wheel command message. */
+    //
+    //
+    ps_platform_gear_command_msg *gear_cmd; /*!< Platform gear command message. */
+    //
+    //
+    ps_platform_turn_signal_command_msg *turn_signal_cmd; /*!< Platform turn signal command message. */
 } commander_messages_s;
 
 

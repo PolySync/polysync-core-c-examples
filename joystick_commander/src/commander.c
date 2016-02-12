@@ -551,6 +551,13 @@ int commander_set_safe(
         ret |= set_safe_platform_turn_signal_msg( messages->turn_signal_msg );
     }
 
+    // handle DTC
+    if( ret != DTC_NONE )
+    {
+        // treat as a configuration error
+        ret = DTC_CONFIG;
+    }
+
 
     return ret;
 }
