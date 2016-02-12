@@ -73,7 +73,7 @@
  * @brief Commander update interval. [microseconds]
  *
  */
-#define COMMANDER_UPDATE_INTERVAL (20000)
+#define COMMANDER_UPDATE_INTERVAL (50000)
 
 
 

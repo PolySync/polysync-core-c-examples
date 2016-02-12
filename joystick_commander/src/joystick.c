@@ -28,7 +28,7 @@
  * @brief Button press debounce delay. [microseconds]
  *
  */
-#define BUTTON_PRESSED_DELAY (1000)
+#define BUTTON_PRESSED_DELAY (5000)
 
 
 

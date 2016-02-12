@@ -951,6 +951,9 @@ int commander_joystick_update(
     if( brake_setpoint > BRAKES_ENABLED_MIN )
     {
         throttle_setpoint = 0.0;
+
+        // enabled on-off indicator
+        messages->brake_cmd->boo_enabled = 1;
     }
 
     // copy into command messages if succeeded
