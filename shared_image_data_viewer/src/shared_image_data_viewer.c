@@ -3,7 +3,8 @@
  *
  * Shared Memory Image Data Viewer Example.
  *
- * Shows how to decode and view encoded image data received over the PolySync Shared Memory Bus.
+ * Shows how to decode and view encoded and raw
+ * image data received over a PolySync Shared Memory Queue.
  *
  */
 
@@ -34,11 +35,13 @@
 // static global types/macros
 // *****************************************************
 
+
 /**
  * @brief Node reference used by the example.
  *
  */
 static ps_node_ref global_node_ref = PSYNC_NODE_REF_INVALID;
+
 
 /**
  * @brief Flag indicating exit signal was caught.
@@ -92,6 +95,8 @@ static void sig_handler( int sig )
 // *****************************************************
 // main
 // *****************************************************
+
+
 int main( int argc, char **argv )
 {
     // polysync return status
@@ -222,14 +227,31 @@ int main( int argc, char **argv )
             // check for supported image data message type
             if( header->msg_type == PSYNC_SHDMEM_MSG_TYPE_IMAGE_DATA )
             {
+                unsigned int producer_valid = 0;
+                char format_string[256];
+
                 // check for supported pixel format
-                if(
-                        (message->pixel_format == PIXEL_FORMAT_H264)
-                        || (message->pixel_format == PIXEL_FORMAT_MJPEG) )
+                if( message->pixel_format == PIXEL_FORMAT_H264 )
                 {
-                    // found
+                    producer_valid = 1;
+                    strncpy( format_string, "H264 (encoded)", sizeof(format_string) );
+                }
+                else if( message->pixel_format == PIXEL_FORMAT_MJPEG )
+                {
+                    producer_valid = 1;
+                    strncpy( format_string, "MJPEG (encoded)", sizeof(format_string) );
+                }
+                else if( message->pixel_format == PIXEL_FORMAT_RGB24 )
+                {
+                    producer_valid = 1;
+                    strncpy( format_string, "RGB (raw)", sizeof(format_string) );
+                }
+
+                // get image information if supported
+                if( producer_valid != 0 )
+                {
                     printf( "found shared memory image data producer - pixel_format: '%s'\n",
-                            (message->pixel_format == PIXEL_FORMAT_H264) ? "H264" : "MJPEG" );
+                            format_string );
 
                     // set publisher format
                     publisher_format = message->pixel_format;
@@ -248,19 +270,23 @@ int main( int argc, char **argv )
         }
     }
 
-    // initialize decoder, frame-rate will be determined by stream if possible, otherwise use default
-    if( (ret = psync_video_decoder_init(
-            &video_decoder,
-            publisher_format,
-            publisher_width,
-            publisher_height,
-            desired_decoder_format,
-            publisher_width,
-            publisher_height,
-            PSYNC_VIDEO_DEFAULT_FRAMES_PER_SECOND )) != DTC_NONE )
+    // if viewing an encoded pixel format
+    if( publisher_format != PIXEL_FORMAT_RGB24 )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_init - ret: %d", ret );
-        goto GRACEFUL_EXIT_STMNT;
+        // initialize decoder, frame-rate will be determined by stream if possible, otherwise use default
+        if( (ret = psync_video_decoder_init(
+                &video_decoder,
+                publisher_format,
+                publisher_width,
+                publisher_height,
+                desired_decoder_format,
+                publisher_width,
+                publisher_height,
+                PSYNC_VIDEO_DEFAULT_FRAMES_PER_SECOND )) != DTC_NONE )
+        {
+            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_init - ret: %d", ret );
+            goto GRACEFUL_EXIT_STMNT;
+        }
     }
 
     // set the decoded frame size, RGB
@@ -291,8 +317,13 @@ int main( int argc, char **argv )
         // zero
         bytes_decoded = 0;
 
+        // pointer to the default image buffer
+        const unsigned char * buffer_ptr = decoder_buffer;
+
         // check for data
-        if( psync_shdmem_queue_try_pop( &shdmem_queue, shdmem_buffer, shdmem_buffer_size ) == DTC_NONE )
+        ret = psync_shdmem_queue_try_pop( &shdmem_queue, shdmem_buffer, shdmem_buffer_size );
+
+		if( ret == DTC_NONE )
         {
             // cast header
             ps_shdmem_message_header * const header =
@@ -308,33 +339,51 @@ int main( int argc, char **argv )
                 // check if publisher is what we've initialized to using its and pixel format
                 if( message->pixel_format == publisher_format )
                 {
-                    // decode the data
-                    if( (ret = psync_video_decoder_decode(
-                            &video_decoder,
-                            message->timestamp,
-                            &shdmem_buffer[ sizeof(*header) + sizeof(*message) ],
-                            message->data_size )) != DTC_NONE )
+                    // if receiving an encoded pixel format
+                    if( publisher_format != PIXEL_FORMAT_RGB24 )
                     {
-                        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_decode - ret: %d", ret );
-                        goto GRACEFUL_EXIT_STMNT;
+                        // decode the data
+                        if( (ret = psync_video_decoder_decode(
+                                &video_decoder,
+                                message->timestamp,
+                                &shdmem_buffer[ sizeof(*header) + sizeof(*message) ],
+                                message->data_size )) != DTC_NONE )
+                        {
+                            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_decode - ret: %d", ret );
+                            goto GRACEFUL_EXIT_STMNT;
+                        }
+
+                        // copy the decoded bytes into our local buffer, this is the raw frame is our desired pixel format
+                        if( (ret = psync_video_decoder_copy_bytes(
+                                &video_decoder,
+                                decoder_buffer,
+                                decoded_frame_size,
+                                &bytes_decoded )) != DTC_NONE )
+                        {
+                            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_copy_bytes - ret: %d", ret );
+                            goto GRACEFUL_EXIT_STMNT;
+                        }
+                    }
+                    else
+                    {
+                        // point buffer to the raw image data, no decoding needed
+                        buffer_ptr = &shdmem_buffer[ sizeof(*header) + sizeof(*message) ];
+                        bytes_decoded = (unsigned long) message->data_size;
                     }
 
-                    // copy the decoded bytes into our local buffer, this is the raw frame is our desired pixel format
-                    if( (ret = psync_video_decoder_copy_bytes(
-                            &video_decoder,
-                            decoder_buffer,
-                            decoded_frame_size,
-                            &bytes_decoded )) != DTC_NONE )
-                    {
-                        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_copy_bytes - ret: %d", ret );
-                        goto GRACEFUL_EXIT_STMNT;
-                    }
-
-                    // if decoder has data available
+                    // if decoder/buffer has data available
                     if( bytes_decoded != 0 )
                     {
                         // update frame counter
-                        gui->frame_cnt += 1;
+                        if( message->frame_id != 0 )
+                        {
+                            gui->frame_cnt = (unsigned long) message->frame_id;
+                        }
+                        else
+                        {
+                            // default to using local indexing
+                            gui->frame_cnt += 1;
+                        }
 
                         // get timestamp
                         ps_timestamp now = 0;
@@ -350,7 +399,7 @@ int main( int argc, char **argv )
                         // update texture with new data and we're not in freeze-frame
                         if( gui->config.freeze_frame == 0 )
                         {
-                            gui_update_image_data( gui, decoder_buffer, bytes_decoded );
+                            gui_update_image_data( gui, buffer_ptr, bytes_decoded );
                         }
 
                         // reset sleep ticker
@@ -358,6 +407,10 @@ int main( int argc, char **argv )
                     }
                 }
             }
+        }
+		else if( ret != DTC_UNAVAILABLE )                                                                                                                                                             
+        {                                                                                                                                                                                             
+            global_exit_signal = 1;                                                                                                                                                                   
         }
 
         // get timestamp
