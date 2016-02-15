@@ -730,10 +730,6 @@ static int set_safe_turn_signal_msg(
 static int set_estop(
         commander_messages_s * const messages )
 {
-    // local vars
-    int ret = DTC_NONE;
-
-
     // if brake command message valid
     if( messages->brake_cmd != NULL )
     {
@@ -769,15 +765,8 @@ static int set_estop(
         messages->turn_signal_cmd->e_stop = 1;
     }
 
-    // handle DTC
-    if( ret != DTC_NONE )
-    {
-        // treat as a configuration error
-        ret = DTC_CONFIG;
-    }
 
-
-    return ret;
+    return DTC_NONE;
 }
 
 
