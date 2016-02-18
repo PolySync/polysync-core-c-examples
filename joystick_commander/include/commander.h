@@ -22,56 +22,58 @@
 
 
 /**
- * @brief Minimum allowed steering curvature value. [1/meters]
- *
- * 0.05 [1/meters] ==> road radius of 20 [meters]
+ * @brief Maximum allowed throttle pedal position value. [normalized]
  *
  */
-#define MIN_CURVATURE (-0.05)
+#define MAX_THROTTLE_PEDAL (0.3)
 
 
 /**
- * @brief Maximum allowed steering curvature value. [1/meters]
- *
- * 0.05 [1/meters] ==> road radius of 20 [meters]
+ * @brief Maximum allowed brake pedal position value. [normalized]
  *
  */
-#define MAX_CURVATURE (0.05)
+#define MAX_BRAKE_PEDAL (0.8)
 
 
 /**
- * @brief Maximum allowed absolute steering curvature rate value. [1/meters^2]
+ * @brief Minimum brake value to be considered enabled. [normalized]
+ *
+ * Throttle is disabled when brake value is greate than this value.
  *
  */
-#define CURVATURE_RATE_LIMIT (0.0001)
+#define BRAKES_ENABLED_MIN (0.05)
 
 
 /**
- * @brief Maximum allowed speed value. [meters/second]
+ * @brief Minimum allowed steering wheel angle value. [radians]
+ *
+ * Negative value means turning to the right.
  *
  */
-#define MAX_SPEED (5.0)
+#define MIN_STEERING_WHEEL_ANGLE (-M_PI * 2.0)
 
 
 /**
- * @brief Maximum allowed acceleration value. [meters/second^2]
+ * @brief Maximum allowed steering wheel angle value. [radians]
+ *
+ * Positive value means turning to the left.
  *
  */
-#define ACCELERATION_LIMIT (2.0)
+#define MAX_STEERING_WHEEL_ANGLE (M_PI * 2.0)
 
 
 /**
- * @brief Maximum allowed deceleration value. [meters/second^2]
+ * @brief Maximum allowed absolute steering wheel angle rate value. [radians/second]
  *
  */
-#define DECELERATION_LIMIT (0.0)
+#define STEERING_WHEEL_ANGLE_RATE_LIMIT (M_PI_2)
 
 
 /**
  * @brief Commander update interval. [microseconds]
  *
  */
-#define COMMANDER_UPDATE_INTERVAL (20000)
+#define COMMANDER_UPDATE_INTERVAL (50000)
 
 
 
@@ -83,15 +85,43 @@ typedef struct
 {
     //
     //
-    ps_platform_control_msg *control_msg; /*!< Platform control message. */
+    ps_platform_brake_command_msg *brake_cmd; /*!< Platform brake command message. */
     //
     //
-    ps_platform_gear_command_msg *gear_msg; /*!< Platform gear command message. */
+    ps_platform_throttle_command_msg *throttle_cmd; /*!< Platform throttle command message. */
     //
     //
-    ps_platform_turn_signal_command_msg *turn_signal_msg; /*!< Platform turn signal command message. */
+    ps_platform_steering_command_msg *steer_cmd; /*!< Platform steering wheel command message. */
+    //
+    //
+    ps_platform_gear_command_msg *gear_cmd; /*!< Platform gear command message. */
+    //
+    //
+    ps_platform_turn_signal_command_msg *turn_signal_cmd; /*!< Platform turn signal command message. */
+    //
+    //
+    ps_parameters_msg *parameters_cmd; /*!< Parameter(s) get/set command message. */
+    //
+    //
+    unsigned int send_enable_controls; /*!< Flag indicating whether or not to send an enable-controls get/set command. */
 } commander_messages_s;
 
+
+
+
+/**
+ * @brief Wait for joystick throttle/brake values to be zero.
+ *
+ * @param [in] jstick A pointer to \ref joystick_device_s which specifies the joystick handle.
+ *
+ * @return DTC code:
+ * \li \ref DTC_NONE (zero) if joystick values safe.
+ * \li \ref DTC_CONFIG if configuration invalid.
+ * \li \ref DTC_UNAVAILABLE if joystick values NOT safe.
+ *
+ */
+int commander_check_for_safe_joystick(
+        joystick_device_s * const jstick );
 
 
 /**

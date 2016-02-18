@@ -165,9 +165,11 @@ void jstick_close(
  *
  * @return DTC code:
  * \li \ref DTC_NONE (zero) if success.
+ * \li \ref DTC_USAGE if arguments invalid.
+ * \li \ref DTC_UNAVAILABLE if joystick is not accessible.
  *
  */
-void jstick_update(
+int jstick_update(
     joystick_device_s * const jstick );
 
 

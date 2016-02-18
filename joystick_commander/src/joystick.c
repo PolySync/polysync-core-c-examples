@@ -28,7 +28,7 @@
  * @brief Button press debounce delay. [microseconds]
  *
  */
-#define BUTTON_PRESSED_DELAY (1000)
+#define BUTTON_PRESSED_DELAY (5000)
 
 
 
@@ -219,13 +219,16 @@ void jstick_close(
 
 
 //
-void jstick_update(
+int jstick_update(
     joystick_device_s * const jstick )
 {
     if( jstick == NULL )
     {
-        return;
+        return DTC_USAGE;
     }
+
+    // local vars
+    int ret = DTC_NONE;
 
 
     // if handle valid
@@ -233,7 +236,27 @@ void jstick_update(
     {
         // update
         SDL_JoystickUpdate();
+
+        // check if attached
+        if( SDL_JoystickGetAttached(jstick->handle) == SDL_FALSE )
+        {
+            psync_log_message(
+                    LOG_LEVEL_ERROR,
+                    "joystick : (%u) -- SDL_JoystickGetAttached - device not attached",
+                    __LINE__ );
+
+            // invalid handle
+            ret = DTC_UNAVAILABLE;
+        }
     }
+    else
+    {
+        // invalid handle
+        ret = DTC_UNAVAILABLE;
+    }
+
+
+    return ret;
 }
 
 
