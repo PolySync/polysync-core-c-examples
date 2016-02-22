@@ -48,7 +48,7 @@
 #define IY 1
 #define IZ 2
 
-#define ROT 0
+#define ROL 0
 #define PITCH 1
 #define YAW 2
 
@@ -81,7 +81,7 @@ int main( int argc, char **argv )
         if ( DTC_NONE == ret )
         {
             // Set the orientation for the transform
-            ret = psync_transform_set_orientation_rpy( &transform, rpy[ROT], rpy[PITCH], rpy[YAW] );
+            ret = psync_transform_set_orientation_rpy( &transform, rpy[ROL], rpy[PITCH], rpy[YAW] );
 
             if ( DTC_NONE == ret )
             {

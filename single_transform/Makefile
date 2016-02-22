@@ -1,5 +1,5 @@
 ##########################################################
-# makefile for reader-writer
+# makefile for single-transform
 ##########################################################
 
 
@@ -9,7 +9,7 @@ PSYNC_HOME ?= /usr/local/polysync
 OSPL_HOME ?= $(PSYNC_HOME)/utils/x86_64.linux
 
 # target
-TARGET	:= bin/single_transform
+TARGET	:= bin/single-transform
 
 # sources
 SRCS    :=  src/single_transform.c
