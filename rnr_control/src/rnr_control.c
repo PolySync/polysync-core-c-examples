@@ -332,12 +332,12 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         psync_log_message( LOG_LEVEL_INFO, "sending enumerate RnR sessions command" );
 
         // set QoS to reliable for our response message subscriber
-        if( (ret = psync_set_subscriber_reliability_qos(
+        if( (ret = psync_node_set_subscriber_reliability_qos(
                 node_ref,
                 rnr_sessions_msg_type,
                 RELIABILITY_QOS_RELIABLE )) != DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_set_subscriber_reliability_qos returned: %d\n", __LINE__, ret );
+            psync_log_message( LOG_LEVEL_ERROR, "(%u) : psync_node_set_subscriber_reliability_qos returned: %d\n", __LINE__, ret );
             (void) psync_message_free( node_ref, &msg );
             return;
         }

@@ -295,9 +295,9 @@ int main( int argc, char **argv )
     }
 
     // set default subscriber/listener QoS for parameter message types to reliable
-    if( (ret = psync_set_subscriber_reliability_qos( node_ref, parameters_msg_type, RELIABILITY_QOS_RELIABLE )) != DTC_NONE )
+    if( (ret = psync_node_set_subscriber_reliability_qos( node_ref, parameters_msg_type, RELIABILITY_QOS_RELIABLE )) != DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_set_subscriber_reliability_qos - ret: %d", ret );
+        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_node_set_subscriber_reliability_qos - ret: %d", ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
