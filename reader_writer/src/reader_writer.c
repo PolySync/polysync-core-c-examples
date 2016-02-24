@@ -236,7 +236,21 @@ static void ps_diagnostic_trace_msg__handler(
     // cast to message
     const ps_diagnostic_trace_msg * const diagnostic_msg = (ps_diagnostic_trace_msg*) message;
 
+    // string version of the IP address
     char interface_address[32];
+
+    // node state strings
+    const char *node_state_strings[] =
+    {
+        [NODE_STATE_INVALID]    = "INVALID",
+        [NODE_STATE_AUTH]       = "AUTH",
+        [NODE_STATE_INIT]       = "INIT",
+        [NODE_STATE_OK]         = "OK",
+        [NODE_STATE_WARN]       = "WARN",
+        [NODE_STATE_ERROR]      = "ERROR",
+        [NODE_STATE_FATAL]      = "FATAL",
+        NULL
+    };
 
 
     // convert address to string
@@ -265,6 +279,23 @@ static void ps_diagnostic_trace_msg__handler(
             (unsigned int) diagnostic_msg->core_version.minor,
             (unsigned int) diagnostic_msg->core_version.subminor,
             (unsigned long) diagnostic_msg->core_version.build_date );
+
+    // ignore invalid traces
+    if( diagnostic_msg->trace._length != 0 )
+    {
+        // most recent state is the last element in the trace sequence
+        const unsigned long trace_index = diagnostic_msg->trace._length - 1;
+
+        // get node DTC from trace element
+        const ps_dtc node_dtc = diagnostic_msg->trace._buffer[ trace_index ].dtc;
+
+        // get node state from trace element
+        const ps_node_state_kind node_state = diagnostic_msg->trace._buffer[ trace_index ].node_state;
+
+        printf( "  - publishers last DTC %llu - state: %s\n",
+                (unsigned long long) node_dtc,
+                node_state_strings[ node_state ] );
+    }
 
     printf( "\n" );
 }
@@ -320,6 +351,13 @@ static void on_init(
     // activate fatal error and return if failed
     if( ret != DTC_NONE )
     {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_message_get_type_by_name returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
         psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
         return;
     }
@@ -334,6 +372,13 @@ static void on_init(
     // activate fatal error and return if failed
     if( ret != DTC_NONE )
     {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_message_register_listener returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
         psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
         return;
     }
