@@ -30,6 +30,10 @@
  *
  * Shows how to use publish/subscribe routines.
  *
+ * The example uses the standard PolySync node template and state machine.
+ * Send the SIGINT (control-C on the keyboard) signal to the node/process to do a graceful shutdown.
+ * See \ref polysync_node_template.h for more information.
+ *
  */
 
 
@@ -73,11 +77,34 @@
 static const char NODE_NAME[] = "polysync-reader-writer";
 
 
+/**
+ * @brief Diagnostic trace message type name.
+ *
+ */
+static const char DIAGNOSTIC_TRACE_MSG_NAME[] = "ps_diagnostic_trace_msg";
+
+
 
 
 // *****************************************************
 // static declarations
 // *****************************************************
+
+/**
+ * @brief Message "ps_diagnostic_trace_msg" handler.
+ *
+ * Prints the diagnostic information information of the node who published the message.
+ *
+ * @param [in] msg_type Message type identifier for the message, as seen by the data model.
+ * @param [in] message Message reference to be handled by the function.
+ * @param [in] user_data A pointer to void which specifies the internal data.
+ *
+ */
+static void ps_diagnostic_trace_msg__handler(
+        const ps_msg_type msg_type,
+        const ps_msg_ref const message,
+        void * const user_data );
+
 
 /**
  * @brief Node template set configuration callback function.
@@ -101,12 +128,7 @@ static int set_configuration(
 /**
  * @brief Node template on_init callback function.
  *
- * \li "on_init" - Called once after node transitions into the INIT state.
- * \li "on_release" - Called once on node exit.
- * \li "on_warn" - Called continously while in WARN state.
- * \li "on_error" - Called continously while in ERROR state.
- * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
- * \li "on_ok" - Called continously while in OK state.
+ * Called once after node transitions into the INIT state.
  *
  * @param [in] node_ref Node reference, provided by node template API.
  * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
@@ -122,12 +144,7 @@ static void on_init(
 /**
  * @brief Node template on_release callback function.
  *
- * \li "on_init" - Called once after node transitions into the INIT state.
- * \li "on_release" - Called once on node exit.
- * \li "on_warn" - Called continously while in WARN state.
- * \li "on_error" - Called continously while in ERROR state.
- * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
- * \li "on_ok" - Called continously while in OK state.
+ * Called once on node exit.
  *
  * @param [in] node_ref Node reference, provided by node template API.
  * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
@@ -143,12 +160,7 @@ static void on_release(
 /**
  * @brief Node template on_error callback function.
  *
- * \li "on_init" - Called once after node transitions into the INIT state.
- * \li "on_release" - Called once on node exit.
- * \li "on_warn" - Called continously while in WARN state.
- * \li "on_error" - Called continously while in ERROR state.
- * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
- * \li "on_ok" - Called continously while in OK state.
+ * Called continously while in ERROR state.
  *
  * @param [in] node_ref Node reference, provided by node template API.
  * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
@@ -164,12 +176,7 @@ static void on_error(
 /**
  * @brief Node template on_fatal callback function.
  *
- * \li "on_init" - Called once after node transitions into the INIT state.
- * \li "on_release" - Called once on node exit.
- * \li "on_warn" - Called continously while in WARN state.
- * \li "on_error" - Called continously while in ERROR state.
- * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
- * \li "on_ok" - Called continously while in OK state.
+ * Called once after node transitions into the FATAL state before terminating.
  *
  * @param [in] node_ref Node reference, provided by node template API.
  * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
@@ -185,12 +192,7 @@ static void on_fatal(
 /**
  * @brief Node template on_warn callback function.
  *
- * \li "on_init" - Called once after node transitions into the INIT state.
- * \li "on_release" - Called once on node exit.
- * \li "on_warn" - Called continously while in WARN state.
- * \li "on_error" - Called continously while in ERROR state.
- * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
- * \li "on_ok" - Called continously while in OK state.
+ * Called continously while in WARN state.
  *
  * @param [in] node_ref Node reference, provided by node template API.
  * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
@@ -206,12 +208,7 @@ static void on_warn(
 /**
  * @brief Node template on_ok callback function.
  *
- * \li "on_init" - Called once after node transitions into the INIT state.
- * \li "on_release" - Called once on node exit.
- * \li "on_warn" - Called continously while in WARN state.
- * \li "on_error" - Called continously while in ERROR state.
- * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
- * \li "on_ok" - Called continously while in OK state.
+ * Called continously while in OK state.
  *
  * @param [in] node_ref Node reference, provided by node template API.
  * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
@@ -229,6 +226,49 @@ static void on_ok(
 // *****************************************************
 // static definitions
 // *****************************************************
+
+//
+static void ps_diagnostic_trace_msg__handler(
+        const ps_msg_type msg_type,
+        const ps_msg_ref const message,
+        void * const user_data )
+{
+    // cast to message
+    const ps_diagnostic_trace_msg * const diagnostic_msg = (ps_diagnostic_trace_msg*) message;
+
+    char interface_address[32];
+
+
+    // convert address to string
+    (void) psync_interface_address_value_to_string(
+            diagnostic_msg->host_address,
+            interface_address,
+            sizeof(interface_address) );
+
+    // print details
+    printf( "  received diagnostic message from node 0x%016llX (%llu)\n",
+            (unsigned long long) diagnostic_msg->header.src_guid,
+            (unsigned long long) diagnostic_msg->header.src_guid );
+
+    printf( "  - publishers interface address '%s' (0x%lu)\n",
+            interface_address,
+            (unsigned long) diagnostic_msg->host_address );
+
+    printf( "  - publishers PolySync API version: %u.%u.%u-%lu\n",
+            (unsigned int) diagnostic_msg->api_version.major,
+            (unsigned int) diagnostic_msg->api_version.minor,
+            (unsigned int) diagnostic_msg->api_version.subminor,
+            (unsigned long) diagnostic_msg->api_version.build_date );
+
+    printf( "  - publishers 'core' data model version: %u.%u.%u-%lu\n",
+            (unsigned int) diagnostic_msg->core_version.major,
+            (unsigned int) diagnostic_msg->core_version.minor,
+            (unsigned int) diagnostic_msg->core_version.subminor,
+            (unsigned long) diagnostic_msg->core_version.build_date );
+
+    printf( "\n" );
+}
+
 
 //
 static int set_configuration(
@@ -266,7 +306,37 @@ static void on_init(
         const ps_diagnostic_state * const state,
         void * const user_data )
 {
-    // do nothing
+    // local vars
+    int ret = DTC_NONE;
+    ps_msg_type msg_type = PSYNC_MSG_TYPE_INVALID;
+
+
+    // get diagnostic trace message type identifier
+    ret = psync_message_get_type_by_name(
+            node_ref,
+            DIAGNOSTIC_TRACE_MSG_NAME,
+            &msg_type );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // register subscriber for diagnostic trace message
+    ret = psync_message_register_listener(
+            node_ref,
+            msg_type,
+            ps_diagnostic_trace_msg__handler,
+            NULL );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
 }
 
 
@@ -276,7 +346,8 @@ static void on_release(
         const ps_diagnostic_state * const state,
         void * const user_data )
 {
-    // do nothing
+    // do nothing, sleep for 10 milliseconds
+    (void) psync_sleep_micro( 10000 );
 }
 
 
@@ -286,7 +357,8 @@ static void on_error(
         const ps_diagnostic_state * const state,
         void * const user_data )
 {
-    // do nothing
+    // do nothing, sleep for 10 milliseconds
+    (void) psync_sleep_micro( 10000 );
 }
 
 
@@ -296,7 +368,8 @@ static void on_fatal(
         const ps_diagnostic_state * const state,
         void * const user_data )
 {
-    // do nothing
+    // do nothing, sleep for 10 milliseconds
+    (void) psync_sleep_micro( 10000 );
 }
 
 
@@ -306,7 +379,8 @@ static void on_warn(
         const ps_diagnostic_state * const state,
         void * const user_data )
 {
-    // do nothing
+    // do nothing, sleep for 10 milliseconds
+    (void) psync_sleep_micro( 10000 );
 }
 
 
@@ -316,7 +390,8 @@ static void on_ok(
         const ps_diagnostic_state * const state,
         void * const user_data )
 {
-    // do nothing
+    // do nothing, sleep for 10 milliseconds
+    (void) psync_sleep_micro( 10000 );
 }
 
 
