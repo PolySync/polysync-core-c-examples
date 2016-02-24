@@ -24,13 +24,11 @@
  */
 
 /**
- * \example reader_writer.c
+ * \example get_set.c
  *
- * Reader/Writer Example.
+ * Get/Set Parameters Example.
  *
- * Shows how to use publish/subscribe routines.
- * The example code registers a subscriber to PolySync diagnostic messages and
- * publishes event messages.
+ * Shows how to use get/set system to get all parameters from all nodes.
  *
  * The example uses the standard PolySync node template and state machine.
  * Send the SIGINT (control-C on the keyboard) signal to the node/process to do a graceful shutdown.
@@ -75,21 +73,14 @@
  * @brief PolySync node name.
  *
  */
-static const char NODE_NAME[] = "polysync-reader-writer-c";
+static const char NODE_NAME[] = "polysync-get-set-c";
 
 
 /**
- * @brief Diagnostic trace message type name.
+ * @brief Parameters message type name.
  *
  */
-static const char DIAGNOSTIC_TRACE_MSG_NAME[] = "ps_diagnostic_trace_msg";
-
-
-/**
- * @brief Event message type name.
- *
- */
-static const char EVENT_MSG_NAME[] = "ps_event_msg";
+static const char PARAMETERS_MSG_NAME[] = "ps_parameters_msg";
 
 
 
@@ -99,16 +90,16 @@ static const char EVENT_MSG_NAME[] = "ps_event_msg";
 // *****************************************************
 
 /**
- * @brief Message "ps_diagnostic_trace_msg" handler.
+ * @brief Message "ps_parameters_msg" handler.
  *
- * Prints the diagnostic information information of the node who published the message.
+ * Prints the parameter response information.
  *
  * @param [in] msg_type Message type identifier for the message, as seen by the data model.
  * @param [in] message Message reference to be handled by the function.
  * @param [in] user_data A pointer to void which specifies the internal data.
  *
  */
-static void ps_diagnostic_trace_msg__handler(
+static void ps_parameters_msg__handler(
         const ps_msg_type msg_type,
         const ps_msg_ref const message,
         void * const user_data );
@@ -236,73 +227,85 @@ static void on_ok(
 // *****************************************************
 
 //
-static void ps_diagnostic_trace_msg__handler(
+static void ps_parameters_msg__handler(
         const ps_msg_type msg_type,
         const ps_msg_ref const message,
         void * const user_data )
 {
+    // index
+    unsigned long idx = 0;
+
     // cast to message
-    const ps_diagnostic_trace_msg * const diagnostic_msg = (ps_diagnostic_trace_msg*) message;
+    const ps_parameters_msg * const parameters_msg = (ps_parameters_msg*) message;
 
-    // string version of the IP address
-    char interface_address[32];
 
-    // node state strings
-    const char *node_state_strings[] =
+    // only handle responses from other nodes
+    if( parameters_msg->type != PARAMETER_MESSAGE_RESPONSE )
     {
-        [NODE_STATE_INVALID]    = "INVALID",
-        [NODE_STATE_AUTH]       = "AUTH",
-        [NODE_STATE_INIT]       = "INIT",
-        [NODE_STATE_OK]         = "OK",
-        [NODE_STATE_WARN]       = "WARN",
-        [NODE_STATE_ERROR]      = "ERROR",
-        [NODE_STATE_FATAL]      = "FATAL",
-        NULL
-    };
-
-
-    // convert address to string
-    (void) psync_interface_address_value_to_string(
-            diagnostic_msg->host_address,
-            interface_address,
-            sizeof(interface_address) );
+        return;
+    }
 
     // print details
-    printf( "  received diagnostic message from node 0x%016llX (%llu)\n",
-            (unsigned long long) diagnostic_msg->header.src_guid,
-            (unsigned long long) diagnostic_msg->header.src_guid );
+    printf( "  received parameters message from node 0x%016llX (%llu)\n",
+            (unsigned long long) parameters_msg->header.src_guid,
+            (unsigned long long) parameters_msg->header.src_guid );
 
-    printf( "  - publishers interface address '%s' (0x%lu)\n",
-            interface_address,
-            (unsigned long) diagnostic_msg->host_address );
-
-    printf( "  - publishers PolySync API version: %u.%u.%u-%lu\n",
-            (unsigned int) diagnostic_msg->api_version.major,
-            (unsigned int) diagnostic_msg->api_version.minor,
-            (unsigned int) diagnostic_msg->api_version.subminor,
-            (unsigned long) diagnostic_msg->api_version.build_date );
-
-    printf( "  - publishers 'core' data model version: %u.%u.%u-%lu\n",
-            (unsigned int) diagnostic_msg->core_version.major,
-            (unsigned int) diagnostic_msg->core_version.minor,
-            (unsigned int) diagnostic_msg->core_version.subminor,
-            (unsigned long) diagnostic_msg->core_version.build_date );
-
-    // ignore invalid traces
-    if( diagnostic_msg->trace._length != 0 )
+    // node does not support any parameters
+    if( parameters_msg->parameters._length == 0 )
     {
-        // most recent state is the last element in the trace sequence
-        const unsigned long trace_index = diagnostic_msg->trace._length - 1;
+        printf( "  - no parameters supported\n" );
+    }
 
-        // get node DTC from trace element
-        const ps_dtc node_dtc = diagnostic_msg->trace._buffer[ trace_index ].dtc;
+    // for each parameter in the response
+    for( idx = 0; idx < parameters_msg->parameters._length; idx++ )
+    {
+        // get convenience ref
+        const ps_parameter * const param = &parameters_msg->parameters._buffer[ idx ];
 
-        // get node state from trace element
-        const ps_node_state_kind node_state = diagnostic_msg->trace._buffer[ trace_index ].node_state;
+        printf( "- [%lu]\n", idx );
+        printf( "    ID: 0x%llX (%llu)\n", (unsigned long long) param->id, (unsigned long long) param->id );
+        printf( "    description: '%s'\n", param->description._buffer );
+        printf( "    value type: %u\n", (unsigned int) param->value._d );
+        printf( "    flags: 0x%X", (unsigned int) param->flags );
 
-        printf( "  - publishers last DTC %llu - state: %s\n",
-                (unsigned long long) node_dtc,
-                node_state_strings[ node_state ] );
+        // format flag bit strings if set
+        if( param->flags != 0 )
+        {
+            // check bits
+            if( param->flags & PSYNC_PARAMETER_FLAG_DISABLED )
+            {
+                printf( ", DISABLED" );
+            }
+            if( param->flags & PSYNC_PARAMETER_FLAG_USERDEFINED )
+            {
+                printf( ", USER-DEFINED" );
+            }
+            if( param->flags & PSYNC_PARAMETER_FLAG_ANALYTIC )
+            {
+                printf( ", ANALYTIC" );
+            }
+            if( param->flags & PSYNC_PARAMETER_FLAG_READONLY_VALUE )
+            {
+                printf( ", READ-ONLY VALUE" );
+            }
+            if( param->flags & PSYNC_PARAMETER_FLAG_READONLY_MIN )
+            {
+                printf( ", READ-ONLY MIN" );
+            }
+            if( param->flags & PSYNC_PARAMETER_FLAG_READONLY_MAX )
+            {
+                printf( ", READ-ONLY MAX" );
+            }
+            if( param->flags & PSYNC_PARAMETER_FLAG_READONLY_STEP )
+            {
+                printf( ", READ-ONLY STEP" );
+            }
+            printf( "\n" );
+        }
+        else
+        {
+            printf( "\n" );
+        }
     }
 
     printf( "\n" );
@@ -348,12 +351,13 @@ static void on_init(
     // local vars
     int ret = DTC_NONE;
     ps_msg_type msg_type = PSYNC_MSG_TYPE_INVALID;
+    ps_msg_ref msg = PSYNC_MSG_REF_INVALID;
 
 
-    // get diagnostic trace message type identifier
+    // get parameters message type identifier
     ret = psync_message_get_type_by_name(
             node_ref,
-            DIAGNOSTIC_TRACE_MSG_NAME,
+            PARAMETERS_MSG_NAME,
             &msg_type );
 
     // activate fatal error and return if failed
@@ -370,11 +374,31 @@ static void on_init(
         return;
     }
 
-    // register subscriber for diagnostic trace message
+    // set default parameters message subscriber QoS to reliable
+    ret = psync_node_set_subscriber_reliability_qos(
+            node_ref,
+            msg_type,
+            RELIABILITY_QOS_RELIABLE );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_node_set_subscriber_reliability_qos returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // register subscriber for parameters message
     ret = psync_message_register_listener(
             node_ref,
             msg_type,
-            ps_diagnostic_trace_msg__handler,
+            ps_parameters_msg__handler,
             NULL );
 
     // activate fatal error and return if failed
@@ -383,6 +407,108 @@ static void on_init(
         psync_log_message(
                 LOG_LEVEL_ERROR,
                 "%s : (%u) -- psync_message_register_listener returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // create a parameters message
+    ret = psync_message_alloc(
+            node_ref,
+            msg_type,
+            &msg );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_message_alloc returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // set message data
+    ps_parameters_msg *parameters_msg = (ps_parameters_msg*) msg;
+
+    // create a local parameter structure to hold our get-all command
+    ps_parameter parameter;
+    memset( &parameter, 0, sizeof(parameter) );
+
+    // invalid destination GUID will be handled by all nodes
+    parameters_msg->dest_guid = PSYNC_GUID_INVALID;
+
+    // set ID to reserved get-all ID
+    parameter.id = PSYNC_PARAM_ID_ALL;
+
+    // point message sequence buffer to the local variable since we just doing a get all
+    parameters_msg->parameters._buffer = &parameter;
+    parameters_msg->parameters._length = 1;
+    parameters_msg->parameters._maximum = 1;
+
+    // set type to get-all
+    parameters_msg->type = PARAMETER_MESSAGE_GET_ALL;
+
+    // set publish timestamp in message header
+    ret = psync_get_timestamp( &parameters_msg->header.timestamp );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_get_timestamp returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    psync_log_message(
+                LOG_LEVEL_INFO,
+                "%s : (%u) -- sending get-set command to get all parameters from all nodes",
+                __FILE__,
+                __LINE__ );
+
+    // publish parameters message
+    ret = psync_message_publish(
+            node_ref,
+            msg );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_message_publish returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // free parameters message
+    ret = psync_message_free(
+            node_ref,
+            &msg );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_message_free returned DTC %d",
                 __FILE__,
                 __LINE__,
                 ret );
@@ -443,113 +569,8 @@ static void on_ok(
         const ps_diagnostic_state * const state,
         void * const user_data )
 {
-    // local vars
-    int ret = DTC_NONE;
-    ps_msg_type msg_type = PSYNC_MSG_TYPE_INVALID;
-    ps_msg_ref msg = PSYNC_MSG_REF_INVALID;
-
-
-    // get event message type identifier
-    ret = psync_message_get_type_by_name(
-            node_ref,
-            EVENT_MSG_NAME,
-            &msg_type );
-
-    // activate fatal error and return if failed
-    if( ret != DTC_NONE )
-    {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_message_get_type_by_name returned DTC %d",
-                __FILE__,
-                __LINE__,
-                ret );
-
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // create an event message
-    ret = psync_message_alloc(
-            node_ref,
-            msg_type,
-            &msg );
-
-    // activate fatal error and return if failed
-    if( ret != DTC_NONE )
-    {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_message_alloc returned DTC %d",
-                __FILE__,
-                __LINE__,
-                ret );
-
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // set message data
-    ps_event_msg *event_msg = (ps_event_msg*) msg;
-    event_msg->id = 0;
-
-    // set publish timestamp in message header
-    ret = psync_get_timestamp( &event_msg->header.timestamp );
-
-    // activate fatal error and return if failed
-    if( ret != DTC_NONE )
-    {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_get_timestamp returned DTC %d",
-                __FILE__,
-                __LINE__,
-                ret );
-
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // publish event message
-    ret = psync_message_publish(
-            node_ref,
-            msg );
-
-    // activate fatal error and return if failed
-    if( ret != DTC_NONE )
-    {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_message_publish returned DTC %d",
-                __FILE__,
-                __LINE__,
-                ret );
-
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // free event message
-    ret = psync_message_free(
-            node_ref,
-            &msg );
-
-    // activate fatal error and return if failed
-    if( ret != DTC_NONE )
-    {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_message_free returned DTC %d",
-                __FILE__,
-                __LINE__,
-                ret );
-
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // sleep for 100 milliseconds
-    (void) psync_sleep_micro( 100000 );
+    // do nothing, sleep for 10 milliseconds
+    (void) psync_sleep_micro( 10000 );
 }
 
 

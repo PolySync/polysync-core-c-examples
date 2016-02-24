@@ -1,5 +1,5 @@
 ##########################################################
-# makefile for reader-writer
+# makefile for get-set
 ##########################################################
 
 
@@ -9,10 +9,10 @@ PSYNC_HOME ?= /usr/local/polysync
 OSPL_HOME ?= $(PSYNC_HOME)/utils/x86_64.linux
 
 # target
-TARGET	:= bin/polysync-reader-writer-c
+TARGET	:= bin/polysync-get-set-c
 
 # sources
-SRCS    :=  src/reader_writer.c
+SRCS    :=  src/get_set.c
 
 # object files, dep files
 OBJS    := $(SRCS:.c=.o)
