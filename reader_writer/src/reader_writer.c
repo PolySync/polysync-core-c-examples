@@ -29,6 +29,8 @@
  * Reader/Writer Example.
  *
  * Shows how to use publish/subscribe routines.
+ * The example code registers a subscriber to PolySync diagnostic messages and
+ * publishes event messages.
  *
  * The example uses the standard PolySync node template and state machine.
  * Send the SIGINT (control-C on the keyboard) signal to the node/process to do a graceful shutdown.
@@ -43,7 +45,6 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
-#include <getopt.h>
 
 // API headers
 #include "polysync_core.h"
@@ -82,6 +83,13 @@ static const char NODE_NAME[] = "polysync-reader-writer";
  *
  */
 static const char DIAGNOSTIC_TRACE_MSG_NAME[] = "ps_diagnostic_trace_msg";
+
+
+/**
+ * @brief Event message type name.
+ *
+ */
+static const char EVENT_MSG_NAME[] = "ps_event_msg";
 
 
 
@@ -435,8 +443,113 @@ static void on_ok(
         const ps_diagnostic_state * const state,
         void * const user_data )
 {
-    // do nothing, sleep for 10 milliseconds
-    (void) psync_sleep_micro( 10000 );
+    // local vars
+    int ret = DTC_NONE;
+    ps_msg_type msg_type = PSYNC_MSG_TYPE_INVALID;
+    ps_msg_ref msg = PSYNC_MSG_REF_INVALID;
+
+
+    // get event message type identifier
+    ret = psync_message_get_type_by_name(
+            node_ref,
+            EVENT_MSG_NAME,
+            &msg_type );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_message_get_type_by_name returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // create an event message
+    ret = psync_message_alloc(
+            node_ref,
+            msg_type,
+            &msg );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_message_alloc returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // set message data
+    ps_event_msg *event_msg = (ps_event_msg*) msg;
+    event_msg->id = 0;
+
+    // set publish timestamp in message header
+    ret = psync_get_timestamp( &event_msg->header.timestamp );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_get_timestamp returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // publish event message
+    ret = psync_message_publish(
+            node_ref,
+            msg );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_message_publish returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // free event message
+    ret = psync_message_free(
+            node_ref,
+            &msg );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_message_free returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // sleep for 100 milliseconds
+    (void) psync_sleep_micro( 100000 );
 }
 
 
