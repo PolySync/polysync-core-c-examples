@@ -63,7 +63,7 @@ static sig_atomic_t global_exit_signal = 0;
  * @brief PolySync node name.
  *
  */
-static const char NODE_NAME[] = "video-encode-decode-c";
+static const char NODE_NAME[] = "polysync-video-encode-decode-c";
 
 
 /**

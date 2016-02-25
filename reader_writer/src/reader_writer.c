@@ -75,7 +75,7 @@
  * @brief PolySync node name.
  *
  */
-static const char NODE_NAME[] = "polysync-reader-writer";
+static const char NODE_NAME[] = "polysync-reader-writer-c";
 
 
 /**
