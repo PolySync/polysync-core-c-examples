@@ -30,6 +30,10 @@
  *
  * Shows how to publish various provided sensor data messages.
  *
+ * The example uses the standard PolySync node template and state machine.
+ * Send the SIGINT (control-C on the keyboard) signal to the node/process to do a graceful shutdown.
+ * See \ref polysync_node_template.h for more information.
+ *
  */
 
 
