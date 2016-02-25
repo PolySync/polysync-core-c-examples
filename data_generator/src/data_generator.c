@@ -12,8 +12,8 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
- * 
+ *
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -28,6 +28,8 @@
  *
  * Data Generator Example.
  *
+ * Shows how to publish various provided sensor data messages.
+ *
  */
 
 
@@ -36,7 +38,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
 #include <unistd.h>
 
 // API headers
@@ -60,17 +61,10 @@
 
 
 /**
- * @brief Flag indicating exit signal was caught.
- *
- */
-static sig_atomic_t global_exit_signal = 0;
-
-
-/**
  * @brief PolySync node name.
  *
  */
-static const char NODE_NAME[] = "data-generator";
+static const char NODE_NAME[] = "polysync-data-generator-c";
 
 
 /**

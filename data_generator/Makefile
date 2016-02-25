@@ -9,7 +9,7 @@ PSYNC_HOME ?= /usr/local/polysync
 OSPL_HOME ?= $(PSYNC_HOME)/utils/x86_64.linux
 
 # target
-TARGET	:= bin/data-generator
+TARGET	:= bin/polysync-data-generator-c
 
 # sources
 SRCS    :=  src/radar_targets.c \
@@ -30,6 +30,9 @@ CC = gcc
 
 # link against data model
 LIBS += -lpolysync_data_model
+
+# add node template library, must be first
+LIBS := -L$(PSYNC_HOME)/lib -lpolysync_node $(LIBS)
 
 #
 all: dirs $(TARGET)
