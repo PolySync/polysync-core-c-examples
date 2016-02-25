@@ -9,7 +9,7 @@ PSYNC_HOME ?= /usr/local/polysync
 OSPL_HOME ?= $(PSYNC_HOME)/utils/x86_64.linux
 
 # target
-TARGET	:= bin/single-transform
+TARGET	:= bin/polysync-single-transform-c
 
 # sources
 SRCS    :=  src/single_transform.c
