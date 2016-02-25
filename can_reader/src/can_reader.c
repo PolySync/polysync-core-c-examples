@@ -441,7 +441,14 @@ static void on_ok(
             10000 );
 
     // ignore timeout/interrupts
-    if( (ret != DTC_UNAVAILABLE) && (ret != DTC_INTR) )
+    if( ret == DTC_NONE )
+    {
+        printf( "CAN frame - ID: 0x%lX (%lu) - DLC: %lu\n",
+                can_frame.id,
+                can_frame.id,
+                can_frame.dlc );
+    }
+    else if( (ret != DTC_UNAVAILABLE) && (ret != DTC_INTR) )
     {
         // activate fatal error and return if failed
         if( ret != DTC_NONE )
