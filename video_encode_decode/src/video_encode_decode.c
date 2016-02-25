@@ -26,8 +26,6 @@
 /**
  * \example video_encode_decode.c
  *
- * Video Device Data Encode and Decode Example.
- *
  * Shows how to use the Video API routines to communicate with a video device,
  * and encode/decode the data.
  *
@@ -40,7 +38,6 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
-#include <getopt.h>
 
 // API headers
 #include "polysync_core.h"
@@ -51,7 +48,7 @@
 
 
 // *****************************************************
-// static global data
+// static global types/macros
 // *****************************************************
 
 
@@ -66,7 +63,7 @@ static sig_atomic_t global_exit_signal = 0;
  * @brief PolySync node name.
  *
  */
-static const char NODE_NAME[] = "video-encode-decode";
+static const char NODE_NAME[] = "polysync-video-encode-decode-c";
 
 
 /**
@@ -104,6 +101,17 @@ static unsigned long DEFAULT_VIDEO_HEIGHT = 480;
 static void sig_handler( int signal );
 
 
+/**
+ * @brief Example error/DTC handler.
+ *
+ */
+static void error_exit(
+        const char * const function,
+        const ps_dtc dtc,
+        const char * const filename,
+        const unsigned int line_num );
+
+
 
 
 // *****************************************************
@@ -121,6 +129,29 @@ static void sig_handler( int sig )
 }
 
 
+//
+static void error_exit(
+        const char * const function,
+        const ps_dtc dtc,
+        const char * const filename,
+        const unsigned int line_num )
+{
+    // exit if failed
+    if( dtc != DTC_NONE )
+    {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- '%s' returned DTC %llu",
+                filename,
+                line_num,
+                function,
+                (unsigned long long) dtc );
+
+        exit(EXIT_FAILURE);
+    }
+}
+
+
 
 
 // *****************************************************
@@ -131,8 +162,6 @@ int main( int argc, char **argv )
     // polysync return status
     int ret = DTC_NONE;
 
-    // node reference
-    ps_node_ref node_ref = PSYNC_NODE_REF_INVALID;
 
     // timestamp for the incoming raw image data
     ps_timestamp rx_timestamp = 0;
@@ -176,13 +205,6 @@ int main( int argc, char **argv )
     memset( &video_encoder, 0, sizeof(video_encoder) );
     memset( &video_decoder, 0, sizeof(video_decoder) );
 
-	// init core API
-    if( (ret = psync_init( NODE_NAME, PSYNC_NODE_TYPE_API_USER, PSYNC_DEFAULT_DOMAIN, PSYNC_SDF_ID_INVALID, PSYNC_INIT_FLAG_STDOUT_LOGGING, &node_ref )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_init - ret: %d", ret );
-        return EXIT_FAILURE;
-    }
-
     // nodes typically should shutdown after handling SIGINT
     // hook up the control-c signal handler, sets exit signaled flag
     signal( SIGINT, sig_handler );
@@ -190,40 +212,45 @@ int main( int argc, char **argv )
     // allow signals to interrupt
     siginterrupt( SIGINT, 1 );
 
-    // open device
-    if( (ret = psync_video_open( &video_device, DEFAULT_VIDEO_DEVICE_PATH )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_open - ret: %d", ret );
-        goto GRACEFUL_EXIT_STMNT;
-    }
+    // open video device
+    ret = psync_video_open( &video_device, DEFAULT_VIDEO_DEVICE_PATH );
+
+    // exit if failed
+    error_exit( "psync_video_open", ret, __FILE__, __LINE__ );
 
     // check if desired configuration is available
-    if( (ret = psync_video_check_format( &video_device, desired_device_format, DEFAULT_VIDEO_WIDTH, DEFAULT_VIDEO_HEIGHT )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_check_format - ret: %d", ret );
-        goto GRACEFUL_EXIT_STMNT;
-    }
+    ret = psync_video_check_format(
+            &video_device,
+            desired_device_format,
+            DEFAULT_VIDEO_WIDTH,
+            DEFAULT_VIDEO_HEIGHT );
+
+    // exit if failed
+    error_exit( "psync_video_check_format", ret, __FILE__, __LINE__ );
 
     // set configuration
-    if( (ret = psync_video_set_format( &video_device, desired_device_format, DEFAULT_VIDEO_WIDTH, DEFAULT_VIDEO_HEIGHT )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_set_format - ret: %d", ret );
-        goto GRACEFUL_EXIT_STMNT;
-    }
+    ret = psync_video_set_format(
+            &video_device,
+            desired_device_format,
+            DEFAULT_VIDEO_WIDTH,
+            DEFAULT_VIDEO_HEIGHT );
 
-    // set framerate
-    if( (ret = psync_video_set_frame_rate( &video_device, PSYNC_VIDEO_DEFAULT_FRAMES_PER_SECOND )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_set_frame_rate - ret: %d", ret );
-        goto GRACEFUL_EXIT_STMNT;
-    }
+    // exit if failed
+    error_exit( "psync_video_set_format", ret, __FILE__, __LINE__ );
+
+    // set frame rate
+    ret = psync_video_set_frame_rate(
+            &video_device,
+            PSYNC_VIDEO_DEFAULT_FRAMES_PER_SECOND );
+
+    // exit if failed
+    error_exit( "psync_video_set_frame_rate", ret, __FILE__, __LINE__ );
 
     // enable streaming, this starts the capturing of data
-    if( (ret = psync_video_enable_streaming( &video_device )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_enable_streaming - ret: %d", ret );
-        goto GRACEFUL_EXIT_STMNT;
-    }
+    ret = psync_video_enable_streaming( &video_device );
+
+    // exit if failed
+    error_exit( "psync_video_enable_streaming", ret, __FILE__, __LINE__ );
 
     // set the decoded frame size, RGB
     decoded_frame_size = DEFAULT_VIDEO_WIDTH * DEFAULT_VIDEO_HEIGHT * 3;
@@ -231,19 +258,23 @@ int main( int argc, char **argv )
     // allocate encoder buffer, enough space for a full raw frame
     if( (encoder_buffer = malloc( video_device.buffer_len )) == NULL )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- failed to allocate encoder buffer" );
-        goto GRACEFUL_EXIT_STMNT;
+        ret = DTC_MEMERR;
     }
+
+    // exit if failed
+    error_exit( "malloc", ret, __FILE__, __LINE__ );
 
     // allocate decoder buffer, enough space for a full raw frame in the desired pixel format which is RGB in this example
     if( (decoder_buffer = malloc( decoded_frame_size )) == NULL )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- failed to allocate decoder buffer" );
-        goto GRACEFUL_EXIT_STMNT;
+        ret = DTC_MEMERR;
     }
 
+    // exit if failed
+    error_exit( "malloc", ret, __FILE__, __LINE__ );
+
     // initialize h264 encoder
-    if( (ret = psync_video_encoder_init(
+    ret = psync_video_encoder_init(
             &video_encoder,
             desired_device_format,
             DEFAULT_VIDEO_WIDTH,
@@ -251,14 +282,13 @@ int main( int argc, char **argv )
             PSYNC_VIDEO_DEFAULT_FRAMES_PER_SECOND,
             PIXEL_FORMAT_H264,
             DEFAULT_VIDEO_WIDTH,
-            DEFAULT_VIDEO_HEIGHT )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_encoder_init - ret: %d", ret );
-        goto GRACEFUL_EXIT_STMNT;
-    }
+            DEFAULT_VIDEO_HEIGHT );
+
+    // exit if failed
+    error_exit( "psync_video_encoder_init", ret, __FILE__, __LINE__ );
 
     // initialize h264 decoder, frame-rate will be determined by stream if possible, otherwise use default
-    if( (ret = psync_video_decoder_init(
+    ret = psync_video_decoder_init(
             &video_decoder,
             PIXEL_FORMAT_H264,
             DEFAULT_VIDEO_WIDTH,
@@ -266,11 +296,10 @@ int main( int argc, char **argv )
             desired_decoder_format,
             DEFAULT_VIDEO_WIDTH,
             DEFAULT_VIDEO_HEIGHT,
-            PSYNC_VIDEO_DEFAULT_FRAMES_PER_SECOND )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_init - ret: %d", ret );
-        goto GRACEFUL_EXIT_STMNT;
-    }
+            PSYNC_VIDEO_DEFAULT_FRAMES_PER_SECOND );
+
+    // exit if failed
+    error_exit( "psync_video_decoder_init", ret, __FILE__, __LINE__ );
 
 
     // main event loop
@@ -293,85 +322,75 @@ int main( int argc, char **argv )
 
             printf( "frame[%lu] - rx: %llu\n", frame_counter, rx_timestamp );
 
-            // encode the raw image data
-            if( (ret = psync_video_encoder_encode( &video_encoder, rx_timestamp, video_device.buffer, video_device.buffer_len )) != DTC_NONE )
-            {
-                psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_encoder_encode - ret: %d", ret );
-                goto GRACEFUL_EXIT_STMNT;
-            }
+            // encode the raw image data stored in the video device handle
+            ret = psync_video_encoder_encode(
+                    &video_encoder,
+                    rx_timestamp,
+                    video_device.buffer,
+                    video_device.buffer_len );
+
+            // exit if failed
+            error_exit( "psync_video_encoder_encode", ret, __FILE__, __LINE__ );
 
             // copy the encoded bytes into our local buffer, this is the encoded byte stream
-            if( (ret = psync_video_encoder_copy_bytes( &video_encoder, encoder_buffer, video_device.buffer_len, &bytes_encoded )) != DTC_NONE )
-            {
-                psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_encoder_copy_bytes - ret: %d", ret );
-                goto GRACEFUL_EXIT_STMNT;
-            }
+            ret = psync_video_encoder_copy_bytes(
+                    &video_encoder,
+                    encoder_buffer,
+                    video_device.buffer_len,
+                    &bytes_encoded );
+
+            // exit if failed
+            error_exit( "psync_video_encoder_copy_bytes", ret, __FILE__, __LINE__ );
 
             // if encoder has data available
             if( bytes_encoded != 0 )
             {
-                printf( "    encoded %lu bytes\n", bytes_encoded );
+                printf( "    number of bytes in encoder buffer: %lu\n", bytes_encoded );
 
                 // decode the newly encoded data
-                if( (ret = psync_video_decoder_decode( &video_decoder, rx_timestamp, encoder_buffer, bytes_encoded )) != DTC_NONE )
-                {
-                    psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_decode - ret: %d", ret );
-                    goto GRACEFUL_EXIT_STMNT;
-                }
+                ret = psync_video_decoder_decode(
+                        &video_decoder,
+                        rx_timestamp,
+                        encoder_buffer,
+                        bytes_encoded );
+
+                // exit if failed
+                error_exit( "psync_video_decoder_decode", ret, __FILE__, __LINE__ );
 
                 // copy the decoded bytes into our local buffer, this is the raw frame is our desired pixel format
-                if( (ret = psync_video_decoder_copy_bytes( &video_decoder, decoder_buffer, decoded_frame_size, &bytes_decoded )) != DTC_NONE )
-                {
-                    psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_copy_bytes - ret: %d", ret );
-                    goto GRACEFUL_EXIT_STMNT;
-                }
+                ret = psync_video_decoder_copy_bytes(
+                        &video_decoder,
+                        decoder_buffer,
+                        decoded_frame_size,
+                        &bytes_decoded );
+
+                // exit if failed
+                error_exit( "psync_video_decoder_copy_bytes", ret, __FILE__, __LINE__ );
 
                 // if decoder has data available
                 if( bytes_decoded != 0 )
                 {
-                    printf( "    decoded %lu bytes\n", bytes_decoded );
+                    printf( "    number of bytes in encoder buffer: %lu\n", bytes_decoded );
                 }
             }
         }
         else if( ret != DTC_UNAVAILABLE )
         {
-            // not no-data/timeout, report error
-            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_poll - ret: %d", ret );
-            goto GRACEFUL_EXIT_STMNT;
+            // not no-data/timeout, this is an error
+            // exit if failed
+            error_exit( "psync_video_poll", ret, __FILE__, __LINE__ );
         }
-
-        // wait a little
-        psync_sleep_micro( 1000 );
     }
 
-
-    // using 'goto' to allow for an easy example exit
-    GRACEFUL_EXIT_STMNT:
-    global_exit_signal = 1;
 
     // release and close video device
-    if( (ret = psync_video_close( &video_device )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_close - ret: %d", ret );
-    }
+    (void) psync_video_close( &video_device );
 
     // release video encoder
-    if( (ret = psync_video_encoder_release( &video_encoder )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_encoder_release - ret: %d", ret );
-    }
+    (void) psync_video_encoder_release( &video_encoder );
 
     // release video decoder
-    if( (ret = psync_video_decoder_release( &video_decoder )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_release - ret: %d", ret );
-    }
-
-	// release core API
-    if( (ret = psync_release( &node_ref )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_release - ret: %d", ret );
-    }
+    (void) psync_video_decoder_release( &video_decoder );
 
     // free encoder buffer
     if( encoder_buffer != NULL )

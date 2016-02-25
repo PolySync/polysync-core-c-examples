@@ -9,7 +9,7 @@ PSYNC_HOME ?= /usr/local/polysync
 OSPL_HOME ?= $(PSYNC_HOME)/utils/x86_64.linux
 
 # target
-TARGET	:= bin/video-encode-decode
+TARGET	:= bin/polysync-video-encode-decode-c
 
 # sources
 SRCS    :=  src/video_encode_decode.c
@@ -24,6 +24,9 @@ include $(PSYNC_HOME)/build_res.mk
 
 # compiler
 CC = gcc
+
+# add node template library, must be first
+LIBS := -L$(PSYNC_HOME)/lib -lpolysync_node $(LIBS)
 
 #
 all: dirs $(TARGET)
