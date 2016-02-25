@@ -78,7 +78,7 @@
 
 
 /**
- * @brief PolySync node name.
+ * @brief Path to serial device port.
  *
  */
 static const char SERIAL_PORT[] = "/dev/ttyUSB0";
