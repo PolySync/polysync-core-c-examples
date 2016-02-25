@@ -1,5 +1,5 @@
 ##########################################################
-# makefile for shared-image-data-viewer
+# makefile for sharedmem-image-data-viewer
 ##########################################################
 
 
@@ -9,11 +9,11 @@ PSYNC_HOME ?= /usr/local/polysync
 OSPL_HOME ?= $(PSYNC_HOME)/utils/x86_64.linux
 
 # target
-TARGET	:= bin/shared-image-data-viewer
+TARGET	:= bin/polysync-sharedmem-image-data-viewer
 
 # sources
 SRCS    :=  src/gui.c \
-	    src/shared_image_data_viewer.c
+	    src/sharedmem_image_data_viewer.c
 
 # object files, dep files
 OBJS    := $(SRCS:.c=.o)
