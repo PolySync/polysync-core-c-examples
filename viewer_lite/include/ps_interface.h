@@ -12,8 +12,8 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
- * 
+ *
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -139,14 +139,6 @@ void release_polysync( node_data_s * const node_data );
  *
  */
 GList *ps_process_message( node_data_s * const node_data, const gui_context_s * const gui, GList * const parent_list, const unsigned long long update_time, unsigned int * const msg_read );
-
-
-// not implemented yet
-void ps_register_listener( const ps_msg_type type, GAsyncQueue * const msg_queue );
-
-
-// not implemented yet
-void ps_unregister_listener( const ps_msg_type type );
 
 
 
