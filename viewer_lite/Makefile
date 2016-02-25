@@ -9,7 +9,7 @@ PSYNC_HOME ?= /usr/local/polysync
 OSPL_HOME ?= $(PSYNC_HOME)/utils/x86_64.linux
 
 # target
-TARGET	:= bin/viewer-lite
+TARGET	:= bin/polysync-viewer-lite
 
 # sources
 SRCS    :=  src/ps_interface.c \
@@ -73,7 +73,6 @@ $(DEPS): %.dep: %.c Makefile
 #
 docs: dirs
 	cd doc && doxygen Doxyfile;
-	cd doc/latex && make clean && make && cp refman.pdf ../pdf/refman.pdf
 
 # install to system
 install: all

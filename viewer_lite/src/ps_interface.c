@@ -41,7 +41,7 @@
 
 
 // docs in \ref ps_interface.h
-const char       PS_NODE_NAME[]     = "viewer-lite";
+const char       PS_NODE_NAME[]     = "polysync-viewer-lite";
 
 
 // docs in \ref ps_interface.h
@@ -584,11 +584,6 @@ node_data_s *init_polysync( void )
         return NULL;
     }
 
-    // check for 'sensor' module
-#warning "TODO add psync get module info routine"
-
-    // TODO check version
-
     // get type
     if( psync_message_get_type_by_name( node_data->node, PS_RADAR_TARGETS_MSG_NAME, &node_data->msg_type_radar_targets ) != DTC_NONE )
     {
@@ -753,18 +748,4 @@ GList *ps_process_message( node_data_s * const node_data, const gui_context_s * 
 
     // return parent list
     return list;
-}
-
-#warning "TODO - register/unregister listeners"
-//
-void ps_register_listener( const ps_msg_type type, GAsyncQueue * const msg_queue )
-{
-    //(void) psync_message_register_listener( type , psync_default_handler, msg_queue );
-}
-
-
-//
-void ps_unregister_listener( const ps_msg_type type )
-{
-    //(void) psync_message_unregister_listener( type );
 }
