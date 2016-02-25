@@ -9,7 +9,7 @@ PSYNC_HOME ?= /usr/local/polysync
 OSPL_HOME ?= $(PSYNC_HOME)/utils/x86_64.linux
 
 # target
-TARGET	:= bin/image-data-viewer
+TARGET	:= bin/polysync-image-data-viewer
 
 # sources
 SRCS    :=  src/gui.c \
