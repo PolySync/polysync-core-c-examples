@@ -365,8 +365,23 @@ static void on_release(
         const ps_diagnostic_state * const state,
         void * const user_data )
 {
-    // do nothing, sleep for 10 milliseconds
-    (void) psync_sleep_micro( 10000 );
+    // local vars
+    ps_can_channel *can_channel = NULL;
+
+
+    // cast
+    can_channel = (ps_can_channel*) user_data;
+
+    // if valid
+    if( can_channel != NULL )
+    {
+        // close CAN channel
+        (void) psync_can_close( can_channel );
+
+        // free
+        free( can_channel );
+        can_channel = NULL;
+    }
 }
 
 

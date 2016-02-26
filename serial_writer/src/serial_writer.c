@@ -24,11 +24,11 @@
  */
 
 /**
- * \example can_writer.c
+ * \example serial_writer.c
  *
- * CAN API writer Example.
+ * Serial API Writer Example.
  *
- * Shows how to use the CAN API to write CAN frames.
+ * Shows how to use the Serial API to open and write to a serial device.
  *
  * The example uses the standard PolySync node template and state machine.
  * Send the SIGINT (control-C on the keyboard) signal to the node/process to do a graceful shutdown.
@@ -49,7 +49,7 @@
 #include "polysync_node.h"
 #include "polysync_sdf.h"
 #include "polysync_message.h"
-#include "polysync_can.h"
+#include "polysync_serial.h"
 #include "polysync_node_template.h"
 
 
@@ -71,26 +71,24 @@
 
 
 /**
- * @brief CAN channel system index this example opens. [microseconds]
- *
- * Value 0 is first available channel.
+ * @brief Data rate used by example application.
  *
  */
-#define CAN_CHANNEL_SYSTEM_ID (0)
-
-
-/**
- * @brief CAN bus bit rate this example uses.
- *
- */
-#define CAN_CHANNEL_BITRATE DATARATE_500K
+#define SERIAL_DEVICE_DATARATE DATARATE_9600
 
 
 /**
  * @brief PolySync node name.
  *
  */
-static const char NODE_NAME[] = "polysync-can-writer-c";
+static const char SERIAL_PORT[] = "/dev/ttyUSB0";
+
+
+/**
+ * @brief PolySync node name.
+ *
+ */
+static const char NODE_NAME[] = "polysync-serial-writer-c";
 
 
 
@@ -225,7 +223,7 @@ static int set_configuration(
         ps_node_configuration_data * const node_config )
 {
     // local vars
-    ps_can_channel *can_channel = NULL;
+    ps_serial_device *serial_device = NULL;
 
 
     // set node configuration default values
@@ -250,11 +248,11 @@ static int set_configuration(
     strncpy( node_config->node_name, NODE_NAME, sizeof(node_config->node_name) );
 
     // create CAN channel
-    if( (can_channel = malloc( sizeof(*can_channel) )) == NULL )
+    if( (serial_device = malloc( sizeof(*serial_device) )) == NULL )
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
-                "%s : (%u) -- failed to allocate CAN channel data structure",
+                "%s : (%u) -- failed to allocate serial device data structure",
                 __FILE__,
                 __LINE__ );
 
@@ -262,11 +260,11 @@ static int set_configuration(
     }
 
     // zero
-    memset( can_channel, 0, sizeof(*can_channel) );
+    memset( serial_device, 0, sizeof(*serial_device) );
 
     // set user data pointer to our top-level node data
     // this will get passed around to the various interface routines
-    node_config->user_data = (void*) can_channel;
+    node_config->user_data = (void*) serial_device;
 
 
     return DTC_NONE;
@@ -281,18 +279,18 @@ static void on_init(
 {
     // local vars
     int ret = DTC_NONE;
-    ps_can_channel *can_channel = NULL;
+    ps_serial_device *serial_device = NULL;
 
 
     // cast
-    can_channel = (ps_can_channel*) user_data;
+    serial_device = (ps_serial_device*) user_data;
 
     // check reference since other routines don't
-    if( can_channel == NULL )
+    if( serial_device == NULL )
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
-                "%s : (%u) -- invalid CAN channel",
+                "%s : (%u) -- invalid serial device",
                 __FILE__,
                 __LINE__ );
 
@@ -300,18 +298,17 @@ static void on_init(
         return;
     }
 
-    // open CAN channel
-    ret = psync_can_open(
-            can_channel,
-            CAN_CHANNEL_SYSTEM_ID,
-            PSYNC_CAN_OPEN_ALLOW_VIRTUAL );
+    // init serial device
+    ret = psync_serial_init(
+            serial_device,
+            SERIAL_PORT );
 
     // activate fatal error and return if failed
     if( ret != DTC_NONE )
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_can_open returned DTC %d",
+                "%s : (%u) -- psync_serial_init returned DTC %d",
                 __FILE__,
                 __LINE__,
                 ret );
@@ -320,10 +317,28 @@ static void on_init(
         return;
     }
 
-    // set bit rate
-    ret = psync_can_set_bit_rate(
-            can_channel,
-            CAN_CHANNEL_BITRATE );
+    // open device
+    ret = psync_serial_open(
+            serial_device );
+
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
+    {
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_serial_open returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
+
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // set data rate in the device's cached settings structure
+    ret = psync_serial_set_datarate_setting(
+            &serial_device->settings,
+            SERIAL_DEVICE_DATARATE );
 
     // activate fatal error and return if failed
     if( ret != DTC_NONE )
@@ -339,16 +354,17 @@ static void on_init(
         return;
     }
 
-    // go on-bus
-    ret = psync_can_go_on_bus(
-            can_channel );
+    // apply the settings to the device
+    ret = psync_serial_apply_settings(
+            serial_device,
+            &serial_device->settings );
 
     // activate fatal error and return if failed
     if( ret != DTC_NONE )
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_can_go_on_bus returned DTC %d",
+                "%s : (%u) -- psync_serial_apply_settings returned DTC %d",
                 __FILE__,
                 __LINE__,
                 ret );
@@ -366,21 +382,21 @@ static void on_release(
         void * const user_data )
 {
     // local vars
-    ps_can_channel *can_channel = NULL;
+    ps_serial_device *serial_device = NULL;
 
 
     // cast
-    can_channel = (ps_can_channel*) user_data;
+    serial_device = (ps_serial_device*) user_data;
 
     // if valid
-    if( can_channel != NULL )
+    if( serial_device != NULL )
     {
-        // close CAN channel
-        (void) psync_can_close( can_channel );
+        // close device
+        (void) psync_serial_close( serial_device );
 
         // free
-        free( can_channel );
-        can_channel = NULL;
+        free( serial_device );
+        serial_device = NULL;
     }
 }
 
@@ -426,19 +442,21 @@ static void on_ok(
 {
     // local vars
     int ret = DTC_NONE;
-    ps_can_frame can_frame;
-    ps_can_channel *can_channel = NULL;
+    char buffer[256];
+    unsigned long buffer_size = 0;
+    unsigned long bytes_written = 0;
+    ps_serial_device *serial_device = NULL;
 
 
     // cast
-    can_channel = (ps_can_channel*) user_data;
+    serial_device = (ps_serial_device*) user_data;
 
     // check reference since other routines don't
-    if( can_channel == NULL )
+    if( serial_device == NULL )
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
-                "%s : (%u) -- invalid CAN channel",
+                "%s : (%u) -- invalid serial device",
                 __FILE__,
                 __LINE__ );
 
@@ -447,29 +465,31 @@ static void on_ok(
     }
 
     // zero
-    memset( &can_frame, 0, sizeof(can_frame) );
+    memset( buffer, 0, sizeof(buffer) );
 
-    // set CAN frame data
-    can_frame.id = 0x456;
-    can_frame.dlc = 1;
-    can_frame.buffer[0] = 0xFF;
+    // copy bytes into buffer
+    strcpy( buffer, "message from serial writer" );
 
-    printf( "writing CAN frame - ID: 0x%lX (%lu) - DLC: %lu\n",
-                can_frame.id,
-                can_frame.id,
-                can_frame.dlc );
+    // set buffer size
+    buffer_size = strlen(buffer) + 1;
 
-    // write CAN frame
-    ret = psync_can_write(
-            can_channel,
-            &can_frame );
+    printf( "writing serial buffer '%s' - %lu bytes\n",
+            buffer,
+            buffer_size );
+
+    // write data
+    ret = psync_serial_write(
+            serial_device,
+            (unsigned char*) buffer,
+            buffer_size,
+            &bytes_written );
 
     // activate fatal error and return if failed
     if( ret != DTC_NONE )
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_can_write returned DTC %d",
+                "%s : (%u) -- psync_serial_write returned DTC %d",
                 __FILE__,
                 __LINE__,
                 ret );
