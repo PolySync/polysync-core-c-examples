@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2015 HARBRICK TECHNOLOGIES, INC
+ *
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 /**
  * \example shared_image_data_viewer.c
  *
@@ -54,7 +79,7 @@ static sig_atomic_t global_exit_signal = 0;
  * @brief PolySync node name.
  *
  */
-static const char NODE_NAME[] = "shared-image-data-viewer";
+static const char NODE_NAME[] = "polysync-sharedmem-image-data-viewer";
 
 
 
@@ -166,15 +191,23 @@ int main( int argc, char **argv )
     shdmem_key = (unsigned long) atol(argv[1]);
 
 	// init core API
-    if( (ret = psync_init(
+    ret = psync_init(
             NODE_NAME,
             PSYNC_NODE_TYPE_API_USER,
             PSYNC_DEFAULT_DOMAIN,
             PSYNC_SDF_ID_INVALID,
             PSYNC_INIT_FLAG_STDOUT_LOGGING,
-            &global_node_ref )) != DTC_NONE )
+            &global_node_ref );
+
+    // error check
+    if( ret!= DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_init - ret: %d", ret );
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_init returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
         return EXIT_FAILURE;
     }
 
@@ -190,9 +223,17 @@ int main( int argc, char **argv )
             shdmem_key );
 
     // attach to existing shared memory queue
-    if( (ret = psync_shdmem_queue_attach( shdmem_key, &shdmem_queue )) != DTC_NONE )
+    ret = psync_shdmem_queue_attach( shdmem_key, &shdmem_queue );
+
+    // error check
+    if( ret!= DTC_NONE )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_shdmem_queue_attach - ret: %d", ret );
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_shdmem_queue_attach returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
         goto GRACEFUL_EXIT_STMNT;
     }
 
@@ -202,7 +243,12 @@ int main( int argc, char **argv )
     // allocate shared memory buffer, enough space for a full raw frame
     if( (shdmem_buffer = malloc( shdmem_buffer_size )) == NULL )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- failed to allocate shared memory buffer" );
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- failed to allocate shared memory frame buffer - size %lu bytes",
+                __FILE__,
+                __LINE__,
+                shdmem_buffer_size );
         goto GRACEFUL_EXIT_STMNT;
     }
 
@@ -274,7 +320,7 @@ int main( int argc, char **argv )
     if( publisher_format != PIXEL_FORMAT_RGB24 )
     {
         // initialize decoder, frame-rate will be determined by stream if possible, otherwise use default
-        if( (ret = psync_video_decoder_init(
+        ret = psync_video_decoder_init(
                 &video_decoder,
                 publisher_format,
                 publisher_width,
@@ -282,9 +328,17 @@ int main( int argc, char **argv )
                 desired_decoder_format,
                 publisher_width,
                 publisher_height,
-                PSYNC_VIDEO_DEFAULT_FRAMES_PER_SECOND )) != DTC_NONE )
+                PSYNC_VIDEO_DEFAULT_FRAMES_PER_SECOND );
+
+        // error check
+        if( ret!= DTC_NONE )
         {
-            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_init - ret: %d", ret );
+            psync_log_message(
+                    LOG_LEVEL_ERROR,
+                    "%s : (%u) -- psync_video_decoder_init returned DTC %d",
+                    __FILE__,
+                    __LINE__,
+                    ret );
             goto GRACEFUL_EXIT_STMNT;
         }
     }
@@ -295,14 +349,23 @@ int main( int argc, char **argv )
     // allocate decoder buffer, enough space for a full raw frame in the desired pixel format which is RGB in this example
     if( (decoder_buffer = malloc( decoded_frame_size )) == NULL )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- failed to allocate decoder buffer" );
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- failed to allocate decoder buffer - size %lu bytes",
+                __FILE__,
+                __LINE__,
+                decoded_frame_size );
         goto GRACEFUL_EXIT_STMNT;
     }
 
     // create GUI
     if( (gui = gui_init( NODE_NAME, publisher_width, publisher_height )) == NULL )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- failed to create GUI" );
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- failed to create GUI context",
+                __FILE__,
+                __LINE__ );
         goto GRACEFUL_EXIT_STMNT;
     }
 
@@ -343,24 +406,40 @@ int main( int argc, char **argv )
                     if( publisher_format != PIXEL_FORMAT_RGB24 )
                     {
                         // decode the data
-                        if( (ret = psync_video_decoder_decode(
+                        ret = psync_video_decoder_decode(
                                 &video_decoder,
                                 message->timestamp,
                                 &shdmem_buffer[ sizeof(*header) + sizeof(*message) ],
-                                message->data_size )) != DTC_NONE )
+                                message->data_size );
+
+                        // error check
+                        if( ret!= DTC_NONE )
                         {
-                            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_decode - ret: %d", ret );
+                            psync_log_message(
+                                    LOG_LEVEL_ERROR,
+                                    "%s : (%u) -- psync_video_decoder_decode returned DTC %d",
+                                    __FILE__,
+                                    __LINE__,
+                                    ret );
                             goto GRACEFUL_EXIT_STMNT;
                         }
 
                         // copy the decoded bytes into our local buffer, this is the raw frame is our desired pixel format
-                        if( (ret = psync_video_decoder_copy_bytes(
+                        ret = psync_video_decoder_copy_bytes(
                                 &video_decoder,
                                 decoder_buffer,
                                 decoded_frame_size,
-                                &bytes_decoded )) != DTC_NONE )
+                                &bytes_decoded );
+
+                        // error check
+                        if( ret!= DTC_NONE )
                         {
-                            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_copy_bytes - ret: %d", ret );
+                            psync_log_message(
+                                    LOG_LEVEL_ERROR,
+                                    "%s : (%u) -- psync_video_decoder_copy_bytes returned DTC %d",
+                                    __FILE__,
+                                    __LINE__,
+                                    ret );
                             goto GRACEFUL_EXIT_STMNT;
                         }
                     }
@@ -408,17 +487,13 @@ int main( int argc, char **argv )
                 }
             }
         }
-		else if( ret != DTC_UNAVAILABLE )                                                                                                                                                             
-        {                                                                                                                                                                                             
-            global_exit_signal = 1;                                                                                                                                                                   
+		else if( ret != DTC_UNAVAILABLE )
+        {
+            global_exit_signal = 1;
         }
 
         // get timestamp
-        if( (ret = psync_get_timestamp( &timestamp )) != DTC_NONE )
-        {
-            psync_log_message( LOG_LEVEL_ERROR, "main -- psync_get_timestamp - ret: %d", ret );
-            goto GRACEFUL_EXIT_STMNT;
-        }
+        ret = psync_get_timestamp( &timestamp );
 
         // update gui
         gui_update( gui, timestamp, &time_to_draw );
@@ -459,16 +534,10 @@ int main( int argc, char **argv )
     }
 
     // release video decoder
-    if( (ret = psync_video_decoder_release( &video_decoder )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_video_decoder_release - ret: %d", ret );
-    }
+    ret = psync_video_decoder_release( &video_decoder );
 
 	// release core API
-    if( (ret = psync_release( &global_node_ref )) != DTC_NONE )
-    {
-        psync_log_message( LOG_LEVEL_ERROR, "main -- psync_release - ret: %d", ret );
-    }
+    ret = psync_release( &global_node_ref );
 
     // free shared memory buffer
     if( shdmem_buffer != NULL )

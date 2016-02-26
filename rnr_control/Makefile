@@ -9,7 +9,7 @@ PSYNC_HOME ?= /usr/local/polysync
 OSPL_HOME ?= $(PSYNC_HOME)/utils/x86_64.linux
 
 # target
-TARGET	:= bin/rnr-control
+TARGET	:= bin/polysync-rnr-control-c
 
 # sources
 SRCS    :=  src/rnr_control.c
