@@ -24,11 +24,11 @@
  */
 
 /**
- * \example serial_reader.c
+ * \example socket_writer.c
  *
- * Serial API Reader Example.
+ * Socket API Writer Example.
  *
- * Shows how to use the Serial API to open and read from a serial device.
+ * Shows how to use the Socket API to create and write to a UDP socket.
  *
  * The example uses the standard PolySync node template and state machine.
  * Send the SIGINT (control-C on the keyboard) signal to the node/process to do a graceful shutdown.
@@ -49,7 +49,7 @@
 #include "polysync_node.h"
 #include "polysync_sdf.h"
 #include "polysync_message.h"
-#include "polysync_serial.h"
+#include "polysync_socket.h"
 #include "polysync_node_template.h"
 
 
@@ -71,24 +71,24 @@
 
 
 /**
- * @brief Data rate used by example application.
+ * @brief Port number this example connects to.
  *
  */
-#define SERIAL_DEVICE_DATARATE DATARATE_9600
+#define UDP_PORT (9930)
 
 
 /**
- * @brief Path to serial device port.
+ * @brief IP address this example connects to.
  *
  */
-static const char SERIAL_PORT[] = "/dev/ttyUSB0";
+static const char UDP_ADDRESS[] = "127.0.0.1";
 
 
 /**
  * @brief PolySync node name.
  *
  */
-static const char NODE_NAME[] = "polysync-serial-reader-c";
+static const char NODE_NAME[] = "polysync-socket-writer-c";
 
 
 
@@ -223,7 +223,7 @@ static int set_configuration(
         ps_node_configuration_data * const node_config )
 {
     // local vars
-    ps_serial_device *serial_device = NULL;
+    ps_socket *socket = NULL;
 
 
     // set node configuration default values
@@ -248,11 +248,11 @@ static int set_configuration(
     strncpy( node_config->node_name, NODE_NAME, sizeof(node_config->node_name) );
 
     // create CAN channel
-    if( (serial_device = malloc( sizeof(*serial_device) )) == NULL )
+    if( (socket = malloc( sizeof(*socket) )) == NULL )
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
-                "%s : (%u) -- failed to allocate serial device data structure",
+                "%s : (%u) -- failed to allocate socket data structure",
                 __FILE__,
                 __LINE__ );
 
@@ -260,11 +260,11 @@ static int set_configuration(
     }
 
     // zero
-    memset( serial_device, 0, sizeof(*serial_device) );
+    memset( socket, 0, sizeof(*socket) );
 
     // set user data pointer to our top-level node data
     // this will get passed around to the various interface routines
-    node_config->user_data = (void*) serial_device;
+    node_config->user_data = (void*) socket;
 
 
     return DTC_NONE;
@@ -279,18 +279,18 @@ static void on_init(
 {
     // local vars
     int ret = DTC_NONE;
-    ps_serial_device *serial_device = NULL;
+    ps_socket *socket = NULL;
 
 
     // cast
-    serial_device = (ps_serial_device*) user_data;
+    socket = (ps_socket*) user_data;
 
     // check reference since other routines don't
-    if( serial_device == NULL )
+    if( socket == NULL )
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
-                "%s : (%u) -- invalid serial device",
+                "%s : (%u) -- invalid socket",
                 __FILE__,
                 __LINE__ );
 
@@ -298,17 +298,19 @@ static void on_init(
         return;
     }
 
-    // init serial device
-    ret = psync_serial_init(
-            serial_device,
-            SERIAL_PORT );
+    // init UDP socket
+    ret = psync_socket_init(
+            socket,
+            AF_INET,
+            SOCK_DGRAM,
+            IPPROTO_UDP );
 
     // activate fatal error and return if failed
     if( ret != DTC_NONE )
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_serial_init returned DTC %d",
+                "%s : (%u) -- psync_socket_init returned DTC %d",
                 __FILE__,
                 __LINE__,
                 ret );
@@ -317,16 +319,18 @@ static void on_init(
         return;
     }
 
-    // open device
-    ret = psync_serial_open(
-            serial_device );
+    // set address and port
+    ret = psync_socket_set_address(
+            socket,
+            UDP_ADDRESS,
+            UDP_PORT );
 
     // activate fatal error and return if failed
     if( ret != DTC_NONE )
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_serial_open returned DTC %d",
+                "%s : (%u) -- psync_socket_set_address returned DTC %d",
                 __FILE__,
                 __LINE__,
                 ret );
@@ -335,36 +339,15 @@ static void on_init(
         return;
     }
 
-    // set data rate in the device's cached settings structure
-    ret = psync_serial_set_datarate_setting(
-            &serial_device->settings,
-            SERIAL_DEVICE_DATARATE );
+    // set socket reuse option for multiple connections
+    ret = psync_socket_set_reuse_option( socket, 1 );
 
     // activate fatal error and return if failed
     if( ret != DTC_NONE )
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_can_set_bit_rate returned DTC %d",
-                __FILE__,
-                __LINE__,
-                ret );
-
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // apply the settings to the device
-    ret = psync_serial_apply_settings(
-            serial_device,
-            &serial_device->settings );
-
-    // activate fatal error and return if failed
-    if( ret != DTC_NONE )
-    {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_serial_apply_settings returned DTC %d",
+                "%s : (%u) -- psync_socket_set_reuse_option returned DTC %d",
                 __FILE__,
                 __LINE__,
                 ret );
@@ -382,21 +365,21 @@ static void on_release(
         void * const user_data )
 {
     // local vars
-    ps_serial_device *serial_device = NULL;
+    ps_socket *socket = NULL;
 
 
     // cast
-    serial_device = (ps_serial_device*) user_data;
+    socket = (ps_socket*) user_data;
 
     // if valid
-    if( serial_device != NULL )
+    if( socket != NULL )
     {
         // close device
-        (void) psync_serial_close( serial_device );
+        (void) psync_socket_release( socket );
 
         // free
-        free( serial_device );
-        serial_device = NULL;
+        free( socket );
+        socket = NULL;
     }
 }
 
@@ -443,20 +426,20 @@ static void on_ok(
     // local vars
     int ret = DTC_NONE;
     char buffer[256];
-    unsigned long bytes_read = 0;
-    ps_timestamp rx_timestamp = 0;
-    ps_serial_device *serial_device = NULL;
+    unsigned long buffer_size = 0;
+    unsigned long bytes_written = 0;
+    ps_socket *socket = NULL;
 
 
     // cast
-    serial_device = (ps_serial_device*) user_data;
+    socket = (ps_socket*) user_data;
 
     // check reference since other routines don't
-    if( serial_device == NULL )
+    if( socket == NULL )
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
-                "%s : (%u) -- invalid serial device",
+                "%s : (%u) -- invalid socket",
                 __FILE__,
                 __LINE__ );
 
@@ -467,39 +450,39 @@ static void on_ok(
     // zero
     memset( buffer, 0, sizeof(buffer) );
 
-    // read data
-    ret = psync_serial_read(
-            serial_device,
+    // copy bytes into buffer
+    strcpy( buffer, "message from socket writer" );
+
+    // set buffer size
+    buffer_size = strlen(buffer) + 1;
+
+    printf( "writing socket buffer '%s' - %lu bytes\n",
+            buffer,
+            buffer_size );
+
+    // send data
+    ret = psync_socket_send_to(
+            socket,
             (unsigned char*) buffer,
-            sizeof(buffer),
-            &bytes_read,
-            &rx_timestamp );
+            buffer_size,
+            &bytes_written );
 
-    // ignore timeout/interrupts
-    if( ret == DTC_NONE )
+    // activate fatal error and return if failed
+    if( ret != DTC_NONE )
     {
-        printf( "read %lu bytes from serial device\n",
-                bytes_read );
-    }
-    else if( (ret != DTC_UNAVAILABLE) && (ret != DTC_INTR) )
-    {
-        // activate fatal error and return if failed
-        if( ret != DTC_NONE )
-        {
-            psync_log_message(
-                    LOG_LEVEL_ERROR,
-                    "%s : (%u) -- psync_serial_read returned DTC %d",
-                    __FILE__,
-                    __LINE__,
-                    ret );
+        psync_log_message(
+                LOG_LEVEL_ERROR,
+                "%s : (%u) -- psync_socket_send_to returned DTC %d",
+                __FILE__,
+                __LINE__,
+                ret );
 
-            psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-            return;
-        }
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
     }
 
-    // sleep for 10 milliseconds
-    (void) psync_sleep_micro( 100000 );
+    // sleep for 500 milliseconds
+    (void) psync_sleep_micro( 500000 );
 }
 
 
