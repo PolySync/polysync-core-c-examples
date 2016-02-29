@@ -65,7 +65,13 @@
  * @brief Enable controls button index.
  *
  */
-#define JSTICK_BUTTON_ENABLE_CONTROLS (0)
+#define JSTICK_BUTTON_ENABLE_CONTROLS (7)
+
+/**
+ * @brief Disable controls button index.
+ *
+ */
+#define JSTICK_BUTTON_DISABLE_CONTROLS (6)
 
 
 /**
@@ -79,7 +85,21 @@
  * @brief Shift to drive gear button index.
  *
  */
-#define JSTICK_BUTTON_GEAR_SHIFT_DRIVE (1)
+#define JSTICK_BUTTON_GEAR_SHIFT_DRIVE (0)
+
+
+/**
+ * @brief Shift to neutral gear button index.
+ *
+ */
+#define JSTICK_BUTTON_GEAR_SHIFT_NEUTRAL (2)
+
+
+/**
+ * @brief Shift to reverse gear button index.
+ *
+ */
+#define JSTICK_BUTTON_GEAR_SHIFT_REVERSE (1)
 
 
 /**
@@ -197,15 +217,17 @@ static int update_turn_signal_selection(
  * @brief Update send enable-controls state.
  *
  * @param [in] jstick A pointer to \ref joystick_device_s which specifies the joystick handle.
- * @param [out] enabled A pointer to unsigned int which receives the enabled state.
+ * @param [out] enable_set A pointer to unsigned int which receives the enable-controls button state.
+ * @param [out] disable_set A pointer to unsigned int which receives the disable-controls button state.
  *
  * @return DTC code:
  * \li \ref DTC_NONE (zero) if success.
  *
  */
-static int update_enable_controls_state(
+static int update_enable_disable_controls_state(
         joystick_device_s * const jstick,
-        unsigned int * const enabled );
+        unsigned int * const enable_set,
+        unsigned int * const disable_set );
 
 
 /**
@@ -385,6 +407,23 @@ static int update_gear_selection(
     // invalidate
     (*gear_position) = GEAR_POSITION_INVALID;
 
+    // read shift-to-reverse button state
+    ret |= jstick_get_button(
+            jstick,
+            JSTICK_BUTTON_GEAR_SHIFT_REVERSE,
+            &btn_state );
+
+    // if succeeded
+    if( ret == DTC_NONE )
+    {
+        // if button depressed
+        if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
+        {
+            // set gear position command to reverse
+            (*gear_position) = GEAR_POSITION_REVERSE;
+        }
+    }
+
     // read shift-to-drive button state
     ret |= jstick_get_button(
             jstick,
@@ -398,7 +437,26 @@ static int update_gear_selection(
         if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
         {
             // set gear position command to drive
+            // note that this takes precedence over the previous gear command
             (*gear_position) = GEAR_POSITION_DRIVE;
+        }
+    }
+
+    // read shift-to-neutral button state
+    ret |= jstick_get_button(
+            jstick,
+            JSTICK_BUTTON_GEAR_SHIFT_NEUTRAL,
+            &btn_state );
+
+    // if succeeded
+    if( ret == DTC_NONE )
+    {
+        // if button depressed
+        if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
+        {
+            // set gear position command to neutral
+            // note that this takes precedence over the previous gear command
+            (*gear_position) = GEAR_POSITION_NEUTRAL;
         }
     }
 
@@ -415,7 +473,7 @@ static int update_gear_selection(
         if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
         {
             // set gear position command to park
-            // note that this takes precedence over drive gear command
+            // note that this takes precedence over the previous gear command
             (*gear_position) = GEAR_POSITION_PARK;
         }
     }
@@ -493,16 +551,18 @@ static int update_turn_signal_selection(
 
 
 //
-static int update_enable_controls_state(
+static int update_enable_disable_controls_state(
         joystick_device_s * const jstick,
-        unsigned int * const enabled )
+        unsigned int * const enable_set,
+        unsigned int * const disable_set )
 {
     // local vars
     int ret = DTC_NONE;
     unsigned int btn_state = JOYSTICK_BUTTON_STATE_NOT_PRESSED;
 
     // invalidate
-    (*enabled) = 0;
+    (*enable_set) = 0;
+    (*disable_set) = 0;
 
     // read enable-controls button state
     ret |= jstick_get_button(
@@ -516,7 +576,23 @@ static int update_enable_controls_state(
         // if button depressed
         if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
         {
-            (*enabled) = 1;
+            (*enable_set) = 1;
+        }
+    }
+
+    // read disable-controls button state
+    ret |= jstick_get_button(
+            jstick,
+            JSTICK_BUTTON_DISABLE_CONTROLS,
+            &btn_state );
+
+    // if succeeded
+    if( ret == DTC_NONE )
+    {
+        // if button depressed
+        if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
+        {
+            (*disable_set) = 1;
         }
     }
 
@@ -962,8 +1038,17 @@ int commander_joystick_update(
         // update turn signal selection
         ret |= update_turn_signal_selection( jstick, &turn_signal );
 
-        // update enable-controls state
-        ret |= update_enable_controls_state( jstick, &messages->send_enable_controls );
+        // update enable/disable-controls state
+        ret |= update_enable_disable_controls_state(
+                jstick,
+                &messages->send_enable_controls,
+                &messages->send_disable_controls );
+
+        // chose disable if both enable and disable control buttons are pressed
+        if( messages->send_disable_controls != 0 )
+        {
+            messages->send_enable_controls = 0;
+        }
     }
 
     // don't allow throttle if gear command is to be sent
@@ -1061,9 +1146,20 @@ int commander_send_commands(
         ret |= psync_message_publish( node_ref, messages->turn_signal_cmd );
     }
 
-    // if enable-controls set
-    if( messages->send_enable_controls == 1 )
+    // if disable-controls set
+    if( messages->send_disable_controls == 1 )
     {
+        // disable controls is value zero
+        messages->parameters_cmd->parameters._buffer[0].value._u.ull_value = 0;
+
+        // publish get/set command message
+        ret |= psync_message_publish( node_ref, messages->parameters_cmd );
+    }
+    else if( messages->send_enable_controls == 1 )
+    {
+        // enable controls is value one
+        messages->parameters_cmd->parameters._buffer[0].value._u.ull_value = 1;
+
         // publish get/set command message
         ret |= psync_message_publish( node_ref, messages->parameters_cmd );
     }

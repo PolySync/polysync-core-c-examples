@@ -103,7 +103,10 @@ typedef struct
     ps_parameters_msg *parameters_cmd; /*!< Parameter(s) get/set command message. */
     //
     //
-    unsigned int send_enable_controls; /*!< Flag indicating whether or not to send an enable-controls get/set command. */
+    unsigned int send_enable_controls; /*!< Flag indicating whether or not to send a enable-controls get/set command. */
+    //
+    //
+    unsigned int send_disable_controls; /*!< Flag indicating whether or not to send a disable-controls get/set command. */
 } commander_messages_s;
 
 

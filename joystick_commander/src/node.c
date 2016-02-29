@@ -8,10 +8,12 @@
  * Steering controls: right stick
  * Left turn signal: left trigger button
  * Right turn signal: right trigger button
- * Clear turn signal: 'X' button
+ * Shift to drive: 'A' button
  * Shift to park: 'Y' button
- * Shift to drive: 'B' button
- * Enable controls: 'A' button
+ * Shift to neutral: 'X' button
+ * Shift to reverse: 'B' button
+ * Enable controls: 'start' button
+ * Disable controls: 'back' button
  *
  */
 
@@ -140,10 +142,12 @@ static const char WARNING_STRING[] =
 "Steering controls: right stick\n"
 "Left turn signal: left trigger button\n"
 "Right turn signal: right trigger button\n"
-"Clear turn signal: 'X' button\n"
+"Shift to drive: 'A' button\n"
 "Shift to park: 'Y' button\n"
-"Shift to drive: 'B' button\n"
-"Enable controls: 'A' button\n\n";
+"Shift to neutral: 'X' button\n"
+"Shift to reverse: 'B' button\n"
+"Enable controls: 'start' button\n"
+"Disable controls: 'back' button\n\n";
 
 
 
