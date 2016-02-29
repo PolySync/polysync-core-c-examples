@@ -7,7 +7,7 @@
 PSYNC_HOME ?= /usr/local/polysync
 
 # target
-TARGET  := bin/joystick-commander
+TARGET  := bin/polysync-joystick-commander
 
 # source files
 SRCS    :=  src/joystick.c \

@@ -48,13 +48,6 @@
 
 
 /**
- * @brief Turn signal disable button index.
- *
- */
-#define JSTICK_BUTTON_DISABLE_TURN_SIGNAL (2)
-
-
-/**
  * @brief Left turn signal button index.
  *
  */
@@ -484,24 +477,6 @@ static int update_turn_signal_selection(
             // set turn signal command to right
             // note that this takes precedence over left signal command
             (*turn_signal) = PLATFORM_TURN_SIGNAL_RIGHT;
-        }
-    }
-
-    // read clear-turn-signal button state
-    ret |= jstick_get_button(
-            jstick,
-            JSTICK_BUTTON_DISABLE_TURN_SIGNAL,
-            &btn_state );
-
-    // if succeeded
-    if( ret == DTC_NONE )
-    {
-        // if button depressed
-        if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
-        {
-            // set turn signal command to none
-            // note that this takes precedence over left/right signal command
-            (*turn_signal) = PLATFORM_TURN_SIGNAL_NONE;
         }
     }
 

@@ -327,7 +327,7 @@ static int set_configuration(
     // local vars
     node_data_s *node_data = NULL;
 
-    const char default_node_name[] = "joystick-commander";
+    const char default_node_name[] = "polysync-joystick-commander";
 
 
     // show warning string
