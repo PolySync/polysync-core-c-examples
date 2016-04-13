@@ -1,0 +1,63 @@
+/**
+ * @file user_data_model.idl
+ * @brief PolySync User Data Model Example Module.
+ *
+ */
+
+
+
+
+/**
+ * @brief Module major version. [uint8_t]
+ *
+ * Indicates a major release version.
+ *
+ */
+const octet USER_DATA_MODEL_MODULE_VERSION_MAJOR = 2;
+
+
+/**
+ * @brief Module minor version. [uint8_t]
+ *
+ * Indicates a minor release version.
+ * Increased each time the syntax of the module
+ * is changed (ie new or removed messages, new or removed message fields, changed number of bits, etc).
+ *
+ */
+const octet USER_DATA_MODEL_MODULE_VERSION_MINOR = 0;
+
+
+/**
+ * @brief Module sub-minor version. [uint16_t]
+ *
+ * Indicates a sub-minor release version.
+ * Increased each time the semantics of the
+ * data model are modified (ie interpretation of field values or similar).
+ *
+ */
+const unsigned short USER_DATA_MODEL_MODULE_VERSION_SUBMINOR = 0;
+
+
+
+
+/**
+ * @brief Example message type.
+ *
+ */
+struct udm_example_msg
+{
+    //
+    //
+    ps_msg_header header; /*!< PolySync message header.
+                           * Required to be the first field in every PolySync message type. */
+    //
+    //
+    unsigned long count; /*!< Counter variable. */
+};
+
+// this line tells PolySync what fields in the message are going to be used to arbitrate the state of the message
+// it can also be a list, for example 'header.src_guid, count'
+#pragma keylist udm_example_msg header.src_guid
+
+// this line tells PolySync you want to expose runtime support for the message type
+#pragma expose udm_example_msg
