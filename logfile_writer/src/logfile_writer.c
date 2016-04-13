@@ -114,7 +114,7 @@ static void sig_handler( int signal );
 //
 static void sig_handler( int sig )
 {
-	if( sig == SIGINT )
+    if( sig == SIGINT )
     {
         global_exit_signal = 1;
     }
