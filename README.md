@@ -8,6 +8,9 @@ Here you can find examples that demonstrate how to use PolySync's APIs.
 - [Node Template](https://github.com/PolySync/C-Examples/tree/master/node_template) - Understand the standardized PolySync node state machine.
 - [Coordiniate Transform (single)](https://github.com/PolySync/C-Examples/tree/master/single_transform) - Use the Transform API to transform coordinate frames.
 - [Coordiniate Transform (stack)](https://github.com/PolySync/C-Examples/tree/master/transform_stack) - Use the Transform API to transform coordinate frames using a stack.
+- 
+## Data Model
+ - [User Data Model](https://github.com/PolySync/PolySync-C-Examples/tree/master/user_data_model) - Shows how to use publish/subscribe routines with a user data model message type.
 
 ## Message APIs
 - [Parameter Get/Set](https://github.com/PolySync/PolySync-C-Examples/tree/master/get_set) - Query and set runtime state of a remote application.
