@@ -418,8 +418,12 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         DDS_sequence_ps_rnr_session sessions;
         memset( &sessions, 0, sizeof(sessions) );
 
+        // enable the calculation of complex enumeration data
+        // such as duration and average data size
+        const unsigned int calculate_opt = 1;
+
         // enumerate RnR sessions on this host
-        ret = psync_rnr_enumerate_sessions( node_ref, &sessions );
+        ret = psync_rnr_enumerate_sessions( node_ref, calculate_opt, &sessions );
 
         // error check
         if( ret != DTC_NONE )
