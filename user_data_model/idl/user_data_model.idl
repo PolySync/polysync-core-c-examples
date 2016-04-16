@@ -6,6 +6,10 @@
 
 
 
+// Three macro definitions are required for all IDL data model modules. 
+// These macros must correspond directly with the IDL file name. 
+// Because the name of this file is user_data_model.idl the module version macros 
+// require the prefix "USER_DATA_MODEL_".
 
 /**
  * @brief Module major version. [uint8_t]
@@ -61,3 +65,5 @@ struct udm_example_msg
 
 // this line tells PolySync you want to expose runtime support for the message type
 #pragma expose udm_example_msg
+
+// Note the single new-line at the end of the file. This is a requirement.
