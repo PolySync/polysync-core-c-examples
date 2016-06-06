@@ -2,14 +2,28 @@
  * @file user_data_model.idl
  * @brief PolySync User Data Model Example Module.
  *
+ * Notes:
+ *
+ * Three global constants are required for all IDL data model modules and they 
+ * must correspond directly with the IDL file name. 
+ * Because the name of this file is user_data_model.idl the module version 
+ * constants \ref USER_DATA_MODEL_MODULE_VERSION_MAJOR 
+ * \ref USER_DATA_MODEL_MODULE_VERSION_MINOR and 
+ * \ref USER_DATA_MODEL_MODULE_VERSION_SUBMINOR require the prefix "USER_DATA_MODEL_".
+ *
+ * '#pragma keylist udm_example_msg header.src_guid' tells PolySync what fields 
+ * in the message are going to be used to arbitrate the state of the message. 
+ * It can also be a list, for example 'header.src_guid, count'.
+ * 
+ * '#pragma expose udm_example_msg' tells PolySync you want to expose runtime 
+ * support for the message type.
+ *
+ * A single new-line is present at the end of the file. This is a requirement.
+ *
  */
 
 
 
-// Three macro definitions are required for all IDL data model modules. 
-// These macros must correspond directly with the IDL file name. 
-// Because the name of this file is user_data_model.idl the module version macros 
-// require the prefix "USER_DATA_MODEL_".
 
 /**
  * @brief Module major version. [uint8_t]
@@ -58,12 +72,5 @@ struct udm_example_msg
     //
     unsigned long count; /*!< Counter variable. */
 };
-
-// this line tells PolySync what fields in the message are going to be used to arbitrate the state of the message
-// it can also be a list, for example 'header.src_guid, count'
 #pragma keylist udm_example_msg header.src_guid
-
-// this line tells PolySync you want to expose runtime support for the message type
 #pragma expose udm_example_msg
-
-// Note the single new-line at the end of the file. This is a requirement.
