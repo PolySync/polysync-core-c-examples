@@ -71,9 +71,6 @@ struct udm_example_msg
     //
     //
     unsigned long count; /*!< Counter variable. */
-    //
-    //
-    sequence<char> test_string;
 };
 #pragma keylist udm_example_msg header.src_guid
 #pragma expose udm_example_msg
