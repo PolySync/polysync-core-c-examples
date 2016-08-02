@@ -28,6 +28,9 @@ CC = gcc
 # add node template library, must be first
 LIBS += -lpolysync_data_model
 
+# add dynamic driver includes
+INCLUDE += -I$(PSYNC_HOME)/dynamic_driver/include
+
 #
 all: dirs $(TARGET)
 
