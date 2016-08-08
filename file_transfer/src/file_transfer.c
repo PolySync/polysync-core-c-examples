@@ -57,12 +57,12 @@
 // This example will attempt a file transfer with the first polysync-manager
 // it can find. This semaphore is used to signal when the first polysync-manager
 // has responded, and its GUID has been captured.
-sem_t manager_response;
+static sem_t manager_response;
 
 
 // After a polysync-manager node has been requested to provide its status,
 // it will respond. This is the name of the type of that message.
-const char manager_status_msg_name[] = "ps_response_msg";
+static const char manager_status_msg_name[] = "ps_response_msg";
 
 
 // When polysync-manager responds with its status,
