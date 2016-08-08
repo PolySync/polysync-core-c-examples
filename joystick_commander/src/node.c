@@ -3,6 +3,8 @@
  * @brief Node Layer Source.
  *
  * Joystick device: Logitech Gamepad F310
+ * Mode switch (on back of controller): set to mode X
+ * Front mode button: set to off (LED is off)
  * Brake controls: left trigger
  * Throttle controls: right trigger
  * Steering controls: right stick
@@ -31,8 +33,8 @@
 #include "polysync_message.h"
 #include "polysync_node_template.h"
 
-#include "node.h"
 #include "joystick.h"
+#include "messages.h"
 #include "commander.h"
 
 
@@ -43,37 +45,25 @@
 // *****************************************************
 
 /**
- * @brief Node flags to be OR'd with driver/interface flags.
+ * @brief node update and publish interval. [microseconds]
  *
- * Provided by the compiler so Harbrick can add build-specifics as needed.
+ * Defines the update and publish rate of the node.
+ *
+ * 50,000 us == 50 ms == 20 Hertz
  *
  */
-#ifndef NODE_FLAGS_VALUE
-#define NODE_FLAGS_VALUE (0)
-#endif
-
-
+#define NODE_UPDATE_INTERVAL (50000)
 
 
 /**
- * @brief Node data.
+ * @brief Node sleep interval. [microseconds]
  *
- * Serves as a top-level container for the application's data structures.
+ * Specifies the amount of time to sleep for during each wait/sleep cycle.
+ *
+ * This prevents our node from overloading the host.
  *
  */
-typedef struct
-{
-    //
-    //
-    joystick_device_s joystick; /*!< Joystick handle. */
-    //
-    //
-    ps_timestamp last_commander_update; /*!< Last commander update timestamp. [microseconds] */
-    //
-    //
-    commander_messages_s messages; /*!< Commander message set. */
-} node_data_s;
-
+#define NODE_SLEEP_TICK_INTERVAL (1000)
 
 
 
@@ -82,61 +72,14 @@ typedef struct
 // *****************************************************
 
 /**
- * @brief Enable controls parameter identifier.
- *
- */
-static const ps_parameter_id ENABLE_CONTROLS_PARAMETER_ID = 4011;
-
-
-/**
- * @brief Platform brake command message type name.
- *
- */
-static const char BRAKE_COMMAND_MSG_NAME[] = "ps_platform_brake_command_msg";
-
-
-/**
- * @brief Platform throttle command message type name.
- *
- */
-static const char THROTTLE_COMMAND_MSG_NAME[] = "ps_platform_throttle_command_msg";
-
-
-/**
- * @brief Platform steering command message type name.
- *
- */
-static const char STEERING_COMMAND_MSG_NAME[] = "ps_platform_steering_command_msg";
-
-
-/**
- * @brief Gear position command message type name.
- *
- */
-static const char GEAR_POSITION_COMMAND_MSG_NAME[] = "ps_platform_gear_command_msg";
-
-
-/**
- * @brief Turn signal command message type name.
- *
- */
-static const char TURN_SIGNAL_COMMAND_MSG_NAME[] = "ps_platform_turn_signal_command_msg";
-
-
-/**
- * @brief Turn signal command message type name.
- *
- */
-static const char PARAMETERS_MSG_NAME[] = "ps_parameters_msg";
-
-
-/**
  * @brief Warning string.
  *
  */
 static const char WARNING_STRING[] =
 "\nWARNING: example is built for "
 "the Joystick device: Logitech Gamepad F310\n"
+"Back mode switch: 'X' setting\n"
+"Front mode button: off (LED is off)"
 "Brake controls: left trigger\n"
 "Throttle controls: right trigger\n"
 "Steering controls: right stick\n"
@@ -163,6 +106,13 @@ static const char WARNING_STRING[] =
  * If the host provides command line arguments they will be set, and available
  * for parsing (ie getopts).
  *
+ * \li "on_init" - Called once after node transitions into the INIT state.
+ * \li "on_release" - Called once on node exit.
+ * \li "on_warn" - Called continously while in WARN state.
+ * \li "on_error" - Called continously while in ERROR state.
+ * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
+ * \li "on_ok" - Called continously while in OK state.
+ *
  * @note Returning a DTC other than DTC_NONE will cause the node to transition
  * into the fatal state and terminate.
  *
@@ -179,12 +129,7 @@ static int set_configuration(
 /**
  * @brief Node template on_init callback function.
  *
- * \li "on_init" - Called once after node transitions into the INIT state.
- * \li "on_release" - Called once on node exit.
- * \li "on_warn" - Called continously while in WARN state.
- * \li "on_error" - Called continously while in ERROR state.
- * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
- * \li "on_ok" - Called continously while in OK state.
+ * Called once after node transitions into the INIT state.
  *
  * @param [in] node_ref Node reference, provided by node template API.
  * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
@@ -200,12 +145,7 @@ static void on_init(
 /**
  * @brief Node template on_release callback function.
  *
- * \li "on_init" - Called once after node transitions into the INIT state.
- * \li "on_release" - Called once on node exit.
- * \li "on_warn" - Called continously while in WARN state.
- * \li "on_error" - Called continously while in ERROR state.
- * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
- * \li "on_ok" - Called continously while in OK state.
+ * Called once on node exit.
  *
  * @param [in] node_ref Node reference, provided by node template API.
  * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
@@ -221,12 +161,7 @@ static void on_release(
 /**
  * @brief Node template on_error callback function.
  *
- * \li "on_init" - Called once after node transitions into the INIT state.
- * \li "on_release" - Called once on node exit.
- * \li "on_warn" - Called continously while in WARN state.
- * \li "on_error" - Called continously while in ERROR state.
- * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
- * \li "on_ok" - Called continously while in OK state.
+ * Called continously while in ERROR state.
  *
  * @param [in] node_ref Node reference, provided by node template API.
  * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
@@ -242,12 +177,7 @@ static void on_error(
 /**
  * @brief Node template on_fatal callback function.
  *
- * \li "on_init" - Called once after node transitions into the INIT state.
- * \li "on_release" - Called once on node exit.
- * \li "on_warn" - Called continously while in WARN state.
- * \li "on_error" - Called continously while in ERROR state.
- * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
- * \li "on_ok" - Called continously while in OK state.
+ * Called once after node transitions into the FATAL state before terminating.
  *
  * @param [in] node_ref Node reference, provided by node template API.
  * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
@@ -263,12 +193,7 @@ static void on_fatal(
 /**
  * @brief Node template on_warn callback function.
  *
- * \li "on_init" - Called once after node transitions into the INIT state.
- * \li "on_release" - Called once on node exit.
- * \li "on_warn" - Called continously while in WARN state.
- * \li "on_error" - Called continously while in ERROR state.
- * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
- * \li "on_ok" - Called continously while in OK state.
+ * Called continously while in WARN state.
  *
  * @param [in] node_ref Node reference, provided by node template API.
  * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
@@ -284,12 +209,7 @@ static void on_warn(
 /**
  * @brief Node template on_ok callback function.
  *
- * \li "on_init" - Called once after node transitions into the INIT state.
- * \li "on_release" - Called once on node exit.
- * \li "on_warn" - Called continously while in WARN state.
- * \li "on_error" - Called continously while in ERROR state.
- * \li "on_fatal" - Called once after node transitions into the FATAL state before terminating.
- * \li "on_ok" - Called continously while in OK state.
+ * Called continously while in OK state.
  *
  * @param [in] node_ref Node reference, provided by node template API.
  * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
@@ -302,20 +222,24 @@ static void on_ok(
         void * const user_data );
 
 
+//
+static ps_timestamp get_time_since(
+        const ps_timestamp past,
+        ps_timestamp * const now );
+
+
 /**
  * @brief Commander update loop.
  *
  * Called by on_warn and on_ok.
  *
  * @param [in] node_ref Node reference.
- * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
- * @param [in] node_data A pointer to \ref node_data_s which specifies the configuration.
+ * @param [in] commander A pointer to \ref commander_s which specifies the configuration.
  *
  */
 static void update_loop(
         ps_node_ref const node_ref,
-        const ps_diagnostic_state * const state,
-        node_data_s * const node_data );
+        commander_s * const commander );
 
 
 
@@ -328,9 +252,6 @@ static void update_loop(
 static int set_configuration(
         ps_node_configuration_data * const node_config )
 {
-    // local vars
-    node_data_s *node_data = NULL;
-
     const char default_node_name[] = "polysync-joystick-commander";
 
 
@@ -348,7 +269,7 @@ static int set_configuration(
     node_config->sdf_key = PSYNC_SDF_ID_INVALID;
 
     // set node flags
-    node_config->flags = NODE_FLAGS_VALUE | PSYNC_INIT_FLAG_STDOUT_LOGGING;
+    node_config->flags = 0;
 
     // set user data
     node_config->user_data = NULL;
@@ -358,18 +279,16 @@ static int set_configuration(
     strncpy( node_config->node_name, default_node_name, sizeof(node_config->node_name) );
 
     // create node data
-    if( (node_data = malloc( sizeof(*node_data) )) == NULL )
+    commander_s * const commander = calloc( 1, sizeof(*commander) );
+    if( commander == NULL )
     {
-        psync_log_message( LOG_LEVEL_ERROR, "node : (%u) -- failed to create node data", __LINE__ );
+        psync_log_error( "failed to create node data" );
         return DTC_MEMERR;
     }
 
-    // zero
-    memset( node_data, 0, sizeof(*node_data) );
-
     // set user data pointer to our top-level node data
     // this will get passed around to the various interface routines
-    node_config->user_data = (void*) node_data;
+    node_config->user_data = (void*) commander;
 
 
     return DTC_NONE;
@@ -382,174 +301,68 @@ static void on_init(
         const ps_diagnostic_state * const state,
         void * const user_data )
 {
-    // local vars
     int ret = DTC_NONE;
-    ps_msg_type msg_type = PSYNC_MSG_TYPE_INVALID;
-    node_data_s *node_data = NULL;
-
-
-    // cast
-    node_data = (node_data_s*) user_data;
+    commander_s * const commander = (commander_s*) user_data;
 
     // check reference since other routines don't
-    if( node_data == NULL )
+    if( commander == NULL )
     {
-        psync_log_message( LOG_LEVEL_ERROR,
-                "node : (%u) -- invalid node context",
-                __LINE__ );
+        psync_log_error( "invalid node data" );
         psync_node_activate_fault( node_ref, DTC_USAGE, NODE_STATE_FATAL );
         return;
     }
 
-    // get brake command message type
-    if( (ret = psync_message_get_type_by_name(
-            node_ref,
-            BRAKE_COMMAND_MSG_NAME,
-            &msg_type )) != DTC_NONE )
+    // zero
+    commander->dest_control_node_guid = PSYNC_GUID_INVALID;
+
+    // reset discovered GUID
+    ret = messages_reset_discovered_guid();
+    if( ret != DTC_NONE )
     {
         psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
         return;
     }
 
-    // get brake command message
-    if( (ret = psync_message_alloc(
-            node_ref,
-            msg_type,
-            (ps_msg_ref*) &node_data->messages.brake_cmd )) != DTC_NONE )
+    // allocate messages
+    ret = messages_alloc( node_ref, &commander->messages );
+    if( ret != DTC_NONE )
+    {
+        psync_log_error( "failed to allocate PolySync messages - check data model and installation files" );
+        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+        return;
+    }
+
+    // set safe state
+    ret = commander_set_safe( commander );
+    if( ret != DTC_NONE )
     {
         psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
         return;
     }
 
-    // get throttle command message type
-    if( (ret = psync_message_get_type_by_name(
+    // register a listener to PolySync response messages
+    ret = messages_register_response_subscriber(
             node_ref,
-            THROTTLE_COMMAND_MSG_NAME,
-            &msg_type )) != DTC_NONE )
+            &commander->messages );
+    if( ret != DTC_NONE )
     {
         psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
         return;
     }
 
-    // get throttle command message
-    if( (ret = psync_message_alloc(
+    // send command to enumerate all supported dynamic driver nodes
+    ret = commander_enumerate_control_nodes(
             node_ref,
-            msg_type,
-            (ps_msg_ref*) &node_data->messages.throttle_cmd )) != DTC_NONE )
+            commander );
+    if( ret != DTC_NONE )
     {
         psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
         return;
     }
-
-    // get steering command message type
-    if( (ret = psync_message_get_type_by_name(
-            node_ref,
-            STEERING_COMMAND_MSG_NAME,
-            &msg_type )) != DTC_NONE )
-    {
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // get steering command message
-    if( (ret = psync_message_alloc(
-            node_ref,
-            msg_type,
-            (ps_msg_ref*) &node_data->messages.steer_cmd )) != DTC_NONE )
-    {
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // get gear position message type
-    if( (ret = psync_message_get_type_by_name(
-            node_ref,
-            GEAR_POSITION_COMMAND_MSG_NAME,
-            &msg_type )) != DTC_NONE )
-    {
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // get gear position message
-    if( (ret = psync_message_alloc(
-            node_ref,
-            msg_type,
-            (ps_msg_ref*) &node_data->messages.gear_cmd )) != DTC_NONE )
-    {
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // get turn signal message type
-    if( (ret = psync_message_get_type_by_name(
-            node_ref,
-            TURN_SIGNAL_COMMAND_MSG_NAME,
-            &msg_type )) != DTC_NONE )
-    {
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // get turn signal message
-    if( (ret = psync_message_alloc(
-            node_ref,
-            msg_type,
-            (ps_msg_ref*) &node_data->messages.turn_signal_cmd )) != DTC_NONE )
-    {
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // get parameters message type
-    if( (ret = psync_message_get_type_by_name(
-            node_ref,
-            PARAMETERS_MSG_NAME,
-            &msg_type )) != DTC_NONE )
-    {
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // get parameters message
-    if( (ret = psync_message_alloc(
-            node_ref,
-            msg_type,
-            (ps_msg_ref*) &node_data->messages.parameters_cmd )) != DTC_NONE )
-    {
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // set destination GUID to all
-    node_data->messages.parameters_cmd->dest_guid = 0xFFFFFFFF00000000;
-
-    // parameter command type is set-value
-    node_data->messages.parameters_cmd->type = PARAMETER_MESSAGE_SET_VALUE;
-
-    // create a single parameter
-    node_data->messages.parameters_cmd->parameters._buffer =
-            (ps_parameter*) DDS_sequence_allocbuf( NULL, sizeof(ps_parameter), 1 );
-    node_data->messages.parameters_cmd->parameters._length = 1;
-    node_data->messages.parameters_cmd->parameters._maximum = 1;
-    node_data->messages.parameters_cmd->parameters._release = 1;
-
-    // set parameter value to enabled
-    node_data->messages.parameters_cmd->parameters._buffer[0].id = ENABLE_CONTROLS_PARAMETER_ID;
-    node_data->messages.parameters_cmd->parameters._buffer[0].value._d = PARAMETER_VALUE_ULONGLONG;
-    node_data->messages.parameters_cmd->parameters._buffer[0].value._u.ull_value = 1;
-
 
     // init joystick subsystem
-    if( (ret = jstick_init_subsystem()) != DTC_NONE )
-    {
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        return;
-    }
-
-    // set commander safe state
-    if( (ret = commander_set_safe(
-            &node_data->messages )) != DTC_NONE )
+    ret = jstick_init_subsystem();
+    if( ret != DTC_NONE )
     {
         psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
         return;
@@ -564,45 +377,47 @@ static void on_init(
         // device GUID
         joystick_guid_s js_guid;
 
+        // default device
+        const unsigned long default_device_index = 0;
+
         // get GUID of device at index
-        if( (ret = jstick_get_guid_at_index(
-                0,
-                &js_guid )) != DTC_NONE )
+        ret = jstick_get_guid_at_index( 0, &js_guid );
+        if( ret != DTC_NONE )
         {
             psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
             return;
         }
 
-        psync_log_message( LOG_LEVEL_DEBUG,
-                "node : found %d devices -- connecting to device at system index %lu - GUID: %s",
+        psync_log_warn(
+                "found %d devices -- connecting to device at system index %lu - GUID: %s",
                 num_joysticks,
-                0,
+                default_device_index,
                 js_guid.ascii_string );
 
         // connect to first device
-        if( (ret = jstick_open( 0, &node_data->joystick )) != DTC_NONE )
+        ret = jstick_open(
+                default_device_index,
+                &commander->joystick );
+        if( ret != DTC_NONE )
         {
             psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
             return;
         }
 
         // wait for safe state
-        psync_log_message( LOG_LEVEL_INFO,
-                "node : wait for joystick controls to zero" );
+        psync_log_info( "waiting for joystick controls to zero" );
         do
         {
-            ret = commander_check_for_safe_joystick( &node_data->joystick );
+            ret = commander_check_for_safe_joystick( commander );
 
             if( ret == DTC_UNAVAILABLE )
             {
                 // wait a little for the next try
-                (void) psync_sleep_micro( COMMANDER_UPDATE_INTERVAL );
+                (void) psync_sleep_micro( NODE_UPDATE_INTERVAL );
             }
             else if( ret != DTC_NONE )
             {
-                psync_log_message( LOG_LEVEL_ERROR,
-                        "node : (%u) -- failed to wait for joystick to zero the control values",
-                        __LINE__ );
+                psync_log_error( "failed to wait for joystick to zero the control values" );
                 psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
 
                 // return now
@@ -613,11 +428,15 @@ static void on_init(
     }
     else
     {
-        psync_log_message( LOG_LEVEL_ERROR,
-                "node : (%u) -- no joystick/devices available on the host",
-                __LINE__ );
+        psync_log_error( "no joystick/devices available on the host" );
         psync_node_activate_fault( node_ref, DTC_USAGE, NODE_STATE_FATAL );
+
+        // return now
+        return;
     }
+
+    // wait for a valid node to respond in the normal on-ok logic
+    psync_log_info( "waiting for a PolySync control node to respond" );
 }
 
 
@@ -627,49 +446,27 @@ static void on_release(
         const ps_diagnostic_state * const state,
         void * const user_data )
 {
-    // local vars
-    node_data_s *node_data = NULL;
+    commander_s *commander = (commander_s*) user_data;
 
 
-    // cast
-    node_data = (node_data_s*) user_data;
-
-    // if valid
-    if( node_data != NULL )
+    if( commander != NULL )
     {
+        // send command to disable controls
+        (void) commander_disable_controls( node_ref, commander );
+
         // set commander safe state
-        (void) commander_set_safe(
-            &node_data->messages );
+        (void) commander_set_safe( commander );
 
         // close device if needed
-        jstick_close( &node_data->joystick );
+        jstick_close( &commander->joystick );
 
         // free messages
-        (void) psync_message_free(
+        (void) messages_free(
                 node_ref,
-                (ps_msg_ref*) &node_data->messages.brake_cmd );
-        (void) psync_message_free(
-                node_ref,
-                (ps_msg_ref*) &node_data->messages.throttle_cmd );
-        (void) psync_message_free(
-                node_ref,
-                (ps_msg_ref*) &node_data->messages.steer_cmd );
-        (void) psync_message_free(
-                node_ref,
-                (ps_msg_ref*) &node_data->messages.gear_cmd );
-        (void) psync_message_free(
-                node_ref,
-                (ps_msg_ref*) &node_data->messages.turn_signal_cmd );
-        (void) psync_message_free(
-                node_ref,
-                (ps_msg_ref*) &node_data->messages.parameters_cmd );
+                &commander->messages );
 
-        // zero
-        memset( node_data, 0, sizeof(*node_data) );
-
-        // free
-        free( node_data );
-        node_data = NULL;
+        free( commander );
+        commander = NULL;
     }
 
     // release joystick subsystem
@@ -683,17 +480,32 @@ static void on_error(
         const ps_diagnostic_state * const state,
         void * const user_data )
 {
-    // cast node data
-    node_data_s * const node_data = (node_data_s*) user_data;
+    commander_s * const commander = (commander_s*) user_data;
 
 
-    // if node data valid
-    if( node_data != NULL )
+    if( commander != NULL )
     {
-        // send e-stop
-        (void) commander_send_estop(
-                node_ref,
-                &node_data->messages );
+        ps_timestamp now = 0;
+
+        // get the amount of time since our last update/publish
+        const ps_timestamp time_since_last_publish =
+                get_time_since( commander->last_commander_update, &now );
+
+        // only update/publish at our defined interval
+        if( time_since_last_publish >= NODE_UPDATE_INTERVAL )
+        {
+            // send disable controls command
+            (void) commander_disable_controls(
+                    node_ref,
+                    commander );
+
+            // send e-stop commands
+            (void) commander_estop(
+                    node_ref,
+                    commander );
+
+            commander->last_commander_update = now;
+        }
     }
 }
 
@@ -705,16 +517,21 @@ static void on_fatal(
         void * const user_data )
 {
     // cast node data
-    node_data_s * const node_data = (node_data_s*) user_data;
+    commander_s * const commander = (commander_s*) user_data;
 
 
     // if node data valid
-    if( node_data != NULL )
+    if( commander != NULL )
     {
-        // send e-stop
-        (void) commander_send_estop(
+        // send disable controls command
+        (void) commander_disable_controls(
                 node_ref,
-                &node_data->messages );
+                commander );
+
+        // send e-stop commands
+        (void) commander_estop(
+                node_ref,
+                commander );
     }
 }
 
@@ -726,36 +543,21 @@ static void on_warn(
         void * const user_data )
 {
     // cast node data
-    node_data_s * const node_data = (node_data_s*) user_data;
+    commander_s * const commander = (commander_s*) user_data;
 
 
-    // if node data not valid
-    if( node_data == NULL )
+    // check if command data is valid
+    if( commander_is_valid( commander ) != DTC_NONE )
     {
         // activate DTC
-        psync_node_activate_fault( node_ref, DTC_NOINTERFACE, NODE_STATE_FATAL );
-
-        // return now
-        return;
-    }
-
-    // if messages not valid
-    if(
-            (node_data->messages.brake_cmd == PSYNC_MSG_REF_INVALID) ||
-            (node_data->messages.throttle_cmd == PSYNC_MSG_REF_INVALID) ||
-            (node_data->messages.steer_cmd == PSYNC_MSG_REF_INVALID) ||
-            (node_data->messages.gear_cmd == PSYNC_MSG_REF_INVALID) ||
-            (node_data->messages.turn_signal_cmd == PSYNC_MSG_REF_INVALID) )
-    {
-        // activate DTC
-        psync_node_activate_fault( node_ref, DTC_NOINTERFACE, NODE_STATE_FATAL );
+        psync_node_activate_fault( node_ref, DTC_DATAERR, NODE_STATE_FATAL );
 
         // return now
         return;
     }
 
     // do update loop
-    update_loop( node_ref, state, node_data );
+    update_loop( node_ref, commander );
 }
 
 
@@ -766,92 +568,123 @@ static void on_ok(
         void * const user_data )
 {
     // cast node data
-    node_data_s * const node_data = (node_data_s*) user_data;
+    commander_s * const commander = (commander_s*) user_data;
 
 
-    // if node data not valid
-    if( node_data == NULL )
+    // check if command data is valid
+    if( commander_is_valid( commander ) != DTC_NONE )
     {
         // activate DTC
-        psync_node_activate_fault( node_ref, DTC_NOINTERFACE, NODE_STATE_FATAL );
-
-        // return now
-        return;
-    }
-
-    // if messages not valid
-    if(
-            (node_data->messages.brake_cmd == PSYNC_MSG_REF_INVALID) ||
-            (node_data->messages.throttle_cmd == PSYNC_MSG_REF_INVALID) ||
-            (node_data->messages.steer_cmd == PSYNC_MSG_REF_INVALID) ||
-            (node_data->messages.gear_cmd == PSYNC_MSG_REF_INVALID) ||
-            (node_data->messages.turn_signal_cmd == PSYNC_MSG_REF_INVALID) )
-    {
-        // activate DTC
-        psync_node_activate_fault( node_ref, DTC_NOINTERFACE, NODE_STATE_FATAL );
+        psync_node_activate_fault( node_ref, DTC_DATAERR, NODE_STATE_FATAL );
 
         // return now
         return;
     }
 
     // do update loop
-    update_loop( node_ref, state, node_data );
+    update_loop( node_ref, commander );
+}
+
+
+//
+static ps_timestamp get_time_since(
+        const ps_timestamp past,
+        ps_timestamp * const now )
+{
+    ps_timestamp delta = 0;
+    ps_timestamp m_now = 0;
+
+
+    const int ret = psync_get_timestamp( &m_now );
+
+    if( ret == DTC_NONE )
+    {
+        if( m_now >= past )
+        {
+            delta = (m_now - past);
+        }
+    }
+
+    // update provided argument if valid
+    if( now != NULL )
+    {
+        (*now) = m_now;
+    }
+
+
+    return delta;
 }
 
 
 //
 static void update_loop(
         ps_node_ref const node_ref,
-        const ps_diagnostic_state * const state,
-        node_data_s * const node_data )
+        commander_s * const commander )
 {
-    // local vars
     int ret = DTC_NONE;
     ps_timestamp now = 0;
 
 
-    // get current time
-    if( (ret = psync_get_timestamp( &now )) != DTC_NONE )
-    {
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        (void) commander_send_estop( node_ref, &node_data->messages );
-        return;
-    }
+    // get the amount of time since our last update/publish
+    const ps_timestamp time_since_last_publish =
+            get_time_since( commander->last_commander_update, &now );
 
-    // check for time to update
-    if( (now - node_data->last_commander_update) >= COMMANDER_UPDATE_INTERVAL )
+    // if we have a valid destination node GUID
+    if( commander->dest_control_node_guid != PSYNC_GUID_INVALID )
     {
-        // update commander state using joystick
-        if( (ret = commander_joystick_update(
-                &node_data->joystick,
-                &node_data->messages )) != DTC_NONE )
+        // only update/publish at our defined interval
+        if( time_since_last_publish >= NODE_UPDATE_INTERVAL )
+        {
+            // update commander, send command messages
+            ret = commander_update(
+                    node_ref,
+                    commander );
+            if( ret != DTC_NONE )
+            {
+                psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+            }
+
+            commander->last_commander_update = now;
+        }
+    }
+    else
+    {
+        ret = messages_get_discovered_guid(
+                &commander->dest_control_node_guid );
+        if( ret != DTC_NONE )
         {
             psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-            (void) commander_send_estop( node_ref, &node_data->messages );
-            return;
         }
 
-        // publish commander controls
-        if( (ret = commander_send_commands(
-                node_ref,
-                &node_data->messages )) != DTC_NONE )
+        if( commander->dest_control_node_guid != PSYNC_GUID_INVALID )
         {
-            psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-            (void) commander_send_estop( node_ref, &node_data->messages );
-            return;
+            psync_log_info( "got valid response from control node GUID 0x%016llX (%llu)",
+                    (unsigned long long) commander->dest_control_node_guid,
+                    (unsigned long long) commander->dest_control_node_guid );
+
+            ret = messages_unregister_response_subscriber(
+                    node_ref,
+                    &commander->messages );
+            if( ret != DTC_NONE )
+            {
+                psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+            }
         }
-
-        // update last publish time
-        node_data->last_commander_update = now;
+        else
+        {
+            // check for re-enumerate button action
+            ret = commander_check_reenumeration(
+                    node_ref,
+                    commander );
+            if( ret != DTC_NONE )
+            {
+                psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
+            }
+        }
     }
 
-    // wait a little
-    if( (ret = psync_sleep_micro( NODE_SLEEP_TICK_INTERVAL )) != DTC_NONE )
-    {
-        psync_node_activate_fault( node_ref, ret, NODE_STATE_FATAL );
-        (void) commander_send_estop( node_ref, &node_data->messages );
-        return;
-    }
+    // sleep for 1 ms to avoid loading the CPU
+    (void) psync_sleep_micro( NODE_SLEEP_TICK_INTERVAL );
 }
 
 

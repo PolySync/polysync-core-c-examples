@@ -14,9 +14,9 @@
 
 
 #include "polysync_core.h"
-#include "polysync_node_ref.h"
 
 #include "joystick.h"
+#include "messages.h"
 
 
 
@@ -69,45 +69,30 @@
 #define STEERING_WHEEL_ANGLE_RATE_LIMIT (M_PI_2)
 
 
+
+
 /**
- * @brief Commander update interval. [microseconds]
+ * @brief Commander node data.
  *
- */
-#define COMMANDER_UPDATE_INTERVAL (50000)
-
-
-
-/**
- * @brief Commander message set.
+ * Serves as a top-level container for the application's data structures.
  *
  */
 typedef struct
 {
     //
     //
-    ps_platform_brake_command_msg *brake_cmd; /*!< Platform brake command message. */
+    joystick_device_s joystick; /*!< Joystick handle. */
     //
     //
-    ps_platform_throttle_command_msg *throttle_cmd; /*!< Platform throttle command message. */
+    messages_s messages; /*!< PolySync messages. */
     //
     //
-    ps_platform_steering_command_msg *steer_cmd; /*!< Platform steering wheel command message. */
+    ps_timestamp last_commander_update; /*!< Last commander update timestamp. [microseconds] */
     //
     //
-    ps_platform_gear_command_msg *gear_cmd; /*!< Platform gear command message. */
-    //
-    //
-    ps_platform_turn_signal_command_msg *turn_signal_cmd; /*!< Platform turn signal command message. */
-    //
-    //
-    ps_parameters_msg *parameters_cmd; /*!< Parameter(s) get/set command message. */
-    //
-    //
-    unsigned int send_enable_controls; /*!< Flag indicating whether or not to send a enable-controls get/set command. */
-    //
-    //
-    unsigned int send_disable_controls; /*!< Flag indicating whether or not to send a disable-controls get/set command. */
-} commander_messages_s;
+    ps_guid dest_control_node_guid; /*!< Node GUID that our control commmands are destined to.
+                                     * Updated by the first response message received from a valid control node. */
+} commander_s;
 
 
 
@@ -115,74 +100,71 @@ typedef struct
 /**
  * @brief Wait for joystick throttle/brake values to be zero.
  *
- * @param [in] jstick A pointer to \ref joystick_device_s which specifies the joystick handle.
+ * @param [in] commander A pointer to \ref commander_s which specifies the joystick configuration.
  *
  * @return DTC code:
  * \li \ref DTC_NONE (zero) if joystick values safe.
+ * \li \ref DTC_USAGE if arguments are invalid.
  * \li \ref DTC_CONFIG if configuration invalid.
- * \li \ref DTC_UNAVAILABLE if joystick values NOT safe.
+ * \li \ref DTC_UNAVAILABLE if joystick values are not safe.
  *
  */
 int commander_check_for_safe_joystick(
-        joystick_device_s * const jstick );
+        commander_s * const commander );
+
+
+//
+int commander_is_valid(
+        commander_s * const commander );
 
 
 /**
  * @brief Set control command messages to their safe state.
  *
- * @param [in] messages A pointer to \ref commander_messages_s which receives the safe state configuration.
+ * @param [in] commander A pointer to \ref commander_s which receives the safe state configuration.
  *
  * @return DTC code:
  * \li \ref DTC_NONE (zero) if success.
  *
  */
 int commander_set_safe(
-        commander_messages_s * const messages );
+        commander_s * const commander );
 
 
-/**
- * @brief Send E-Stop command.
- *
- * @param [in] node_ref Node reference.
- * @param [in] messages A pointer to \ref commander_messages_s which specifies the message set.
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-int commander_send_estop(
+//
+int commander_enumerate_control_nodes(
         ps_node_ref node_ref,
-        commander_messages_s * const messages );
+        commander_s * const commander );
 
 
-/**
- * @brief Update commander.
- *
- * @param [in] jstick A pointer to \ref joystick_device_s which specifies the joystick handle.
- * @param [in] messages A pointer to \ref commander_messages_s which specifies the message set.
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-int commander_joystick_update(
-        joystick_device_s * const jstick,
-        commander_messages_s * const messages );
-
-
-/**
- * @brief Send commander commands.
- *
- * @param [in] node_ref Node reference.
- * @param [in] messages A pointer to \ref commander_messages_s which specifies the message set.
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-int commander_send_commands(
+//
+int commander_disable_controls(
         ps_node_ref node_ref,
-        commander_messages_s * const messages );
+        commander_s * const commander );
+
+
+//
+int commander_enable_controls(
+        ps_node_ref node_ref,
+        commander_s * const commander );
+
+
+//
+int commander_estop(
+        ps_node_ref node_ref,
+        commander_s * const commander );
+
+
+//
+int commander_check_reenumeration(
+        ps_node_ref node_ref,
+        commander_s * const commander );
+
+
+//
+int commander_update(
+        ps_node_ref node_ref,
+        commander_s * const commander );
 
 
 

@@ -11,6 +11,7 @@ TARGET  := bin/polysync-joystick-commander
 
 # source files
 SRCS    :=  src/joystick.c \
+	    src/messages.c \
 	    src/commander.c \
 	    src/node.c
 
@@ -33,7 +34,7 @@ INCLUDE += -Iinclude
 
 # add node template library, must be first
 # add util library last, let path be found
-LIBS := -L$(PSYNC_HOME)/lib -lpolysync_node $(LIBS) `pkg-config --libs sdl2`
+LIBS := -L$(PSYNC_HOME)/lib -lpolysync_node $(LIBS) -lpolysync_data_model `pkg-config --libs sdl2`
 
 # all builds directories and target
 all: dirs $(TARGET)
