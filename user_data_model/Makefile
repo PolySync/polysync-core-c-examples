@@ -73,6 +73,7 @@ build-pdm:
 # install our example data model into the system
 install-pdm:
 	cp pdm/lib* $(PSYNC_HOME)/lib/
+	cp pdm/*.h $(PSYNC_HOME)/pdm/
 
 # install to system
 install: all
