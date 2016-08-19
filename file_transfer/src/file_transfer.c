@@ -31,6 +31,15 @@
  * Demonstrates how to use the PolySync file transfer API to initiate and
  * support file transfer operations between nodes.
  *
+ * All polysync-manager nodes support file transfer operations.
+ * This example will attempt a file transfer with the first polysync-manager
+ * it can find. A semaphore is used to signal when the first polysync-manager
+ * has responded, and capture its GUID.
+ *
+ * @warn
+ * File transfer is typically only a good fit for convenient system management.
+ * Data transmission should prefer publishing message types.
+ *
  */
 
 
@@ -52,22 +61,32 @@
 // which is the topic of this example.
 #include "polysync_file_transfer.h"
 
-
-// All polysync-manager nodes support file transfer operations.
-// This example will attempt a file transfer with the first polysync-manager
-// it can find. This semaphore is used to signal when the first polysync-manager
-// has responded, and its GUID has been captured.
+/**
+ * @brief Semaphore used to signal response from polysync-manager
+ *
+ */
 static sem_t manager_response;
 
 
-// After a polysync-manager node has been requested to provide its status,
-// it will respond. This is the name of the type of that message.
+/**
+ * @brief Name of message polysync-manager response message.
+ *
+ */
 static const char manager_status_msg_name[] = "ps_response_msg";
 
 
-// When polysync-manager responds with its status,
-// this function will capture its GUID and signal 
-// that the program may proceeed via the semaphore.
+/**
+ * @brief Handler function for polysync-manager's response message.
+ *
+ * Captures the responding node's GUID and signal the main
+ * program to continue.
+ *
+ * @param [in] msg_type Message type identifier.
+ * @param [in] message Message reference to be handled by the function.
+ * @param [in] user_data A void pointer to the user_data, which in this program
+ * is set to a @ref ps_guid to hold the responding node's GUID.
+ *
+ */
 static void ps_manager_status_msg_handler(
         const ps_msg_type msg_type,
         const ps_msg_ref const message,
@@ -91,8 +110,15 @@ static void ps_manager_status_msg_handler(
 }
 
 
-// This function allocates and publishes a command
-// for all polysync-manager nodes to provide their statuses.
+/**
+ * @brief Request polysync-manager to enumerate
+ *
+ * @param [in] node_ref A reference to the node which will publish the command message.
+ *
+ * @return DTC code:
+ * \li \ref DTC_NONE if success.
+ *
+ */
 static int request_manager_response(
         const ps_node_ref node_ref )
 {
@@ -108,7 +134,7 @@ static int request_manager_response(
             command_msg_name,
             &command_msg_type )) != DTC_NONE )
     {
-        printf( "failed to get message type of %s\n", command_msg_name );
+        psync_log_error( "failed to get message type of %s\n", command_msg_name );
         return ret;
     }
 
@@ -117,7 +143,7 @@ static int request_manager_response(
             command_msg_type,
             (ps_msg_ref*)&command_msg )) != DTC_NONE )
     {
-        printf( "failed to allocate %s\n", command_msg_name );
+        psync_log_error( "failed to allocate %s\n", command_msg_name );
         return ret;
     }
 
@@ -127,13 +153,13 @@ static int request_manager_response(
     // Set the command type to get polysync-manager status.
     command_msg->id = PSYNC_COMMAND_GET_MANAGER_STATUS;
 
-    printf( "requesting polysync-manager nodes to respond with status\n" );
+    psync_log_debug( "requesting polysync-manager nodes to respond with status\n" );
 
     if( (ret = psync_message_publish(
             node_ref,
             (ps_msg_ref)command_msg )) != DTC_NONE )
     {
-        printf( "failed to publish %s\n", command_msg_name );
+        psync_log_error( "failed to publish %s\n", command_msg_name );
     }
 
     (void)psync_message_free( node_ref, (ps_msg_ref*)&command_msg );
@@ -144,6 +170,14 @@ static int request_manager_response(
 
 // This function is passed to the file transfer API
 // and will be invoked when the file transfer makes progress.
+/**
+ * @brief @ref psync_file_transfer_callback which will invoked
+ * as the file transfer makes progress.
+ *
+ * @param [in] transfer_state The current state of the file transfer.
+ * @param [in] user_data A void pointer to user data, which in this case is unused.
+ *
+ */
 static void print_transfer_progress(
         const ps_file_transfer_state * const transfer_state,
         void * user_data )
@@ -157,6 +191,7 @@ static void print_transfer_progress(
 }
 
 
+//
 int main( int argc, char ** argv )
 {
     // Used to track the return code of PolySync API calls.
@@ -173,7 +208,7 @@ int main( int argc, char ** argv )
             PSYNC_INIT_FLAG_STDOUT_LOGGING, // Node uses stdout for logging.
             &node_ref )) != DTC_NONE )
     {
-        printf( "file transfer example node failed to initialize\n" );
+        psync_log_error( "file transfer example node failed to initialize\n" );
         return EXIT_FAILURE;
     }
 
@@ -184,7 +219,7 @@ int main( int argc, char ** argv )
             manager_status_msg_name,
             &manager_status_msg_type )) != DTC_NONE )
     {
-        printf( "failed to get message type of %s\n", manager_status_msg_name );
+        psync_log_error( "failed to get message type of %s\n", manager_status_msg_name );
         return EXIT_FAILURE;
     }
 
@@ -203,7 +238,7 @@ int main( int argc, char ** argv )
             manager_status_msg_type,
             RELIABILITY_QOS_RELIABLE )) != DTC_NONE )
     {
-        printf( "failed to set %s subscriber reliability\n", manager_status_msg_name );
+        psync_log_error( "failed to set %s subscriber reliability\n", manager_status_msg_name );
         return EXIT_FAILURE;
     }
 
@@ -216,7 +251,7 @@ int main( int argc, char ** argv )
             &ps_manager_status_msg_handler,
             &manager_guid )) != DTC_NONE )
     {
-        printf( "failed to subscribe to %s\n", manager_status_msg_name );
+        psync_log_error( "failed to subscribe to %s\n", manager_status_msg_name );
         return EXIT_FAILURE;
     }
 
@@ -228,7 +263,7 @@ int main( int argc, char ** argv )
     }
 
     // Wait for polysync-manager to have responded and its GUID captured.
-    printf( "Waiting for polysync-manager to respond...\n"
+    psync_log_debug( "Waiting for polysync-manager to respond...\n"
             "If this is taking a while, polysync-manager may not be running.\n"
             "Press Ctrl+c to interrupt and start polysync-manager\n");
 
@@ -240,12 +275,12 @@ int main( int argc, char ** argv )
             node_ref,
             manager_status_msg_type )) != DTC_NONE )
     {
-        printf( "failed to unsubscribe from %s\n", manager_status_msg_name );
+        psync_log_error( "failed to unsubscribe from %s\n", manager_status_msg_name );
         return EXIT_FAILURE;
     }
 
     // Now the GUID of a node which supports file transfer is known.
-    printf( "polysync-manager GUID: 0x%016llX (%llu)\n", manager_guid, manager_guid );
+    psync_log_debug( "polysync-manager GUID: 0x%016llX (%llu)\n", manager_guid, manager_guid );
 
     // A file transfer state contains data needed by file transfer operations
     // and may perform multiple operations simultaneously. It must be initialized
@@ -255,14 +290,14 @@ int main( int argc, char ** argv )
     if( (ret = psync_file_transfer_init(
             &transfer_handle, node_ref )) != DTC_NONE )
     {
-        printf( "file transfer state failed to initialize\n" );
+        psync_log_error( "file transfer state failed to initialize\n" );
         return EXIT_FAILURE;
     }
 
     if( (ret = psync_file_transfer_register_default_handling(
             transfer_handle )) != DTC_NONE )
     {
-        printf( "failed to register default file transfer handling" );
+        psync_log_error( "failed to register default file transfer handling" );
         return EXIT_FAILURE;
     }
 
@@ -289,7 +324,7 @@ int main( int argc, char ** argv )
 
     transfer_options.on_progress = print_transfer_progress;
 
-    printf( "transferring %s from node 0x%016llX (%llu) to %s\n",
+    psync_log_debug( "transferring %s from node 0x%016llX (%llu) to %s\n",
             source_file_path,
             manager_guid,
             manager_guid,
@@ -299,18 +334,18 @@ int main( int argc, char ** argv )
             transfer_handle,
             &transfer_options );
 
-    printf("Waiting...\n");
+    psync_log_debug("Waiting...\n");
     ret = psync_file_transfer_wait_for_all( transfer_handle );
-    printf("Unregistering...\n");
+    psync_log_debug("Unregistering...\n");
     ret = psync_file_transfer_unregister_default_handling( transfer_handle );
-    printf("Releasing...\n");
+    psync_log_debug("Releasing...\n");
     ret = psync_file_transfer_release( &transfer_handle );
-    printf("Node releasing...\n");
+    psync_log_debug("Node releasing...\n");
     ret = psync_release( &node_ref );
 
     if( ret != DTC_NONE )
     {
-        printf( "file transfer cleanup failed\n" );
+        psync_log_error( "file transfer cleanup failed\n" );
         return EXIT_FAILURE;
     }
 
