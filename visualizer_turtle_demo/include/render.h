@@ -12,8 +12,8 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
- *
+ * 
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -24,84 +24,53 @@
  */
 
 /**
- * @file ps_interface.h
- * @brief PolySync Interface.
- *
- * @todo fix docs.
+ * @file render.h
+ * @brief Primitive Rendering Interface.
  *
  */
 
 
 
 
-#ifndef PS_INTERFACE_H
-#define	PS_INTERFACE_H
+#ifndef RENDER_H
+#define	RENDER_H
 
 
 
 
-#include <glib-2.0/glib.h>
-#include "polysync_core.h"
-
-#include "gui.h"
+#include "gl_headers.h"
+#include "drawable_type.h"
 
 
 
 
-
-typedef struct
-{
-    //
-    //
-    ps_node_ref node;
-    //
-    //
-    ps_msg_type msg_type_platform_motion;
-    //
-    //
-    waypoint_s current_vehicle_position;
-} node_data_s;
+void init_render_texture( char * file_name, int * width, int * height, GLuint * image );
 
 
-
-/**
- * @brief Node name string.
- *
- */
-extern const char       PS_NODE_NAME[];
+void load_png_texture( char * file_name, int * width, int * height, GLuint * image );
 
 
-/**
- * @brief PolySync radar targets message name.
- *
- */
-extern const char       PS_PLATFORM_MOTION_MSG_NAME[];
+void render_cube_with_texture( GLuint texture );
+
+
+void render_circle_2d( const GLdouble cx, const GLdouble cy, const GLdouble radius );
+
+
+void render_cross_2d( const GLdouble cx, const GLdouble cy, const GLdouble length, const GLdouble width );
+
+
+void render_rectangle_2d( const GLdouble cx, const GLdouble cy, const GLdouble length, const GLdouble width );
+
+
+void render_triangle_2d( const GLdouble cx, const GLdouble cy, const GLdouble length, const GLdouble width );
+
+
+void render_ellipse_2d( const GLdouble cx, const GLdouble cy, const GLdouble major, const GLdouble minor );
+
+
+void render_text_2d( const GLdouble cx, const GLdouble cy, const char * const text, const void * const font );
 
 
 
 
-/**
- * @brief Initialize PolySync resources.
- *
- * Sets up data handler(s) and data queue for incoming messages.
- *
- * @return A newly created PolySync message queue on success, NULL on failure.
- *
- */
-node_data_s *init_polysync( void );
-
-
-/**
- * @brief Release PolySync resources.
- *
- * Free's any messages in the data queue.
- *
- * @param [in] msg_queue A pointer to GAsyncQueue which possibly contains PolySync messages.
- *
- */
-void release_polysync( node_data_s * const node_data );
-
-
-
-
-#endif	/* PS_INTERFACE_H */
+#endif	/* RENDER_H */

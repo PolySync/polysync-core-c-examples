@@ -42,108 +42,10 @@
 //#include <signal.h>
 #include "polysync_core.h"
 
+#include "ps_interface.h"
+#include "driver_vehicle.h"
 #include "gl_headers.h"
 #include "drawable_type.h"
-#include "waypoint.h"
-
-
-
-
-/**
- * @brief Exit application key.
- *
- */
-#define         GUI_KEY_EXIT                'q'
-
-
-/**
- * @brief Show help key.
- *
- */
-#define         GUI_KEY_HELP                'h'
-
-
-/**
- * @brief Freeze frame key.
- *
- */
-#define         GUI_KEY_FREE_FRAME          'f'
-
-
-/**
- * @brief Toggle radial grid lines key.
- *
- */
-#define         GUI_KEY_RADIAL_GRID         'g'
-
-
-/**
- * @brief Show velocity vectors key.
- *
- */
-#define         GUI_KEY_VEL_VECTORS         'v'
-
-
-/**
- * @brief Toggle color mode key.
- *
- */
-#define         GUI_KEY_CLEAR_WAYPOINTS     'c'
-
-
-/**
- * @brief Toggle radar amplitude mapper key.
- *
- */
-#define         GUI_KEY_RADAR_AMP_MAP       'a'
-
-
-/**
- * @brief Toggle ruler key.
- *
- */
-#define         GUI_KEY_RULER               'r'
-
-
-/**
- * @brief Show platform motion vectors key.
- *
- */
-#define         GUI_KEY_PLATFORM_VECTORS    'p'
-
-
-/**
- * @brief Toggle view mode key.
- *
- */
-#define         GUI_KEY_VIEW_MODE           'm'
-
-
-/**
- * @brief Toggle circle primitive visibility key.
- *
- */
-#define         GUI_KEY_CIRCLE_VISIBLE      '9'
-
-
-/**
- * @brief Toggle rectangle primitive visibility key.
- *
- */
-#define         GUI_KEY_RECTANGLE_VISIBLE   '8'
-
-
-/**
- * @brief Toggle ellipse visibility key.
- *
- */
-#define         GUI_KEY_ELLIPSE_VISIBLE     '7'
-
-/**
- * @brief Toggle points visibility key.
- *
- */
-#define         GUI_KEY_POINTS_VISIBLE      '6'
 
 
 /**
@@ -338,7 +240,10 @@ typedef struct
     ruler_data_s                ruler; /*!< Ruler data. */
     //
     //
-    waypoint_s                  waypoints[ MAX_WAYPOINTS ];
+    vehicle_position_s          vehicle_position;
+    //
+    //
+    GLuint                      renderImage;
 } gui_context_s;
 
 

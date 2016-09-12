@@ -12,8 +12,8 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
- *
+ * 
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -24,84 +24,75 @@
  */
 
 /**
- * @file ps_interface.h
- * @brief PolySync Interface.
- *
- * @todo fix docs.
+ * @file common.h
+ * @brief Common Resources.
  *
  */
 
-
-
-
-#ifndef PS_INTERFACE_H
-#define	PS_INTERFACE_H
+#ifndef COMMON_H
+#define	COMMON_H
 
 
 
 
+#include <math.h>
 #include <glib-2.0/glib.h>
+
 #include "polysync_core.h"
 
-#include "gui.h"
-
-
-
-
-
-typedef struct
-{
-    //
-    //
-    ps_node_ref node;
-    //
-    //
-    ps_msg_type msg_type_platform_motion;
-    //
-    //
-    waypoint_s current_vehicle_position;
-} node_data_s;
 
 
 
 /**
- * @brief Node name string.
+ * @brief Convert radians to degrees. [double]
+ *
+ * angle = 180 / pi
  *
  */
-extern const char       PS_NODE_NAME[];
+#define         RAD_2_DEG(angle)        ((angle)*(180.0/M_PI))
 
 
 /**
- * @brief PolySync radar targets message name.
+ * @brief Convert degrees to radians. [double]
+ *
+ * angle = pi / 180
  *
  */
-extern const char       PS_PLATFORM_MOTION_MSG_NAME[];
+#define         DEG_2_RAD(angle)        ((angle)*(M_PI/180.0))
+
+
+/**
+ * @brief Convert seconds to microseconds. [unsigned long long]
+ *
+ */
+#define         SEC_2_MICRO(time)       (time * 1000000ULL)
+
+
+/**
+ * @brief Convert microseconds to seconds. [double]
+ *
+ */
+#define         MICRO_2_SEC(time)       (time / 1000.0 / 1000.0)
+
+
+/**
+ * @brief Convert nanoseconds to microseconds. [unsigned long long]
+ *
+ */
+#define         NANO_2_MICRO(time)      (time / 1000ULL)
 
 
 
 
 /**
- * @brief Initialize PolySync resources.
+ * @brief Get monotonic tick. [microseconds]
  *
- * Sets up data handler(s) and data queue for incoming messages.
- *
- * @return A newly created PolySync message queue on success, NULL on failure.
+ * @return Microsecond tick value.
  *
  */
-node_data_s *init_polysync( void );
-
-
-/**
- * @brief Release PolySync resources.
- *
- * Free's any messages in the data queue.
- *
- * @param [in] msg_queue A pointer to GAsyncQueue which possibly contains PolySync messages.
- *
- */
-void release_polysync( node_data_s * const node_data );
+ps_timestamp get_micro_tick( void );
 
 
 
 
-#endif	/* PS_INTERFACE_H */
+#endif	/* COMMON_H */

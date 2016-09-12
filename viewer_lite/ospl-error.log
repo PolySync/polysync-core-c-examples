@@ -1,0 +1,60 @@
+========================================================================================
+Context     : DDS_DomainParticipant_get_discovered_participant_data
+Date        : Wed Sep 07 18:23:11 PDT 2016
+Node        : HB1064
+Process     : polysync-viewer-lite <17611>
+Thread      : main thread 7fa099294780
+Internals   : sac_domainParticipant.c/2067/6.6.2p1/af3a357/aec814d
+----------------------------------------------------------------------------------------
+Report      : Bad Parameter: instance handle = DDS_HANDLE_NIL
+Internals   : u_instanceHandleClaim/u_instanceHandle.c/118/774/1473297791.740491984
+========================================================================================
+Context     : DDS_DomainParticipant_get_discovered_participant_data
+Date        : Thu Sep 08 10:14:51 PDT 2016
+Node        : HB1064
+Process     : polysync-viewer-lite <22340>
+Thread      : main thread 7f82e6c19780
+Internals   : sac_domainParticipant.c/2067/6.6.2p1/af3a357/aec814d
+----------------------------------------------------------------------------------------
+Report      : Bad Parameter: instance handle = DDS_HANDLE_NIL
+Internals   : u_instanceHandleClaim/u_instanceHandle.c/118/774/1473354891.927220960
+========================================================================================
+Context     : DDS_DomainParticipant_get_discovered_participant_data
+Date        : Thu Sep 08 10:50:33 PDT 2016
+Node        : HB1064
+Process     : polysync-viewer-lite <24829>
+Thread      : main thread 7f98f7b42780
+Internals   : sac_domainParticipant.c/2067/6.6.2p1/af3a357/aec814d
+----------------------------------------------------------------------------------------
+Report      : Bad Parameter: instance handle = DDS_HANDLE_NIL
+Internals   : u_instanceHandleClaim/u_instanceHandle.c/118/774/1473357033.298095400
+========================================================================================
+Context     : DDS_DomainParticipant_get_discovered_participant_data
+Date        : Thu Sep 08 11:22:23 PDT 2016
+Node        : HB1064
+Process     : polysync-viewer-lite <25627>
+Thread      : main thread 7f8a61782780
+Internals   : sac_domainParticipant.c/2067/6.6.2p1/af3a357/aec814d
+----------------------------------------------------------------------------------------
+Report      : Bad Parameter: instance handle = DDS_HANDLE_NIL
+Internals   : u_instanceHandleClaim/u_instanceHandle.c/118/774/1473358943.010324728
+========================================================================================
+Context     : DDS_DomainParticipant_get_discovered_participant_data
+Date        : Thu Sep 08 13:47:56 PDT 2016
+Node        : HB1064
+Process     : polysync-viewer-lite <27382>
+Thread      : main thread 7f209d303780
+Internals   : sac_domainParticipant.c/2067/6.6.2p1/af3a357/aec814d
+----------------------------------------------------------------------------------------
+Report      : Bad Parameter: instance handle = DDS_HANDLE_NIL
+Internals   : u_instanceHandleClaim/u_instanceHandle.c/118/774/1473367676.662600054
+========================================================================================
+Context     : DDS_DomainParticipant_get_discovered_participant_data
+Date        : Thu Sep 08 14:47:12 PDT 2016
+Node        : HB1064
+Process     : polysync-viewer-lite <29160>
+Thread      : main thread 7f73366b8780
+Internals   : sac_domainParticipant.c/2067/6.6.2p1/af3a357/aec814d
+----------------------------------------------------------------------------------------
+Report      : Bad Parameter: instance handle = DDS_HANDLE_NIL
+Internals   : u_instanceHandleClaim/u_instanceHandle.c/118/774/1473371232.647449064

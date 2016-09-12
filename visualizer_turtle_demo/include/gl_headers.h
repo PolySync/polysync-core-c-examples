@@ -12,8 +12,8 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
- *
+ * 
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -24,84 +24,58 @@
  */
 
 /**
- * @file ps_interface.h
- * @brief PolySync Interface.
- *
- * @todo fix docs.
+ * @file gl_headers.h
+ * @brief OpenGL headers.
  *
  */
 
 
 
 
-#ifndef PS_INTERFACE_H
-#define	PS_INTERFACE_H
-
-
-
-
-#include <glib-2.0/glib.h>
-#include "polysync_core.h"
-
-#include "gui.h"
-
-
-
-
-
-typedef struct
-{
-    //
-    //
-    ps_node_ref node;
-    //
-    //
-    ps_msg_type msg_type_platform_motion;
-    //
-    //
-    waypoint_s current_vehicle_position;
-} node_data_s;
-
-
-
-/**
- * @brief Node name string.
- *
- */
-extern const char       PS_NODE_NAME[];
-
-
-/**
- * @brief PolySync radar targets message name.
- *
- */
-extern const char       PS_PLATFORM_MOTION_MSG_NAME[];
+#ifndef GL_HEADERS_H
+#define	GL_HEADERS_H
 
 
 
 
 /**
- * @brief Initialize PolySync resources.
- *
- * Sets up data handler(s) and data queue for incoming messages.
- *
- * @return A newly created PolySync message queue on success, NULL on failure.
+ * @brief Enabled GL EXT if needed.
  *
  */
-node_data_s *init_polysync( void );
+#ifndef GL_GLEXT_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES 1
+#endif
 
 
 /**
- * @brief Release PolySync resources.
- *
- * Free's any messages in the data queue.
- *
- * @param [in] msg_queue A pointer to GAsyncQueue which possibly contains PolySync messages.
+ * @brief Enabled GLX EXT if needed.
  *
  */
-void release_polysync( node_data_s * const node_data );
+#ifndef GLX_GLXEXT_PROTOTYPES
+#define GLX_GLXEXT_PROTOTYPES 1
+#endif
 
 
 
 
-#endif	/* PS_INTERFACE_H */
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glext.h>
+#include <GL/glx.h>
+#include <GL/freeglut.h>
+
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <png.h>
+
+#include <X11/X.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xos.h>
+#include <X11/Xatom.h>
+#include <X11/keysym.h>
+
+
+
+
+#endif	/* GL_HEADERS_H */

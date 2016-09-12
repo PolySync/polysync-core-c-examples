@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="97">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="." name="0">
+      <df name="include">
+        <in>vehicle_control.h</in>
+        <in>waypoint.h</in>
+      </df>
+      <df name="src">
+        <in>color.c</in>
+        <in>grid.c</in>
+        <in>ground_plane.c</in>
+        <in>gui.c</in>
+        <in>ps_interface.c</in>
+        <in>render.c</in>
+        <in>ruler.c</in>
+        <in>vehicle_control.c</in>
+        <in>viewer_lite.c</in>
+        <in>waypoint.c</in>
+      </df>
+    </df>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+      <itemPath>nbproject/private/launcher.properties</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
+  <sourceRootList>
+    <Elem>.</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>false</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <flagsDictionary>
+        <element flagsID="0" commonFlags="-std=gnu99"/>
+      </flagsDictionary>
+      <codeAssistance>
+      </codeAssistance>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>.</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath></executablePath>
+          <cTool>
+            <incDir>
+              <pElem>/usr/local/polysync/include</pElem>
+              <pElem>/usr/local/polysync/include/deps</pElem>
+              <pElem>/usr/local/polysync/include/deps/xsens</pElem>
+              <pElem>/usr/local/polysync/include/deps/dcps/C/SAC</pElem>
+              <pElem>/usr/local/polysync/include/deps/sys</pElem>
+              <pElem>/usr/local/polysync/pdm</pElem>
+              <pElem>/usr/include/libxml2</pElem>
+              <pElem>/usr/include/glib-2.0</pElem>
+              <pElem>/usr/lib/x86_64-linux-gnu/glib-2.0/include</pElem>
+              <pElem>include</pElem>
+              <pElem>.</pElem>
+            </incDir>
+            <preprocessorList>
+              <Elem>GLX_GLXEXT_PROTOTYPES</Elem>
+              <Elem>GL_GLEXT_PROTOTYPES</Elem>
+              <Elem>HAVE_STDINT</Elem>
+              <Elem>PSYNC_ARCH_x86_64</Elem>
+              <Elem>PSYNC_OS_ubuntu_14_04</Elem>
+              <Elem>_REENTRANT</Elem>
+              <Elem>__STDC_CONSTANT_MACROS</Elem>
+            </preprocessorList>
+          </cTool>
+        </makeTool>
+        <preBuild>
+          <preBuildCommandWorkingDir>.</preBuildCommandWorkingDir>
+          <preBuildCommand></preBuildCommand>
+        </preBuild>
+      </makefileType>
+      <item path="include/vehicle_control.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include/waypoint.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/color.c" ex="false" tool="0" flavor2="3">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="src/grid.c" ex="false" tool="0" flavor2="3">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="src/ground_plane.c" ex="false" tool="0" flavor2="3">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="src/gui.c" ex="false" tool="0" flavor2="3">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="src/ps_interface.c" ex="false" tool="0" flavor2="3">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="src/render.c" ex="false" tool="0" flavor2="3">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="src/ruler.c" ex="false" tool="0" flavor2="3">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="src/vehicle_control.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/viewer_lite.c" ex="false" tool="0" flavor2="3">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="src/waypoint.c" ex="false" tool="0" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

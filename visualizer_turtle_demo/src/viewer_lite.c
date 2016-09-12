@@ -23,8 +23,7 @@
 #include "drawable_type.h"
 #include "ps_interface.h"
 #include "gui.h"
-#include "vehicle_control.h"
-
+#include "driver_vehicle.h"
 
 
 
@@ -208,11 +207,12 @@ int main( int argc, char *argv[] )
             // reset ticker
             sleep_tick = 0;
         }
+        
+        // update and publish vehicle position
+        publish_current_vehicle_position( node_data, node_data->vehicle_cmds, &gui->vehicle_position );
 
         // update gui
         gui_update( gui, timestamp, &time_to_draw );
-        
-        send_psync_messages_for_vehicle_control( node_data, gui->waypoints );
 
         // disable sleep ticker if redraw time is less than 5 ms
         if( time_to_draw < 5000 )

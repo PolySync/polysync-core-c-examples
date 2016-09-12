@@ -43,10 +43,7 @@
 #include <glib-2.0/glib.h>
 #include "polysync_core.h"
 
-#include "gui.h"
-
-
-
+#include "driver_vehicle.h"
 
 
 typedef struct
@@ -59,7 +56,13 @@ typedef struct
     ps_msg_type msg_type_platform_motion;
     //
     //
-    waypoint_s current_vehicle_position;
+    ps_msg_type msg_type_steering_cmd;
+    //
+    //
+    ps_msg_type msg_type_throttle_cmd;    
+    //
+    //
+    vehicle_commands_s vehicle_cmds;
 } node_data_s;
 
 
@@ -72,10 +75,22 @@ extern const char       PS_NODE_NAME[];
 
 
 /**
- * @brief PolySync radar targets message name.
+ * @brief PolySync platform motion message name.
  *
  */
 extern const char       PS_PLATFORM_MOTION_MSG_NAME[];
+
+/**
+ * @brief PolySync steering command message name.
+ *
+ */
+extern const char PS_PLATFORM_STEERING_CMD_MSG_NAME[];
+
+/**
+ * @brief PolySync throttle command message name.
+ *
+ */
+extern const char PS_PLATFORM_THROTTLE_CMD_MSG_NAME[];
 
 
 

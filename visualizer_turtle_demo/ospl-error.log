@@ -1,0 +1,10 @@
+========================================================================================
+Context     : DDS_DomainParticipant_get_discovered_participant_data
+Date        : Thu Sep 08 16:12:51 PDT 2016
+Node        : HB1064
+Process     : polysync-viewer-lite <30479>
+Thread      : main thread 7ffff7fa5780
+Internals   : sac_domainParticipant.c/2067/6.6.2p1/af3a357/aec814d
+----------------------------------------------------------------------------------------
+Report      : Bad Parameter: instance handle = DDS_HANDLE_NIL
+Internals   : u_instanceHandleClaim/u_instanceHandle.c/118/774/1473376371.867863373

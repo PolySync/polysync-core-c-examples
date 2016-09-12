@@ -20,6 +20,8 @@
 #include "ps_interface.h"
 #include "ground_plane.h"
 #include "grid.h"
+#include "origin_model.h"
+#include "entity_manager.h"
 #include "ruler.h"
 #include "render.h"
 #include "gui.h"
@@ -106,6 +108,16 @@ static void on_special_key( int key, int x, int y );
  *
  */
 static void on_mouse( int button, int state, int x, int y );
+
+
+/**
+ * @brief GUI mouse motion handler.
+ *
+ * @param [in] x X coordinate of mouse. [pixels]
+ * @param [in] y Y coordinate of mouse. [pixels]
+ *
+ */
+static void on_mouse_motion( int x, int y );
 
 
 /**
@@ -218,9 +230,16 @@ static void on_key( unsigned char key, const int x, int y )
         // redraw
         glutPostRedisplay();
     }
-    else if( key == GUI_KEY_CLEAR_WAYPOINTS )
+    else if( key == GUI_KEY_COLOR_MODE )
     {
-        zero_waypoints( global_gui_context->waypoints );
+        // change color mode
+        global_gui_context->config.color_mode += 1;
+
+        // roll over
+        if( global_gui_context->config.color_mode == COLOR_MODE_KIND_COUNT )
+        {
+            global_gui_context->config.color_mode = 0;
+        }
 
         // redraw
         glutPostRedisplay();
@@ -449,24 +468,103 @@ static void on_mouse( int button, int state, int x, int y )
             // store x/y
             global_gui_context->mouse_x = sx;
             global_gui_context->mouse_y = sy;
-            
-            //convertFromMouseToWaypointCoordinateFrame( &sx, &sx );
-            GLdouble wx, wy;
-            screen_to_world_2d( global_gui_context, sx, sy, &wx, &wy );
-            
-            add_new_waypoint( wx, wy, global_gui_context->waypoints );
         }
         else if( button == GLUT_RIGHT_BUTTON )
         {
-            
+            // check if using ruler
+            if( global_gui_context->config.ruler != 0 )
+            {
+                // set points
+                if( global_gui_context->ruler.p1_set == 0 )
+                {
+                    // screen to world coordinates
+                    screen_to_world_2d( global_gui_context, sx, sy, &global_gui_context->ruler.x1, &global_gui_context->ruler.y1 );
+
+                    // set
+                    global_gui_context->ruler.p1_set = 1;
+
+                    // set string
+                    snprintf( global_gui_context->ruler.p1_string,
+                            sizeof(global_gui_context->ruler.p1_string),
+                            "P1 (%.2f, %.2f) m",
+                            global_gui_context->ruler.x1, global_gui_context->ruler.y1 );
+                }
+                else if( global_gui_context->ruler.p2_set == 0 )
+                {
+                    // screen to world coordinates
+                    screen_to_world_2d( global_gui_context, sx, sy, &global_gui_context->ruler.x2, &global_gui_context->ruler.y2 );
+
+                    // set
+                    global_gui_context->ruler.p2_set = 1;
+
+                    // set string
+                    snprintf( global_gui_context->ruler.p2_string,
+                            sizeof(global_gui_context->ruler.p2_string),
+                            "P2 (%.2f, %.2f) m",
+                            global_gui_context->ruler.x2, global_gui_context->ruler.y2 );
+                }
+
+                // calculate ruler data if both set
+                if( (global_gui_context->ruler.p1_set != 0) && (global_gui_context->ruler.p2_set != 0) )
+                {
+                    // distance = |p2-p1|
+                    sx = global_gui_context->ruler.x2 - global_gui_context->ruler.x1;
+                    sy = global_gui_context->ruler.y2 - global_gui_context->ruler.y1;
+                    global_gui_context->ruler.distance = sqrt( (sx * sx) + (sy * sy) );
+
+                    // set string
+                    snprintf( global_gui_context->ruler.distance_string,
+                            sizeof(global_gui_context->ruler.distance_string),
+                            "distance: %.2f m",
+                            global_gui_context->ruler.distance );
+                }
+            }
+            else
+            {
+                // set platform origin at right-click position
+
+                // store button
+                global_gui_context->mouse_button = button;
+
+                // store state
+                global_gui_context->mouse_state = 1;
+
+                // store x/y
+                global_gui_context->mouse_x = sx;
+                global_gui_context->mouse_y = sy;
+
+                // screen to world coordinates
+                screen_to_world_2d( global_gui_context, sx, sy, &wx, &wy );
+
+                // set platform origin
+                global_gui_context->platform.x = (GLdouble) wx;
+                global_gui_context->platform.y = (GLdouble) wy;
+
+                // redraw
+                glutPostRedisplay();
+            }
         }
         else if( button == 3 )
         {
-            
+            // zoom in
+            global_gui_context->config.zoom_scale += 0.3;
+
+            // redraw
+            glutPostRedisplay();
         }
         else if( button == 4 )
         {
-            
+            // zoom out
+            global_gui_context->config.zoom_scale -= 0.3;
+
+            // cap
+            if( global_gui_context->config.zoom_scale < 1.0 )
+            {
+                global_gui_context->config.zoom_scale = 1.0;
+            }
+
+            // redraw
+            glutPostRedisplay();
         }
     }
     else
@@ -474,6 +572,91 @@ static void on_mouse( int button, int state, int x, int y )
         // clear state
         global_gui_context->mouse_state = 0;
         global_gui_context->mouse_button = 0;
+    }
+}
+
+
+//
+static void on_mouse_motion( int x, int y )
+{
+    // ignore if no reference
+    if( global_gui_context == NULL )
+    {
+        return;
+    }
+
+    // local vars
+    const double    dx = (double) x;
+    const double    dy = (double) y;
+    double          cx = 0.0;
+    double          cy = 0.0;
+    double          mx = 0.0;
+    double          my = 0.0;
+
+
+    // check state
+    if( global_gui_context->mouse_state != 0 )
+    {
+        // check view mode
+        if( global_gui_context->config.view_mode == VIEW_MODE_BIRDSEYE )
+        {
+            // get mouse delta
+            cx = (dx - global_gui_context->mouse_x);
+            cy = (dy - global_gui_context->mouse_y);
+
+            // check button
+            if( global_gui_context->mouse_button == GLUT_LEFT_BUTTON )
+            {
+                // grab camera position
+                mx = global_gui_context->config.camera_pos[ 0 ];
+                my = global_gui_context->config.camera_pos[ 1 ];
+
+                // translate the difference, x/y swap, scale with zoom to keep a consistent translation/distance ratio
+                my += cx * (0.03 / global_gui_context->config.zoom_scale);
+                mx += cy * (0.03 / global_gui_context->config.zoom_scale);
+
+                // cap x
+                if( mx < -global_gui_context->grid_scale/2.0 )
+                {
+                    mx = -global_gui_context->grid_scale/2.0;
+                }
+                else if( mx > global_gui_context->grid_scale/2.0 )
+                {
+                    mx = global_gui_context->grid_scale/2.0;
+                }
+
+                // cap y
+                if( my < -global_gui_context->grid_scale/2.0 )
+                {
+                    my = -global_gui_context->grid_scale/2.0;
+                }
+                else if( my > global_gui_context->grid_scale/2.0 )
+                {
+                    my = global_gui_context->grid_scale/2.0;
+                }
+
+                // set new camera position
+                global_gui_context->config.camera_pos[ 0 ] = mx;
+                global_gui_context->config.camera_pos[ 1 ] = my;
+
+                // redraw
+                glutPostRedisplay();
+            }
+            else if( global_gui_context->mouse_button == GLUT_RIGHT_BUTTON )
+            {
+                // set platform origin at right-click position
+
+                // screen to world coordinates
+                screen_to_world_2d( global_gui_context, dx, dy, &mx, &my );
+
+                // set platform origin
+                global_gui_context->platform.x = (GLdouble) mx;
+                global_gui_context->platform.y = (GLdouble) my;
+
+                // redraw
+                glutPostRedisplay();
+            }
+        }
     }
 }
 
@@ -662,9 +845,11 @@ static void on_draw( void )
         grid_draw_radial( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
     }
 
+    // draw origin model
+    origin_model_draw( global_gui_context, &global_gui_context->platform );
+
     // draw entities
-    //entity_draw_all( global_gui_context, global_gui_context->entity_list );
-    draw_waypoints( global_gui_context->waypoints, global_gui_context );
+    entity_draw_all( global_gui_context, global_gui_context->entity_list );
 
     // draw ruler
     if( global_gui_context->config.ruler != 0 )
@@ -703,8 +888,41 @@ static void on_draw( void )
         // key maps
         render_text_2d( 5.0, text_y, "key map", NULL );
         text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s", GUI_KEY_CLEAR_WAYPOINTS, "clear waypoints" );
+        snprintf( string, sizeof(string), "'%c' - %s", GUI_KEY_EXIT, "exit application" );
         render_text_2d( 5.0, text_y, string, NULL );
+        text_y -= text_delta;
+        snprintf( string, sizeof(string), "'%c' - %s", GUI_KEY_HELP, "show help" );
+        render_text_2d( 5.0, text_y, string, NULL );
+        text_y -= text_delta;
+        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_FREE_FRAME, "freeze frame", global_gui_context->config.freeze_frame ? "ON" : "OFF" );
+        render_text_2d( 5.0, text_y, string, NULL );
+        text_y -= text_delta;
+        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_RADIAL_GRID, "radial grid", global_gui_context->config.radial_grid_visible ? "ON" : "OFF" );
+        render_text_2d( 5.0, text_y, string, NULL );
+        text_y -= text_delta;
+        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_VEL_VECTORS, "velocity vectors", global_gui_context->config.velocity_vectors_visible ? "ON" : "OFF" );
+        render_text_2d( 5.0, text_y, string, NULL );
+        text_y -= text_delta;
+        if( global_gui_context->config.color_mode == COLOR_MODE_OBJECT_ID )
+        {
+            snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_COLOR_MODE, "color mode", "OBJECT_ID" );
+            render_text_2d( 5.0, text_y, string, NULL );
+        }
+        else if( global_gui_context->config.color_mode == COLOR_MODE_CONTAINER_ID )
+        {
+            snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_COLOR_MODE, "color mode", "SENSOR_ID" );
+            render_text_2d( 5.0, text_y, string, NULL );
+        }
+        else if( global_gui_context->config.color_mode == COLOR_MODE_PARENT_ID )
+        {
+            snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_COLOR_MODE, "color mode", "NODE_GUID" );
+            render_text_2d( 5.0, text_y, string, NULL );
+        }
+        else
+        {
+            snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_COLOR_MODE, "color mode", "UNKNOWN" );
+            render_text_2d( 5.0, text_y, string, NULL );
+        }
         text_y -= text_delta;
         snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_RADAR_AMP_MAP, "radar amplitude mapper", global_gui_context->config.adjusted_circle_radius ? "ON" : "OFF" );
         render_text_2d( 5.0, text_y, string, NULL );
@@ -813,7 +1031,7 @@ gui_context_s *gui_init( const char *win_title, const unsigned int win_width, co
     gui->platform.color_rgba[ 3 ] = 0.6;
 
     // doesn't timeout
-    gui->platform.timeout_interval = 0; // Not used
+    gui->platform.timeout_interval = ENTITY_NO_TIMEOUT;
 
     // platform origin
     gui->platform.length = 10.0;
@@ -848,9 +1066,6 @@ gui_context_s *gui_init( const char *win_title, const unsigned int win_width, co
 
     // FPS max
     gui->max_fps = GUI_DEFAULT_MAX_FPS;
-    
-    // Init waypoints
-    zero_waypoints( gui->waypoints );
 
     // init GL
     glutInit( &gui->gl_argc, gui->gl_argv );
@@ -873,6 +1088,7 @@ gui_context_s *gui_init( const char *win_title, const unsigned int win_width, co
     glutKeyboardFunc( on_key );
     glutSpecialFunc( on_special_key );
     glutMouseFunc( on_mouse );
+    glutMotionFunc( on_mouse_motion );
     glutReshapeFunc( on_resize );
     glutDisplayFunc( on_draw );
 

@@ -26,7 +26,6 @@
 
 
 
-
 // *****************************************************
 // static global structures
 // *****************************************************
@@ -40,12 +39,17 @@
 
 
 // docs in \ref ps_interface.h
-const char       PS_NODE_NAME[]     = "polysync-turtle-controller";
+const char       PS_NODE_NAME[]     = "polysync-turtle-visualizer";
 
 
 // docs in \ref ps_interface.h
 const char       PS_PLATFORM_MOTION_MSG_NAME[] = "ps_platform_motion_msg";
 
+// docs in \ref ps_interface.h
+const char       PS_PLATFORM_STEERING_CMD_MSG_NAME[] = "ps_platform_steering_command_msg";
+
+// docs in \ref ps_interface.h
+const char       PS_PLATFORM_THROTTLE_CMD_MSG_NAME[] = "ps_platform_throttle_command_msg";
 
 
 // *****************************************************
@@ -63,16 +67,26 @@ const char       PS_PLATFORM_MOTION_MSG_NAME[] = "ps_platform_motion_msg";
 /**
  * @brief PolySync message on-data handler.
  *
- * Enqueues new PolySync platform motion messages.
+ * Processes new PolySync throttle command messages.
  *
  * @param [in] msg_type Message type identifier for the message, as seen by the data model.
  * @param [in] message Message reference to be handled by the function.
  * @param [in] user_data A pointer to void which specifies the internal data.
  *
  */
-static void psync_platform_motion_handler( const ps_msg_type msg_type, const ps_msg_ref const message, void * const user_data );
+static void psync_steering_cmd_handler( const ps_msg_type msg_type, const ps_msg_ref const message, void * const user_data );
 
-
+/**
+ * @brief PolySync message on-data handler.
+ *
+ * Processes new PolySync steering command messages.
+ *
+ * @param [in] msg_type Message type identifier for the message, as seen by the data model.
+ * @param [in] message Message reference to be handled by the function.
+ * @param [in] user_data A pointer to void which specifies the internal data.
+ *
+ */
+static void psync_throttle_cmd_handler( const ps_msg_type msg_type, const ps_msg_ref const message, void * const user_data );
 
 
 // *****************************************************
@@ -81,7 +95,7 @@ static void psync_platform_motion_handler( const ps_msg_type msg_type, const ps_
 
 
 //
-static void psync_platform_motion_handler( const ps_msg_type msg_type, const ps_msg_ref const message, void * const user_data )
+static void psync_steering_cmd_handler( const ps_msg_type msg_type, const ps_msg_ref const message, void * const user_data )
 {
     // local vars
     node_data_s     *node_data  = NULL;
@@ -103,21 +117,38 @@ static void psync_platform_motion_handler( const ps_msg_type msg_type, const ps_
         return;
     }
     
-    ps_platform_motion_msg * platform_motion_msg = (ps_platform_motion_msg *) message;
+    ps_platform_steering_command_msg * steering_msg = (ps_platform_steering_command_msg*) message;
     
-    static int counter = 0;
-    
-    //if( counter > 10000 )
+    node_data->vehicle_cmds.currentSteeringCommand = steering_msg->steering_wheel_angle;
+}
+
+//
+static void psync_throttle_cmd_handler( const ps_msg_type msg_type, const ps_msg_ref const message, void * const user_data )
+{
+    // local vars
+    node_data_s     *node_data  = NULL;
+    ps_guid         src_guid    = PSYNC_GUID_INVALID;
+
+
+    // cast
+    node_data = (node_data_s*) user_data;
+
+    // ignore if not valid
+    if( (node_data == NULL) || (message == NULL) )
     {
-        node_data->current_vehicle_position.heading = platform_motion_msg->heading;
-        counter = 0;
+        return;
     }
-//    else
-//        counter++;
+
+    // get source GUID
+    if( psync_message_get_source_guid( message, &src_guid ) != DTC_NONE )
+    {
+        return;
+    }
     
-    node_data->current_vehicle_position.x = platform_motion_msg->position[ 0 ];
+    ps_platform_throttle_command_msg * throttle_msg = ( ps_platform_throttle_command_msg* ) message;
     
-    node_data->current_vehicle_position.y = platform_motion_msg->position[ 1 ];
+    node_data->vehicle_cmds.currentThrottleCommand = throttle_msg->throttle_command;
+    
 }
 
 
@@ -165,7 +196,7 @@ node_data_s *init_polysync( void )
     }
 
     // get type
-    if( psync_message_get_type_by_name( node_data->node, PS_PLATFORM_MOTION_MSG_NAME, &node_data->msg_type_platform_motion ) != DTC_NONE )
+    if( psync_message_get_type_by_name( node_data->node, PS_PLATFORM_STEERING_CMD_MSG_NAME, &node_data->msg_type_steering_cmd ) != DTC_NONE )
     {
         (void) psync_release( &node_data->node );
         free( node_data );
@@ -173,7 +204,31 @@ node_data_s *init_polysync( void )
     }
 
     // register listener
-    if( psync_message_register_listener( node_data->node, node_data->msg_type_platform_motion, psync_platform_motion_handler, node_data ) != DTC_NONE )
+    if( psync_message_register_listener( node_data->node, node_data->msg_type_steering_cmd, psync_steering_cmd_handler, node_data ) != DTC_NONE )
+    {
+        (void) psync_release( &node_data->node );
+        free( node_data );
+        return NULL;
+    }
+    
+    // get type
+    if( psync_message_get_type_by_name( node_data->node, PS_PLATFORM_THROTTLE_CMD_MSG_NAME, &node_data->msg_type_throttle_cmd ) != DTC_NONE )
+    {
+        (void) psync_release( &node_data->node );
+        free( node_data );
+        return NULL;
+    }
+
+    // register listener
+    if( psync_message_register_listener( node_data->node, node_data->msg_type_throttle_cmd, psync_throttle_cmd_handler, node_data ) != DTC_NONE )
+    {
+        (void) psync_release( &node_data->node );
+        free( node_data );
+        return NULL;
+    }
+    
+    // get type for publisher
+    if( psync_message_get_type_by_name( node_data->node, PS_PLATFORM_MOTION_MSG_NAME, &node_data->msg_type_platform_motion ) != DTC_NONE )
     {
         (void) psync_release( &node_data->node );
         free( node_data );

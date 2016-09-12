@@ -56,10 +56,16 @@ typedef struct
     ps_node_ref node;
     //
     //
-    ps_msg_type msg_type_platform_motion;
+    GAsyncQueue *msg_queue;
     //
     //
-    waypoint_s current_vehicle_position;
+    ps_msg_type msg_type_radar_targets;
+    //
+    //
+    ps_msg_type msg_type_lidar_points;
+    //
+    //
+    ps_msg_type msg_type_objects;
 } node_data_s;
 
 
@@ -75,7 +81,21 @@ extern const char       PS_NODE_NAME[];
  * @brief PolySync radar targets message name.
  *
  */
-extern const char       PS_PLATFORM_MOTION_MSG_NAME[];
+extern const char       PS_RADAR_TARGETS_MSG_NAME[];
+
+
+/**
+ * @brief PolySync LiDAR points message name.
+ *
+ */
+extern const char       PS_LIDAR_POINTS_MSG_NAME[];
+
+
+/**
+ * @brief PolySync objects message name.
+ *
+ */
+extern const char       PS_OBJECTS_MSG_NAME[];
 
 
 
@@ -100,6 +120,25 @@ node_data_s *init_polysync( void );
  *
  */
 void release_polysync( node_data_s * const node_data );
+
+
+/**
+ * @brief Process a PolySync message.
+ *
+ * Dequeue a message (if any) from a data queue and process it into GUI objects
+ * base on the type.
+ *
+ * @param [in] gui A pointer to \ref gui_context_s which specifies the configuration(s).
+ * @param [in] msg_queue A pointer to GAsyncQueue which specifies the message queue to read from.
+ * @param [in] parent_list A pointer to GList which specifies the parent entities list.
+ * @param [in] update_time Update timestamp to give objects.
+ * @param [out] msg_read A pointer to unsigned int which receives the message processed status.
+ * Value one means a message was processed. Value zero means no messages were available.
+ *
+ * @return The (possibly new) parent entities list, NULL means empty list.
+ *
+ */
+GList *ps_process_message( node_data_s * const node_data, const gui_context_s * const gui, GList * const parent_list, const unsigned long long update_time, unsigned int * const msg_read );
 
 
 

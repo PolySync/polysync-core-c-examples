@@ -23,7 +23,7 @@
 #include "drawable_type.h"
 #include "ps_interface.h"
 #include "gui.h"
-#include "vehicle_control.h"
+#include "entity_manager.h"
 
 
 
@@ -100,6 +100,8 @@ static void release( gui_context_s * const gui, node_data_s * const node_data )
     // check GUI
     if( gui != NULL )
     {
+        // release entities
+        entity_release_all( gui->entity_list );
 
         // release
         gui_release( gui );
@@ -201,6 +203,7 @@ int main( int argc, char *argv[] )
         timestamp = get_micro_tick();
 
         // check and process message queue
+        gui->entity_list = ps_process_message( node_data, gui, gui->entity_list, timestamp, &msg_read );
 
         // if message processed
         if( msg_read != 0 )
@@ -209,10 +212,14 @@ int main( int argc, char *argv[] )
             sleep_tick = 0;
         }
 
+        // check timeouts if not in freeze-frame
+        if( gui->config.freeze_frame == 0 )
+        {
+            gui->entity_list = entity_update_timeouts( gui->entity_list, timestamp );
+        }
+
         // update gui
         gui_update( gui, timestamp, &time_to_draw );
-        
-        send_psync_messages_for_vehicle_control( node_data, gui->waypoints );
 
         // disable sleep ticker if redraw time is less than 5 ms
         if( time_to_draw < 5000 )

@@ -44,7 +44,6 @@
 
 #include "gl_headers.h"
 #include "drawable_type.h"
-#include "waypoint.h"
 
 
 
@@ -88,7 +87,7 @@
  * @brief Toggle color mode key.
  *
  */
-#define         GUI_KEY_CLEAR_WAYPOINTS     'c'
+#define         GUI_KEY_COLOR_MODE          'c'
 
 
 /**
@@ -199,7 +198,7 @@
  * @brief Default wire frame line width. [meters]
  *
  */
-#define         GUI_DEFAULT_WIRE_LINE_WIDTH  2.0
+#define         GUI_DEFAULT_WIRE_LINE_WIDTH  (1.35)
 
 
 
@@ -338,7 +337,7 @@ typedef struct
     ruler_data_s                ruler; /*!< Ruler data. */
     //
     //
-    waypoint_s                  waypoints[ MAX_WAYPOINTS ];
+    GList                       *entity_list; /*!< GList of on-bus parent entities and their children (\ref object_container_parent_s). */
 } gui_context_s;
 
 

@@ -17,11 +17,11 @@ SRCS    :=  src/ps_interface.c \
 	    src/ruler.c \
 	    src/render.c \
 	    src/ground_plane.c \
+	    src/origin_model.c \
 	    src/grid.c \
+	    src/entity_manager.c \
 	    src/gui.c \
-	    src/viewer_lite.c \
-	    src/waypoint.c \
-		src/vehicle_control.c
+	    src/viewer_lite.c
 
 # object files, dep files
 OBJS    := $(SRCS:.c=.o)

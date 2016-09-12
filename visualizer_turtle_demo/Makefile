@@ -20,8 +20,7 @@ SRCS    :=  src/ps_interface.c \
 	    src/grid.c \
 	    src/gui.c \
 	    src/viewer_lite.c \
-	    src/waypoint.c \
-		src/vehicle_control.c
+	    src/driver_vehicle.c
 
 # object files, dep files
 OBJS    := $(SRCS:.c=.o)
@@ -41,7 +40,7 @@ CCFLAGS += -DGL_GLEXT_PROTOTYPES -DGLX_GLXEXT_PROTOTYPES
 INCLUDE	+= -Iinclude
 
 # libraries
-LIBS	+= -lglut -lGLU -lGL -lX11 -lm -lpolysync_data_model
+LIBS	+= -lglut -lGLU -lGL -lX11 -lm -lpolysync_data_model -lpng
 
 #
 all: dirs $(TARGET)

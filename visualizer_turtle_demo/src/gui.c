@@ -17,7 +17,6 @@
 #include "gl_headers.h"
 #include "common.h"
 #include "drawable_type.h"
-#include "ps_interface.h"
 #include "ground_plane.h"
 #include "grid.h"
 #include "ruler.h"
@@ -177,148 +176,8 @@ static void on_key( unsigned char key, const int x, int y )
     {
         return;
     }
-
-
-    // check key
-    if( (key == '\e') || (key == GUI_KEY_EXIT) )
-    {
-        // close
-        on_close();
-        return;
-    }
-    else if( key == GUI_KEY_HELP )
-    {
-        // toggle help
-        global_gui_context->config.help_visible = !global_gui_context->config.help_visible;
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_FREE_FRAME )
-    {
-        // toggle freeze-frame
-        global_gui_context->config.freeze_frame = !global_gui_context->config.freeze_frame;
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_RADIAL_GRID )
-    {
-        // toggle radial grid lines
-        global_gui_context->config.radial_grid_visible = !global_gui_context->config.radial_grid_visible;
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_VEL_VECTORS )
-    {
-        // toggle velocity vectors
-        global_gui_context->config.velocity_vectors_visible = !global_gui_context->config.velocity_vectors_visible;
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_CLEAR_WAYPOINTS )
-    {
-        zero_waypoints( global_gui_context->waypoints );
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_RADAR_AMP_MAP )
-    {
-        // toggle adjusted radius mapper
-        global_gui_context->config.adjusted_circle_radius = !global_gui_context->config.adjusted_circle_radius;
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_RULER )
-    {
-        // toggle ruler
-        global_gui_context->config.ruler = !global_gui_context->config.ruler;
-
-        // reset if off
-        if( global_gui_context->config.ruler == 0 )
-        {
-            // zero
-            global_gui_context->ruler.p1_set = 0;
-            global_gui_context->ruler.p2_set = 0;
-
-            // set string
-            snprintf( global_gui_context->ruler.p1_string,
-                    sizeof(global_gui_context->ruler.p1_string),
-                    "P1 (NA) m" );
-
-            // set string
-            snprintf( global_gui_context->ruler.p2_string,
-                    sizeof(global_gui_context->ruler.p2_string),
-                    "P2 (NA) m" );
-
-            // set string
-            snprintf( global_gui_context->ruler.distance_string,
-                    sizeof(global_gui_context->ruler.distance_string),
-                    "distance: NA m" );
-        }
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_PLATFORM_VECTORS )
-    {
-        // toggle ruler
-        global_gui_context->config.platform_vectors_visible = !global_gui_context->config.platform_vectors_visible;
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_VIEW_MODE )
-    {
-        // reset birdseye
-        global_gui_context->config.view_mode = VIEW_MODE_BIRDSEYE;
-        global_gui_context->config.zoom_scale = 5.0;
-        memset( global_gui_context->config.camera_pos, 0, sizeof(global_gui_context->config.camera_pos) );
-
-        // reset origin model position
-        global_gui_context->platform.x = 0.0;
-        global_gui_context->platform.y = 0.0;
-        global_gui_context->platform.z = 0.0;
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_CIRCLE_VISIBLE )
-    {
-        // toggle visibility
-        global_gui_context->config.circle_visible = !global_gui_context->config.circle_visible;
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_RECTANGLE_VISIBLE )
-    {
-        // toggle visibility
-        global_gui_context->config.rectangle_visible = !global_gui_context->config.rectangle_visible;
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_ELLIPSE_VISIBLE )
-    {
-        // toggle visibility
-        global_gui_context->config.ellipse_visible = !global_gui_context->config.ellipse_visible;
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GUI_KEY_POINTS_VISIBLE )
-    {
-        // toggle visibility
-        global_gui_context->config.points_visible = !global_gui_context->config.points_visible;
-
-        // redraw
-        glutPostRedisplay();
-    }
+    
+    // Do nothing
 }
 
 
@@ -331,86 +190,7 @@ static void on_special_key( int key, int x, int y )
         return;
     }
 
-
-    // check key
-    if( key == GLUT_KEY_PAGE_UP )
-    {
-        // zoom in
-        global_gui_context->config.zoom_scale += 0.3;
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GLUT_KEY_PAGE_DOWN )
-    {
-        // zoom out
-        global_gui_context->config.zoom_scale -= 0.3;
-
-        // cap
-        if( global_gui_context->config.zoom_scale < 1.0 )
-        {
-            global_gui_context->config.zoom_scale = 1.0;
-        }
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GLUT_KEY_LEFT )
-    {
-        // move y in positive direction
-        global_gui_context->config.camera_pos[ 1 ] += 1.0;
-
-        // cap
-        if( global_gui_context->config.camera_pos[ 1 ] > global_gui_context->grid_scale/2.0 )
-        {
-            global_gui_context->config.camera_pos[ 1 ] = global_gui_context->grid_scale/2.0;
-        }
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GLUT_KEY_RIGHT )
-    {
-        // move y in negative direction
-        global_gui_context->config.camera_pos[ 1 ] -= 1.0;
-
-        // cap
-        if( global_gui_context->config.camera_pos[ 1 ] < -global_gui_context->grid_scale/2.0 )
-        {
-            global_gui_context->config.camera_pos[ 1 ] = -global_gui_context->grid_scale/2.0;
-        }
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GLUT_KEY_UP )
-    {
-        // move x in positive direction
-        global_gui_context->config.camera_pos[ 0 ] += 1.0;
-
-        // cap
-        if( global_gui_context->config.camera_pos[ 0 ] > global_gui_context->grid_scale/2.0 )
-        {
-            global_gui_context->config.camera_pos[ 0 ] = global_gui_context->grid_scale/2.0;
-        }
-
-        // redraw
-        glutPostRedisplay();
-    }
-    else if( key == GLUT_KEY_DOWN )
-    {
-        // move x in negative direction
-        global_gui_context->config.camera_pos[ 0 ] -= 1.0;
-
-        // cap
-        if( global_gui_context->config.camera_pos[ 0 ] < -global_gui_context->grid_scale/2.0 )
-        {
-            global_gui_context->config.camera_pos[ 0 ] = -global_gui_context->grid_scale/2.0;
-        }
-
-        // redraw
-        glutPostRedisplay();
-    }
+    // Do nothing
 }
 
 
@@ -422,59 +202,8 @@ static void on_mouse( int button, int state, int x, int y )
     {
         return;
     }
-
-    // local vars
-    GLdouble        wx = 0.0;
-    GLdouble        wy = 0.0;
-    GLdouble        sx = 0.0;
-    GLdouble        sy = 0.0;
-
-
-    // check state, 1 is released, 0 is pressed
-    if( state == 0 )
-    {
-        // get x/y
-        sx = (GLdouble) x;
-        sy = (GLdouble) y;
-
-        // check button
-        if( button == GLUT_LEFT_BUTTON )
-        {
-            // store button
-            global_gui_context->mouse_button = button;
-
-            // store state
-            global_gui_context->mouse_state = 1;
-
-            // store x/y
-            global_gui_context->mouse_x = sx;
-            global_gui_context->mouse_y = sy;
-            
-            //convertFromMouseToWaypointCoordinateFrame( &sx, &sx );
-            GLdouble wx, wy;
-            screen_to_world_2d( global_gui_context, sx, sy, &wx, &wy );
-            
-            add_new_waypoint( wx, wy, global_gui_context->waypoints );
-        }
-        else if( button == GLUT_RIGHT_BUTTON )
-        {
-            
-        }
-        else if( button == 3 )
-        {
-            
-        }
-        else if( button == 4 )
-        {
-            
-        }
-    }
-    else
-    {
-        // clear state
-        global_gui_context->mouse_state = 0;
-        global_gui_context->mouse_button = 0;
-    }
+    
+    // Do nothing
 }
 
 
@@ -664,7 +393,8 @@ static void on_draw( void )
 
     // draw entities
     //entity_draw_all( global_gui_context, global_gui_context->entity_list );
-    draw_waypoints( global_gui_context->waypoints, global_gui_context );
+    //draw_vehicle_position( global_gui_context->vehicle_position );
+    draw_vehicle_position( global_gui_context->vehicle_position, global_gui_context->renderImage );
 
     // draw ruler
     if( global_gui_context->config.ruler != 0 )
@@ -694,75 +424,6 @@ static void on_draw( void )
     gluOrtho2D( 0.0, width, 0.0, height );
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
-
-    // draw help text
-    if( global_gui_context->config.help_visible != 0 )
-    {
-        text_y = height - text_delta;
-
-        // key maps
-        render_text_2d( 5.0, text_y, "key map", NULL );
-        text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s", GUI_KEY_CLEAR_WAYPOINTS, "clear waypoints" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_RADAR_AMP_MAP, "radar amplitude mapper", global_gui_context->config.adjusted_circle_radius ? "ON" : "OFF" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_RULER, "ruler", global_gui_context->config.ruler ? "ON" : "OFF" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_PLATFORM_VECTORS, "platform motion vectors", global_gui_context->config.platform_vectors_visible ? "ON" : "OFF" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_VIEW_MODE, "Toggle view mode", "BIRDSEYE" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_CIRCLE_VISIBLE, "radar visible",
-                global_gui_context->config.circle_visible ? "ON" : "OFF" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_RECTANGLE_VISIBLE, "objects visible",
-                global_gui_context->config.rectangle_visible ? "ON" : "OFF" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
-        snprintf( string, sizeof(string), "'%c' - %s - %s", GUI_KEY_POINTS_VISIBLE, "points visible",
-                global_gui_context->config.points_visible ? "ON" : "OFF" );
-        render_text_2d( 5.0, text_y, string, NULL );
-        text_y -= text_delta;
-        text_y -= text_delta;
-
-        // mouse logic
-        render_text_2d( 5.0, text_y, "2D mouse logic", NULL );
-        text_y -= text_delta;
-        render_text_2d( 5.0, text_y, "left click and drag (or arrow keys) - translate camera", NULL );
-        text_y -= text_delta;
-        render_text_2d( 5.0, text_y, "right click or drag - translate origin model", NULL );
-        text_y -= text_delta;
-        render_text_2d( 5.0, text_y, "scroll wheel (or page up/down) - zoom in/out", NULL );
-        text_y -= text_delta;
-        text_y -= text_delta;
-
-        // ruler logic
-        render_text_2d( 5.0, text_y, "2D ruler logic", NULL );
-        text_y -= text_delta;
-        render_text_2d( 5.0, text_y, "1st right click - set point 1", NULL );
-        text_y -= text_delta;
-        render_text_2d( 5.0, text_y, "2nd right click - set point 2", NULL );
-        text_y -= text_delta;
-    }
-
-    // draw ruler text
-    if( global_gui_context->config.ruler != 0 )
-    {
-        // set vector line color
-        glColor4dv( global_gui_context->ruler.color_rgba );
-
-        // render text
-        render_text_2d( 5.0, 10.0, global_gui_context->ruler.p1_string, NULL );
-        render_text_2d( 5.0, 30.0, global_gui_context->ruler.p2_string, NULL );
-        render_text_2d( 5.0, 50.0, global_gui_context->ruler.distance_string, NULL );
-    }
 
     // swap buffers
     glutSwapBuffers();
@@ -848,12 +509,15 @@ gui_context_s *gui_init( const char *win_title, const unsigned int win_width, co
 
     // FPS max
     gui->max_fps = GUI_DEFAULT_MAX_FPS;
-    
-    // Init waypoints
-    zero_waypoints( gui->waypoints );
 
     // init GL
     glutInit( &gui->gl_argc, gui->gl_argv );
+    
+    // init render
+    init_render_texture( "parrot.png", NULL, NULL, &gui->renderImage );
+    
+    // init vehicle
+    init_vehicle_position( &gui->vehicle_position );
 
     // display mode, double buffers, RGB
     glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE );
