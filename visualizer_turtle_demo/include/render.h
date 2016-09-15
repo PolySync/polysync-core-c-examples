@@ -42,34 +42,11 @@
 #include "drawable_type.h"
 
 
+void init_render_texture_SDL( char * file_name, int * width, int * height, GLuint * image );
 
-
-void init_render_texture( char * file_name, int * width, int * height, GLuint * image );
-
-
-void load_png_texture( char * file_name, int * width, int * height, GLuint * image );
-
+int load_texture(GLuint textbind, char *filename);
 
 void render_cube_with_texture( GLuint texture );
-
-
-void render_circle_2d( const GLdouble cx, const GLdouble cy, const GLdouble radius );
-
-
-void render_cross_2d( const GLdouble cx, const GLdouble cy, const GLdouble length, const GLdouble width );
-
-
-void render_rectangle_2d( const GLdouble cx, const GLdouble cy, const GLdouble length, const GLdouble width );
-
-
-void render_triangle_2d( const GLdouble cx, const GLdouble cy, const GLdouble length, const GLdouble width );
-
-
-void render_ellipse_2d( const GLdouble cx, const GLdouble cy, const GLdouble major, const GLdouble minor );
-
-
-void render_text_2d( const GLdouble cx, const GLdouble cy, const char * const text, const void * const font );
-
 
 
 

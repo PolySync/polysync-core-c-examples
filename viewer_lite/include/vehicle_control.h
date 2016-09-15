@@ -23,7 +23,7 @@
 
 #define DEG2RAD (M_PI/180.0)
 
-#define STEERING_CONTROL_FACTOR 1000
+#define STEERING_CONTROL_FACTOR 2000
 
 #define STEERING_CMD_MSG_NAME "ps_platform_steering_command_msg" 
 

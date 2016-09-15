@@ -14,13 +14,13 @@ TARGET	:= bin/polysync-viewer-lite
 # sources
 SRCS    :=  src/ps_interface.c \
 	    src/color.c \
-	    src/ruler.c \
 	    src/render.c \
 	    src/ground_plane.c \
 	    src/grid.c \
 	    src/gui.c \
 	    src/viewer_lite.c \
-	    src/driver_vehicle.c
+	    src/driver_vehicle.c \
+	    src/sliding_filter.c
 
 # object files, dep files
 OBJS    := $(SRCS:.c=.o)
@@ -40,7 +40,7 @@ CCFLAGS += -DGL_GLEXT_PROTOTYPES -DGLX_GLXEXT_PROTOTYPES
 INCLUDE	+= -Iinclude
 
 # libraries
-LIBS	+= -lglut -lGLU -lGL -lX11 -lm -lpolysync_data_model -lpng
+LIBS	+= -lglut -lGLU -lGL -lX11 -lm -lpolysync_data_model -lpng -lSDL -lSDL_image
 
 #
 all: dirs $(TARGET)

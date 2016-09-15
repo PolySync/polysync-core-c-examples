@@ -4,6 +4,7 @@
     <df root="." name="0">
       <df name="include">
         <in>driver_vehicle.h</in>
+        <in>sliding_filter.h</in>
       </df>
       <df name="src">
         <in>color.c</in>
@@ -13,7 +14,7 @@
         <in>gui.c</in>
         <in>ps_interface.c</in>
         <in>render.c</in>
-        <in>ruler.c</in>
+        <in>sliding_filter.c</in>
         <in>viewer_lite.c</in>
       </df>
     </df>
@@ -80,6 +81,8 @@
       </makefileType>
       <item path="include/driver_vehicle.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="include/sliding_filter.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="src/color.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
         </cTool>
@@ -106,9 +109,7 @@
         <cTool flags="0">
         </cTool>
       </item>
-      <item path="src/ruler.c" ex="false" tool="0" flavor2="3">
-        <cTool flags="0">
-        </cTool>
+      <item path="src/sliding_filter.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="src/viewer_lite.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">

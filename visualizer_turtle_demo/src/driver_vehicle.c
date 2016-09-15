@@ -1,3 +1,12 @@
+/**
+ * @file driver_vehicle.c
+ * @brief Driver vehicle source.
+ *
+ */
+
+
+
+
 #include "math.h"
 
 #include "polysync_message.h"
@@ -5,16 +14,8 @@
 #include "gl_headers.h"
 #include "render.h"
 #include "ps_interface.h"
+#include "sliding_filter.h"
 #include "driver_vehicle.h"
-
-
-#define SLIDING_AVG_SIZE 1000
-
-double sliding_avg_x[ SLIDING_AVG_SIZE ];
-
-double sliding_avg_y[ SLIDING_AVG_SIZE ];
-
-int sliding_avg_count = 0;
 
 
 void rotateZ( double* x, double* y, double ang )
@@ -31,6 +32,23 @@ void rotateZ( double* x, double* y, double ang )
 }
 
 
+double calculate_smallest_interior_angle( double angle1, double angle2 )
+{
+    if ( angle1 < 90 && angle2 > 270 ) 
+    {
+        return angle2 - ( 360 + angle1 );
+    }
+    else if ( angle1 > 270 && angle2 < 90 ) 
+    {
+        return ( 360 + angle2 ) - angle1; 
+    }
+    else 
+    {
+        return angle2 - angle1;
+    }
+}
+
+
 void init_vehicle_position( vehicle_position_s * vehicle_position )
 {
     vehicle_position->x = 0;
@@ -42,10 +60,18 @@ void init_vehicle_position( vehicle_position_s * vehicle_position )
     vehicle_position->dy = 0;
     
     vehicle_position->heading = 0;
+    
+    vehicle_position->lastHeading = 0;
+    
+    init_sliding_filter( 
+            &vehicle_position->lowPassHeadingFilter, 
+            HEADING_SLIDING_AVG_SIZE );
 }
 
 
-void calculate_vehicle_position( vehicle_commands_s commands, vehicle_position_s * current_vehicle_position )
+void calculate_vehicle_position( 
+        vehicle_commands_s commands, 
+        vehicle_position_s * current_vehicle_position )
 {
     double steeringAngle = STEERING_CONVERSION_FACTOR*commands.currentSteeringCommand;
     
@@ -61,32 +87,27 @@ void calculate_vehicle_position( vehicle_commands_s commands, vehicle_position_s
     
     double throttle = THROTTLE_GAIN*commands.currentThrottleCommand;
     
-    //( "steering %f throttle %f\n", steeringAngle, throttle );
-    
     rotateZ( &current_vehicle_position->dx, 
-            &current_vehicle_position->dy, 
-            steeringAngle/2000 );
+            &current_vehicle_position->dy,
+            steeringAngle/STEERING_GAIN );
     
-    sliding_avg_x[ sliding_avg_count%SLIDING_AVG_SIZE ] = atan2(
-            current_vehicle_position->dx, 
-            current_vehicle_position->dy );
-
-    double heading = 0;
-
-    for( int i = 0; i < SLIDING_AVG_SIZE; i++ )
+    double headingInput = 
+            atan2( current_vehicle_position->dx, current_vehicle_position->dy );
+    
+    double heading = input_to_sliding_filter( 
+            &current_vehicle_position->lowPassHeadingFilter,
+            headingInput );
+    
+    if( current_vehicle_position->dy > 0.999 )
     {
-        heading += sliding_avg_x[ i ];
+        heading = 0;
     }
-   
-    heading = heading/SLIDING_AVG_SIZE;
-
-    sliding_avg_count ++;
-
-//    printf("dx %f dy %f heading %f\n", 
-//            current_vehicle_position->dx,
-//            current_vehicle_position->dy,
-//            (heading*RAD2DEG + 180) );
+    else if( current_vehicle_position->dy < -0.99 )
+    {
+        heading = M_PI;
+    }
     
+    // convert from (-180, 180) to (0, 360)
     current_vehicle_position->heading = heading + M_PI;
     
     current_vehicle_position->x += current_vehicle_position->dx*throttle;
@@ -207,33 +228,51 @@ int publish_platform_motion_msg(
 }
 
 
-publish_current_vehicle_position( node_data_s * user_data, vehicle_commands_s commands, vehicle_position_s * current_position )
+publish_current_vehicle_position( 
+        node_data_s * user_data, vehicle_commands_s commands, 
+        vehicle_position_s * current_position )
 {
     calculate_vehicle_position( commands, current_position );
     
     publish_platform_motion_msg(
-        user_data->node, 
-        user_data->msg_type_platform_motion, 
-        current_position->x, 
-        current_position->y, 
-        current_position->heading );
+            user_data->node, 
+            user_data->msg_type_platform_motion, 
+            current_position->x, 
+            current_position->y, 
+            current_position->heading );
 }
 
 
-void draw_vehicle_position( vehicle_position_s vehicle_position, GLuint textureToRender )
+void draw_vehicle_position( vehicle_position_s * vehicle_position, GLuint textureToRender )
 {
     glPushMatrix();
+    
+    glTranslated( vehicle_position->x, vehicle_position->y, 0.0 );
+    
+    // convert to different heading frame
+    double heading = -vehicle_position->heading*RAD2DEG + 270.0;
+    
+    if( heading < 0 )
+    {
+        heading += 360.0;
+    }
+    
+    double lastHeading = vehicle_position->lastHeading;
+    
+    // filter for jerky movement of poly
+    double angle = calculate_smallest_interior_angle( heading, lastHeading );
+    
+    if( fabs( angle ) > 50 )
+    {
+        heading = lastHeading;
+    }
+    else
+    {
+        vehicle_position->lastHeading = heading;
+    }
+    
+    glRotatef( heading, 0, 0, 1 );
 
-    //glTranslated( waypoints[ i ].x, waypoints[ i ].y, 0.0 );
-
-    // set entity line width
-    glLineWidth( (GLfloat) 3.0 );
-
-    // set color
-    //glColor4dv( color );
-    glColor3b( 0, 126, 0 );
-
-    //render_circle_2d( vehicle_position.x, vehicle_position.y, 5 );
     render_cube_with_texture( textureToRender );
 
     glPopMatrix();

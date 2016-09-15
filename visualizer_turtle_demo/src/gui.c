@@ -19,7 +19,6 @@
 #include "drawable_type.h"
 #include "ground_plane.h"
 #include "grid.h"
-#include "ruler.h"
 #include "render.h"
 #include "gui.h"
 
@@ -304,7 +303,7 @@ static void on_draw( void )
     if( global_gui_context->config.view_mode == VIEW_MODE_BIRDSEYE )
     {
         // configure 2D
-        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL/*GL_LINE*/ );
     }
     else if( global_gui_context->config.view_mode == VIEW_MODE_PERSPECTIVE )
     {
@@ -383,7 +382,7 @@ static void on_draw( void )
     ground_plane_draw( global_gui_context, 0.01, 0.01, 0.01 );
 
     // draw cartesian grid
-    grid_draw_cartesian( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
+    //grid_draw_cartesian( global_gui_context, global_gui_context->grid_scale/2.0, 5.0 );
 
     // draw radial grid
     if( global_gui_context->config.radial_grid_visible != 0 )
@@ -392,16 +391,7 @@ static void on_draw( void )
     }
 
     // draw entities
-    //entity_draw_all( global_gui_context, global_gui_context->entity_list );
-    //draw_vehicle_position( global_gui_context->vehicle_position );
-    draw_vehicle_position( global_gui_context->vehicle_position, global_gui_context->renderImage );
-
-    // draw ruler
-    if( global_gui_context->config.ruler != 0 )
-    {
-        ruler_draw( global_gui_context, &global_gui_context->ruler );
-    }
-
+    draw_vehicle_position( &global_gui_context->vehicle_position, global_gui_context->renderImage );
     // restore state from zoom/translation
     glPopMatrix();
 
@@ -513,9 +503,6 @@ gui_context_s *gui_init( const char *win_title, const unsigned int win_width, co
     // init GL
     glutInit( &gui->gl_argc, gui->gl_argv );
     
-    // init render
-    init_render_texture( "parrot.png", NULL, NULL, &gui->renderImage );
-    
     // init vehicle
     init_vehicle_position( &gui->vehicle_position );
 
@@ -531,7 +518,11 @@ gui_context_s *gui_init( const char *win_title, const unsigned int win_width, co
         free( gui );
         return NULL;
     }
+    
+    //init_render_texture( "very-fine-food-icon-png-9.png", NULL, NULL, &gui->renderImage );
 
+    init_render_texture_SDL( "parrot.png", NULL, NULL, &gui->renderImage );
+   
     // set callbacks
     glutCloseFunc( on_close );
     glutKeyboardFunc( on_key );

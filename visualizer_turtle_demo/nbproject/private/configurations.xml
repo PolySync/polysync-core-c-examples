@@ -5,12 +5,6 @@
       <df name="bin">
       </df>
       <df name="doc">
-        <df name="html">
-        </df>
-        <df name="latex">
-        </df>
-        <df name="pdf">
-        </df>
       </df>
       <df name="include">
         <in>color.h</in>
@@ -23,7 +17,9 @@
         <in>gui.h</in>
         <in>ps_interface.h</in>
         <in>render.h</in>
-        <in>ruler.h</in>
+        <in>sliding_filter.h</in>
+      </df>
+      <df name="res">
       </df>
       <df name="src">
         <in>color.c</in>
@@ -33,7 +29,7 @@
         <in>gui.c</in>
         <in>ps_interface.c</in>
         <in>render.c</in>
-        <in>ruler.c</in>
+        <in>sliding_filter.c</in>
         <in>viewer_lite.c</in>
       </df>
     </df>

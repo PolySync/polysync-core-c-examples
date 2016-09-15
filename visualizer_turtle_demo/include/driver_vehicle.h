@@ -9,11 +9,18 @@
 #define DRIVER_VEHICLE_H
 
 
+#include "sliding_filter.h"
+
+
+#define HEADING_SLIDING_AVG_SIZE 1000
+
 #define RAD2DEG (180.0/M_PI)
 
 #define DEG2RAD (M_PI/180.0)
 
 #define STEERING_CONVERSION_FACTOR (40.0/360.0)
+
+#define STEERING_GAIN 2000
 
 #define THROTTLE_GAIN 0.001
 
@@ -35,6 +42,12 @@ typedef struct
     //
     //
     double heading;
+    //
+    //
+    double lastHeading;
+    //
+    //
+    sliding_filter_params_s lowPassHeadingFilter;
 } vehicle_position_s;
 
 
@@ -53,7 +66,7 @@ typedef struct
 
 void init_vehicle_position( vehicle_position_s * vehicle_position );
 
-void draw_vehicle_position( vehicle_position_s vehicle_position, GLuint textureToRender );
+void draw_vehicle_position( vehicle_position_s * vehicle_position, GLuint textureToRender );
 
 
 #endif /* DRIVER_VEHICLE_H */

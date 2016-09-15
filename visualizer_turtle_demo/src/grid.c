@@ -106,6 +106,6 @@ void grid_draw_radial( const gui_context_s * const gui, const double range, cons
     for( val = step; val <= range; val += step )
     {
         // render circle
-        render_circle_2d( 0.0, 0.0, val );
+        //render_circle_2d( 0.0, 0.0, val );
     }
 }

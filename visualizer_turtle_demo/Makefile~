@@ -40,7 +40,7 @@ CCFLAGS += -DGL_GLEXT_PROTOTYPES -DGLX_GLXEXT_PROTOTYPES
 INCLUDE	+= -Iinclude
 
 # libraries
-LIBS	+= -lglut -lGLU -lGL -lX11 -lm -lpolysync_data_model
+LIBS	+= -lglut -lGLU -lGL -lX11 -lm -lpolysync_data_model -lpng -lsdl
 
 #
 all: dirs $(TARGET)
