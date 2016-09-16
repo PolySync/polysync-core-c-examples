@@ -10,13 +10,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_joystick.h>
 
 #include "polysync_core.h"
 #include "polysync_message.h"
 #include "polysync_node.h"
+#include "polysync_dynamic_driver_commands.h"
+
 #include "joystick.h"
+#include "messages.h"
 #include "commander.h"
 
 
@@ -129,6 +130,35 @@
 // static global data
 // *****************************************************
 
+//
+static const char *GEAR_POSITION_STRINGS[] =
+{
+    [GEAR_POSITION_INVALID]         = "INVALID",
+    [GEAR_POSITION_UNKNOWN]         = "UNKNOWN",
+    [GEAR_POSITION_NOT_AVAILABLE]   = "NOT_AVAILABLE",
+    [GEAR_POSITION_PARK]            = "PARK",
+    [GEAR_POSITION_REVERSE]         = "REVERSE",
+    [GEAR_POSITION_NEUTRAL]         = "NEUTRAL",
+    [GEAR_POSITION_DRIVE]           = "DRIVE",
+    [GEAR_POSITION_LOW]             = "LOW",
+    [GEAR_POSITION_KIND_COUNT]      = "INVALID",
+    NULL
+};
+
+
+//
+static const char *TURN_SIGNAL_STRINGS[] =
+{
+    [PLATFORM_TURN_SIGNAL_INVALID]          = "INVALID",
+    [PLATFORM_TURN_SIGNAL_UNKNOWN]          = "UNKNOWN",
+    [PLATFORM_TURN_SIGNAL_NOT_AVAILABLE]    = "NOT_AVAILABLE",
+    [PLATFORM_TURN_SIGNAL_NONE]             = "NONE",
+    [PLATFORM_TURN_SIGNAL_LEFT]             = "LEFT",
+    [PLATFORM_TURN_SIGNAL_RIGHT]            = "RIGHT",
+    [PLATFORM_TURN_SIGNAL_KIND_COUNT]       = "INVALID",
+    NULL
+};
+
 
 
 
@@ -136,163 +166,75 @@
 // static declarations
 // *****************************************************
 
-/**
- * @brief Update brake pedal setpoint.
- *
- * @param [in] jstick A pointer to \ref joystick_device_s which specifies the joystick handle.
- * @param [out] speed A pointer to double which receives the setpoint value. [normalized]
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-static int update_brake_setpoint(
+//
+static int get_brake_setpoint(
         joystick_device_s * const jstick,
         double * const brake );
 
 
-/**
- * @brief Update throttle pedal setpoint.
- *
- * @param [in] jstick A pointer to \ref joystick_device_s which specifies the joystick handle.
- * @param [out] speed A pointer to double which receives the setpoint value. [normalized]
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-static int update_throttle_setpoint(
+//
+static int get_throttle_setpoint(
         joystick_device_s * const jstick,
         double * const throttle );
 
 
-/**
- * @brief Update steering wheel angle setpoint.
- *
- * @param [in] jstick A pointer to \ref joystick_device_s which specifies the joystick handle.
- * @param [out] speed A pointer to double which receives the setpoint value. [radians]
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-static int update_steering_setpoint(
+//
+static int get_steering_setpoint(
         joystick_device_s * const jstick,
         double * const angle );
 
 
-/**
- * @brief Update gear selection.
- *
- * @param [in] jstick A pointer to \ref joystick_device_s which specifies the joystick handle.
- * @param [out] gear_position A pointer to \ref ps_gear_position_kind which receives the desired gear position command.
- * Value \ref GEAR_POSITION_INVALID means no command.
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-static int update_gear_selection(
+//
+static int get_gear_position(
         joystick_device_s * const jstick,
-        ps_gear_position_kind * const gear_position );
+        ps_gear_position_kind * const gear );
 
 
-/**
- * @brief Update turn signal selection.
- *
- * @param [in] jstick A pointer to \ref joystick_device_s which specifies the joystick handle.
- * @param [out] turn_signal A pointer to \ref ps_platform_turn_signal_kind which receives the desired turn signal command.
- * Value \ref PLATFORM_TURN_SIGNAL_INVALID means no command.
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-static int update_turn_signal_selection(
+//
+static int get_disable_button(
         joystick_device_s * const jstick,
-        ps_platform_turn_signal_kind * const turn_signal );
+        unsigned int * const state );
 
 
-/**
- * @brief Update send enable-controls state.
- *
- * @param [in] jstick A pointer to \ref joystick_device_s which specifies the joystick handle.
- * @param [out] enable_set A pointer to unsigned int which receives the enable-controls button state.
- * @param [out] disable_set A pointer to unsigned int which receives the disable-controls button state.
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-static int update_enable_disable_controls_state(
+//
+static int get_enable_button(
         joystick_device_s * const jstick,
-        unsigned int * const enable_set,
-        unsigned int * const disable_set );
+        unsigned int * const state );
 
 
-/**
- * @brief Set control command message 'ps_platform_brake_command_msg' to its safe state.
- *
- * @param [in] control_msg A pointer to \ref ps_platform_brake_command_msg which receives the safe state values.
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-static int set_safe_brake_command_msg(
-        ps_platform_brake_command_msg * const brake_msg );
+//
+static int publish_brake_command(
+        ps_node_ref node_ref,
+        joystick_device_s * const jstick,
+        ps_platform_brake_command_msg * const msg );
 
 
-/**
- * @brief Set control command message 'ps_platform_throttle_command_msg' to its safe state.
- *
- * @param [in] control_msg A pointer to \ref ps_platform_throttle_command_msg which receives the safe state values.
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-static int set_safe_throttle_command_msg(
-        ps_platform_throttle_command_msg * const throttle_msg );
+//
+static int publish_throttle_command(
+        ps_node_ref node_ref,
+        joystick_device_s * const jstick,
+        ps_platform_throttle_command_msg * const msg );
 
 
-/**
- * @brief Set control command message 'ps_platform_steering_command_msg' to its safe state.
- *
- * @param [in] control_msg A pointer to \ref ps_platform_steering_command_msg which receives the safe state values.
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-static int set_safe_steering_command_msg(
-        ps_platform_steering_command_msg * const steering_msg );
+//
+static int publish_steering_command(
+        ps_node_ref node_ref,
+        joystick_device_s * const jstick,
+        ps_platform_steering_command_msg * const msg );
 
 
-/**
- * @brief Set control command message 'ps_platform_gear_command_msg' to its safe state.
- *
- * @param [in] control_msg A pointer to \ref ps_platform_gear_command_msg which receives the safe state values.
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-static int set_safe_gear_command_msg(
-        ps_platform_gear_command_msg * const gear_msg );
+//
+static int publish_gear_command(
+        ps_node_ref node_ref,
+        joystick_device_s * const jstick,
+        ps_platform_gear_command_msg * const msg );
 
 
-/**
- * @brief Set E-Stop flag in all commander messages.
- *
- * @param [in] messages A pointer to \ref commander_messages_s which specifies the message set.
- *
- * @return DTC code:
- * \li \ref DTC_NONE (zero) if success.
- *
- */
-static int set_estop(
-        commander_messages_s * const messages );
+//
+static int publish_turn_signal_command(
+        ps_node_ref node_ref,
+        joystick_device_s * const jstick,
+        ps_platform_turn_signal_command_msg * const msg );
 
 
 
@@ -302,11 +244,10 @@ static int set_estop(
 // *****************************************************
 
 //
-static int update_brake_setpoint(
+static int get_brake_setpoint(
         joystick_device_s * const jstick,
         double * const brake )
 {
-    // local vars
     int ret = DTC_NONE;
     int axis_position = 0;
 
@@ -317,7 +258,6 @@ static int update_brake_setpoint(
             JSTICK_AXIS_BRAKE,
             &axis_position );
 
-    // if succeeded
     if( ret == DTC_NONE )
     {
         // set brake set point - scale to 0:max
@@ -333,11 +273,10 @@ static int update_brake_setpoint(
 
 
 //
-static int update_throttle_setpoint(
+static int get_throttle_setpoint(
         joystick_device_s * const jstick,
         double * const throttle )
 {
-    // local vars
     int ret = DTC_NONE;
     int axis_position = 0;
 
@@ -364,22 +303,19 @@ static int update_throttle_setpoint(
 
 
 //
-static int update_steering_setpoint(
+static int get_steering_setpoint(
         joystick_device_s * const jstick,
         double * const angle )
 {
-    // local vars
     int ret = DTC_NONE;
     int axis_position = 0;
 
 
-    // read axis position
     ret = jstick_get_axis(
             jstick,
             JSTICK_AXIS_STEER,
             &axis_position );
 
-    // if succeeded
     if( ret == DTC_NONE )
     {
         // set steering wheel angle set point - scale to max:min
@@ -396,93 +332,83 @@ static int update_steering_setpoint(
 
 
 //
-static int update_gear_selection(
+static int get_gear_position(
         joystick_device_s * const jstick,
-        ps_gear_position_kind * const gear_position )
+        ps_gear_position_kind * const gear )
 {
-    // local vars
     int ret = DTC_NONE;
     unsigned int btn_state = JOYSTICK_BUTTON_STATE_NOT_PRESSED;
 
-    // invalidate
-    (*gear_position) = GEAR_POSITION_INVALID;
+
+    // default state is disabled meaning we don't publish anything
+    (*gear) = GEAR_POSITION_INVALID;
 
     // read shift-to-reverse button state
-    ret |= jstick_get_button(
-            jstick,
-            JSTICK_BUTTON_GEAR_SHIFT_REVERSE,
-            &btn_state );
-
-    // if succeeded
     if( ret == DTC_NONE )
     {
-        // if button depressed
+        ret = jstick_get_button(
+                jstick,
+                JSTICK_BUTTON_GEAR_SHIFT_REVERSE,
+                &btn_state );
+    }
+
+    if( ret == DTC_NONE )
+    {
         if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
         {
-            // set gear position command to reverse
-            (*gear_position) = GEAR_POSITION_REVERSE;
+            (*gear) = GEAR_POSITION_REVERSE;
         }
     }
 
     // read shift-to-drive button state
-    ret |= jstick_get_button(
-            jstick,
-            JSTICK_BUTTON_GEAR_SHIFT_DRIVE,
-            &btn_state );
-
-    // if succeeded
     if( ret == DTC_NONE )
     {
-        // if button depressed
+        ret = jstick_get_button(
+                jstick,
+                JSTICK_BUTTON_GEAR_SHIFT_DRIVE,
+                &btn_state );
+    }
+
+    if( ret == DTC_NONE )
+    {
         if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
         {
-            // set gear position command to drive
-            // note that this takes precedence over the previous gear command
-            (*gear_position) = GEAR_POSITION_DRIVE;
+            (*gear) = GEAR_POSITION_DRIVE;
         }
     }
 
     // read shift-to-neutral button state
-    ret |= jstick_get_button(
-            jstick,
-            JSTICK_BUTTON_GEAR_SHIFT_NEUTRAL,
-            &btn_state );
-
-    // if succeeded
     if( ret == DTC_NONE )
     {
-        // if button depressed
+        ret = jstick_get_button(
+                jstick,
+                JSTICK_BUTTON_GEAR_SHIFT_NEUTRAL,
+                &btn_state );
+    }
+
+    if( ret == DTC_NONE )
+    {
         if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
         {
-            // set gear position command to neutral
-            // note that this takes precedence over the previous gear command
-            (*gear_position) = GEAR_POSITION_NEUTRAL;
+            (*gear) = GEAR_POSITION_NEUTRAL;
         }
     }
 
     // read shift-to-park button state
-    ret |= jstick_get_button(
-            jstick,
-            JSTICK_BUTTON_GEAR_SHIFT_PARK,
-            &btn_state );
-
-    // if succeeded
     if( ret == DTC_NONE )
     {
-        // if button depressed
-        if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
-        {
-            // set gear position command to park
-            // note that this takes precedence over the previous gear command
-            (*gear_position) = GEAR_POSITION_PARK;
-        }
+        ret = jstick_get_button(
+                jstick,
+                JSTICK_BUTTON_GEAR_SHIFT_PARK,
+                &btn_state );
     }
 
-    // set return if anything failed
-    if( ret != DTC_NONE )
+    if( ret == DTC_NONE )
     {
-        // joystick get routine failed
-        ret = DTC_IOERR;
+        if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
+        {
+            (*gear) = GEAR_POSITION_PARK;
+        }
     }
 
 
@@ -491,154 +417,109 @@ static int update_gear_selection(
 
 
 //
-static int update_turn_signal_selection(
+static int get_turn_signal(
         joystick_device_s * const jstick,
         ps_platform_turn_signal_kind * const turn_signal )
 {
-    // local vars
     int ret = DTC_NONE;
     unsigned int btn_state = JOYSTICK_BUTTON_STATE_NOT_PRESSED;
 
 
-    // invalidate
+    // default state is disabled meaning we don't publish anything
     (*turn_signal) = PLATFORM_TURN_SIGNAL_INVALID;
 
     // read left-signal button state
-    ret |= jstick_get_button(
-            jstick,
-            JSTICK_BUTTON_LEFT_TURN_SIGNAL,
-            &btn_state );
-
-    // if succeeded
     if( ret == DTC_NONE )
     {
-        // if button depressed
+        ret = jstick_get_button(
+                jstick,
+                JSTICK_BUTTON_LEFT_TURN_SIGNAL,
+                &btn_state );
+    }
+
+    if( ret == DTC_NONE )
+    {
         if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
         {
-            // set turn signal command to left
             (*turn_signal) = PLATFORM_TURN_SIGNAL_LEFT;
         }
     }
 
     // read right-signal button state
-    ret |= jstick_get_button(
-            jstick,
-            JSTICK_BUTTON_RIGHT_TURN_SIGNAL,
-            &btn_state );
-
-    // if succeeded
     if( ret == DTC_NONE )
     {
-        // if button depressed
+        ret = jstick_get_button(
+                jstick,
+                JSTICK_BUTTON_RIGHT_TURN_SIGNAL,
+                &btn_state );
+    }
+
+    if( ret == DTC_NONE )
+    {
         if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
         {
-            // set turn signal command to right
-            // note that this takes precedence over left signal command
             (*turn_signal) = PLATFORM_TURN_SIGNAL_RIGHT;
         }
     }
 
-    // set return if anything failed
-    if( ret != DTC_NONE )
-    {
-        // joystick get routine failed
-        ret = DTC_IOERR;
-    }
-
 
     return ret;
 }
 
 
 //
-static int update_enable_disable_controls_state(
+static int get_disable_button(
         joystick_device_s * const jstick,
-        unsigned int * const enable_set,
-        unsigned int * const disable_set )
+        unsigned int * const state )
 {
-    // local vars
     int ret = DTC_NONE;
     unsigned int btn_state = JOYSTICK_BUTTON_STATE_NOT_PRESSED;
 
-    // invalidate
-    (*enable_set) = 0;
-    (*disable_set) = 0;
 
-    // read enable-controls button state
-    ret |= jstick_get_button(
-            jstick,
-            JSTICK_BUTTON_ENABLE_CONTROLS,
-            &btn_state );
+    // default state is disabled/not-pressed
+    (*state) = 0;
 
-    // if succeeded
-    if( ret == DTC_NONE )
-    {
-        // if button depressed
-        if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
-        {
-            (*enable_set) = 1;
-        }
-    }
-
-    // read disable-controls button state
-    ret |= jstick_get_button(
+    ret = jstick_get_button(
             jstick,
             JSTICK_BUTTON_DISABLE_CONTROLS,
             &btn_state );
 
-    // if succeeded
     if( ret == DTC_NONE )
     {
-        // if button depressed
         if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
         {
-            (*disable_set) = 1;
+            (*state) = 1;
         }
     }
 
-    // set return if anything failed
-    if( ret != DTC_NONE )
-    {
-        // joystick get routine failed
-        ret = DTC_IOERR;
-    }
-
 
     return ret;
 }
 
 
 //
-static int set_safe_brake_command_msg(
-        ps_platform_brake_command_msg * const brake_msg )
+static int get_enable_button(
+        joystick_device_s * const jstick,
+        unsigned int * const state )
 {
-    // local vars
     int ret = DTC_NONE;
+    unsigned int btn_state = JOYSTICK_BUTTON_STATE_NOT_PRESSED;
 
 
-    // if message valid
-    if( brake_msg != NULL )
+    // default state is disabled/not-pressed
+    (*state) = 0;
+
+    ret = jstick_get_button(
+            jstick,
+            JSTICK_BUTTON_ENABLE_CONTROLS,
+            &btn_state );
+
+    if( ret == DTC_NONE )
     {
-        // clear destination GUID
-        brake_msg->dest_guid = PSYNC_GUID_INVALID;
-
-        // clear e-stop
-        brake_msg->e_stop = PSYNC_EMERGENCY_STOP_DISABLED;
-
-        // disable
-        brake_msg->enabled = 0;
-
-        // BOO disabled
-        brake_msg->boo_enabled = 0;
-
-        // invalidate
-        brake_msg->brake_command_type = BRAKE_COMMAND_INVALID;
-
-        // zero
-        brake_msg->brake_command = (DDS_float) 0.0f;
-
-        // update timestamp
-        ret = psync_get_timestamp( &brake_msg->timestamp );
+        if( btn_state == JOYSTICK_BUTTON_STATE_PRESSED )
+        {
+            (*state) = 1;
+        }
     }
 
 
@@ -647,33 +528,43 @@ static int set_safe_brake_command_msg(
 
 
 //
-static int set_safe_throttle_command_msg(
-        ps_platform_throttle_command_msg * const throttle_msg )
+static int publish_brake_command(
+        ps_node_ref node_ref,
+        joystick_device_s * const jstick,
+        ps_platform_brake_command_msg * const msg )
 {
-    // local vars
     int ret = DTC_NONE;
+    double brake_setpoint = 0.0;
 
 
-    // if message valid
-    if( throttle_msg != NULL )
+    ret = get_brake_setpoint(
+            jstick,
+            &brake_setpoint );
+
+    if( ret == DTC_NONE )
     {
-        // clear destination GUID
-        throttle_msg->dest_guid = PSYNC_GUID_INVALID;
+        msg->brake_command = (DDS_float) brake_setpoint;
+        msg->enabled = 1;
+        msg->brake_command_type = BRAKE_COMMAND_PEDAL;
 
-        // clear e-stop
-        throttle_msg->e_stop = PSYNC_EMERGENCY_STOP_DISABLED;
+        if( brake_setpoint >= BRAKES_ENABLED_MIN )
+        {
+            // enable on-off indicator
+            msg->boo_enabled = 1;
+        }
+    }
 
-        // disable
-        throttle_msg->enabled = 0;
+    if( ret == DTC_NONE )
+    {
+        ret = psync_get_timestamp(
+                &msg->header.timestamp );
+    }
 
-        // invalidate
-        throttle_msg->throttle_command_type = THROTTLE_COMMAND_INVALID;
-
-        // zero
-        throttle_msg->throttle_command = (DDS_float) 0.0f;
-
-        // update timestamp
-        ret = psync_get_timestamp( &throttle_msg->timestamp );
+    if( ret == DTC_NONE )
+    {
+        ret = psync_message_publish(
+                node_ref,
+                (ps_msg_ref) msg );
     }
 
 
@@ -682,36 +573,51 @@ static int set_safe_throttle_command_msg(
 
 
 //
-static int set_safe_steering_command_msg(
-        ps_platform_steering_command_msg * const steering_msg )
+static int publish_throttle_command(
+        ps_node_ref node_ref,
+        joystick_device_s * const jstick,
+        ps_platform_throttle_command_msg * const msg )
 {
-    // local vars
     int ret = DTC_NONE;
+    double throttle_setpoint = 0.0;
+    double brake_setpoint = 0.0;
 
 
-    // if message valid
-    if( steering_msg != NULL )
+    ret = get_throttle_setpoint(
+            jstick,
+            &throttle_setpoint );
+
+    // don't allow throttle if brakes are applied
+    if( ret == DTC_NONE )
     {
-        // clear destination GUID
-        steering_msg->dest_guid = PSYNC_GUID_INVALID;
+        ret = get_brake_setpoint(
+            jstick,
+            &brake_setpoint );
 
-        // clear e-stop
-        steering_msg->e_stop = PSYNC_EMERGENCY_STOP_DISABLED;
+        if( brake_setpoint >= BRAKES_ENABLED_MIN )
+        {
+            throttle_setpoint = 0.0;
+        }
+    }
 
-        // disable
-        steering_msg->enabled = 0;
+    if( ret == DTC_NONE )
+    {
+        msg->throttle_command = (DDS_float) throttle_setpoint;
+        msg->enabled = 1;
+        msg->throttle_command_type = THROTTLE_COMMAND_PEDAL;
+    }
 
-        // invalidate
-        steering_msg->steering_command_kind = STEERING_COMMAND_INVALID;
+    if( ret == DTC_NONE )
+    {
+        ret = psync_get_timestamp(
+                &msg->header.timestamp );
+    }
 
-        // zero
-        steering_msg->steering_wheel_angle = (DDS_float) 0.0f;
-
-        // zero
-        steering_msg->max_steering_wheel_rotation_rate = (DDS_float) 0.0f;
-
-        // update timestamp
-        ret = psync_get_timestamp( &steering_msg->timestamp );
+    if( ret == DTC_NONE )
+    {
+        ret = psync_message_publish(
+                node_ref,
+                (ps_msg_ref) msg );
     }
 
 
@@ -720,27 +626,40 @@ static int set_safe_steering_command_msg(
 
 
 //
-static int set_safe_gear_command_msg(
-        ps_platform_gear_command_msg * const gear_msg )
+static int publish_steering_command(
+        ps_node_ref node_ref,
+        joystick_device_s * const jstick,
+        ps_platform_steering_command_msg * const msg )
 {
-    // local vars
     int ret = DTC_NONE;
+    double steering_setpoint = 0.0;
 
 
-    // if message valid
-    if( gear_msg != NULL )
+    ret = get_steering_setpoint(
+            jstick,
+            &steering_setpoint );
+
+    if( ret == DTC_NONE )
     {
-        // clear destination GUID
-        gear_msg->dest_guid = PSYNC_GUID_INVALID;
+        msg->steering_wheel_angle = (DDS_float) steering_setpoint;
+        msg->enabled = 1;
+        msg->steering_command_kind = STEERING_COMMAND_ANGLE;
 
-        // clear e-stop
-        gear_msg->e_stop = PSYNC_EMERGENCY_STOP_DISABLED;
+        // steering rate limit
+        msg->max_steering_wheel_rotation_rate = (DDS_float) STEERING_WHEEL_ANGLE_RATE_LIMIT;
+    }
 
-        // invalidate command
-        gear_msg->gear_position = GEAR_POSITION_INVALID;
+    if( ret == DTC_NONE )
+    {
+        ret = psync_get_timestamp(
+                &msg->header.timestamp );
+    }
 
-        // update timestamp
-        ret = psync_get_timestamp( &gear_msg->timestamp );
+    if( ret == DTC_NONE )
+    {
+        ret = psync_message_publish(
+                node_ref,
+                (ps_msg_ref) msg );
     }
 
 
@@ -749,27 +668,42 @@ static int set_safe_gear_command_msg(
 
 
 //
-static int set_safe_turn_signal_msg(
-        ps_platform_turn_signal_command_msg * const turn_signal_msg )
+static int publish_gear_command(
+        ps_node_ref node_ref,
+        joystick_device_s * const jstick,
+        ps_platform_gear_command_msg * const msg )
 {
-    // local vars
     int ret = DTC_NONE;
+    ps_gear_position_kind gear_position = GEAR_POSITION_INVALID;
 
 
-    // if message valid
-    if( turn_signal_msg != NULL )
+    ret = get_gear_position(
+            jstick,
+            &gear_position );
+
+    if( ret == DTC_NONE )
     {
-        // clear destination GUID
-        turn_signal_msg->dest_guid = PSYNC_GUID_INVALID;
+        msg->gear_position = gear_position;
+    }
 
-        // clear e-stop
-        turn_signal_msg->e_stop = PSYNC_EMERGENCY_STOP_DISABLED;
+    if( ret == DTC_NONE )
+    {
+        ret = psync_get_timestamp(
+                &msg->header.timestamp );
+    }
 
-        // invalidate command
-        turn_signal_msg->turn_signal = PLATFORM_TURN_SIGNAL_INVALID;
+    // only publish if not invalid
+    if( ret == DTC_NONE )
+    {
+        if( gear_position != GEAR_POSITION_INVALID )
+        {
+            psync_log_debug( "sending gear shift command - %s",
+                    GEAR_POSITION_STRINGS[gear_position] );
 
-        // update timestamp
-        ret = psync_get_timestamp( &turn_signal_msg->timestamp );
+            ret = psync_message_publish(
+                    node_ref,
+                    (ps_msg_ref) msg );
+        }
     }
 
 
@@ -778,46 +712,46 @@ static int set_safe_turn_signal_msg(
 
 
 //
-static int set_estop(
-        commander_messages_s * const messages )
+static int publish_turn_signal_command(
+        ps_node_ref node_ref,
+        joystick_device_s * const jstick,
+        ps_platform_turn_signal_command_msg * const msg )
 {
-    // if brake command message valid
-    if( messages->brake_cmd != NULL )
+    int ret = DTC_NONE;
+    ps_platform_turn_signal_kind turn_signal = PLATFORM_TURN_SIGNAL_INVALID;
+
+
+    ret = get_turn_signal(
+            jstick,
+            &turn_signal );
+
+    if( ret == DTC_NONE )
     {
-        // set estop
-        messages->brake_cmd->e_stop = 1;
+        msg->turn_signal = turn_signal;
     }
 
-    // if throttle command message valid
-    if( messages->throttle_cmd != NULL )
+    if( ret == DTC_NONE )
     {
-        // set estop
-        messages->throttle_cmd->e_stop = 1;
+        ret = psync_get_timestamp(
+                &msg->header.timestamp );
     }
 
-    // if steering command message valid
-    if( messages->steer_cmd != NULL )
+    // only publish if not invalid
+    if( ret == DTC_NONE )
     {
-        // set estop
-        messages->steer_cmd->e_stop = 1;
-    }
+        if( turn_signal != PLATFORM_TURN_SIGNAL_INVALID )
+        {
+            psync_log_debug( "sending turn signal command - %s",
+                    TURN_SIGNAL_STRINGS[turn_signal] );
 
-    // if gear command message valid
-    if( messages->gear_cmd != NULL )
-    {
-        // set estop
-        messages->gear_cmd->e_stop = 1;
-    }
-
-    // if turn signal command message valid
-    if( messages->turn_signal_cmd != NULL )
-    {
-        // set estop
-        messages->turn_signal_cmd->e_stop = 1;
+            ret = psync_message_publish(
+                    node_ref,
+                    (ps_msg_ref) msg );
+        }
     }
 
 
-    return DTC_NONE;
+    return ret;
 }
 
 
@@ -829,46 +763,77 @@ static int set_estop(
 
 //
 int commander_check_for_safe_joystick(
-        joystick_device_s * const jstick )
+        commander_s * const commander )
 {
-    // local vars
     int ret = DTC_NONE;
     double brake_setpoint = 0.0;
     double throttle_setpoint = 0.0;
 
 
-    // update joystick readings
-    ret |= jstick_update( jstick );
-
-    // update brake set point
-    ret |= update_brake_setpoint( jstick, &brake_setpoint );
-
-    // update throttle set point
-    ret |= update_throttle_setpoint( jstick, &throttle_setpoint );
-
-    // handle DTC
-    if( ret != DTC_NONE )
+    if( commander == NULL )
     {
-        // configuration error
-        ret = DTC_CONFIG;
+        ret = DTC_USAGE;
+    }
+    else
+    {
+        // update joystick readings
+        ret = jstick_update( &commander->joystick );
+
+        // get brake set point
+        ret |= get_brake_setpoint(
+                &commander->joystick,
+                &brake_setpoint );
+
+        // get throttle set point
+        ret |= get_throttle_setpoint(
+                &commander->joystick,
+                &throttle_setpoint );
+
+        // handle DTC
+        if( ret != DTC_NONE )
+        {
+            // configuration error
+            ret = DTC_CONFIG;
+        }
+
+        // if succeeded
+        if( ret == DTC_NONE )
+        {
+            // if throttle not zero
+            if( throttle_setpoint > 0.0 )
+            {
+                // invalidate
+                ret = DTC_UNAVAILABLE;
+            }
+
+            // if brake not zero
+            if( brake_setpoint > 0.0 )
+            {
+                // invalidate
+                ret = DTC_UNAVAILABLE;
+            }
+        }
     }
 
-    // if succeeded
-    if( ret == DTC_NONE )
-    {
-        // if throttle not zero
-        if( throttle_setpoint > 0.0 )
-        {
-            // invalidate
-            ret = DTC_UNAVAILABLE;
-        }
 
-        // if brake not zero
-        if( brake_setpoint > 0.0 )
-        {
-            // invalidate
-            ret = DTC_UNAVAILABLE;
-        }
+    return ret;
+}
+
+
+//
+int commander_is_valid(
+        commander_s * const commander )
+{
+    int ret = DTC_NONE;
+
+
+    if( commander == NULL )
+    {
+        ret = DTC_USAGE;
+    }
+    else
+    {
+        ret = messages_is_valid( &commander->messages );
     }
 
 
@@ -878,223 +843,25 @@ int commander_check_for_safe_joystick(
 
 //
 int commander_set_safe(
-        commander_messages_s * const messages )
+        commander_s * const commander )
 {
-    // local vars
     int ret = DTC_NONE;
 
 
-    // zero
-    messages->send_enable_controls = 0;
-
-    // if brake command message valid
-    if( messages->brake_cmd != NULL )
+    if( commander == NULL )
     {
-        // set safe state
-        ret |= set_safe_brake_command_msg( messages->brake_cmd );
-    }
-
-    // if throttle command message valid
-    if( messages->throttle_cmd != NULL )
-    {
-        // set safe state
-        ret |= set_safe_throttle_command_msg( messages->throttle_cmd );
-    }
-
-    // if steering command message valid
-    if( messages->steer_cmd != NULL )
-    {
-        // set safe state
-        ret |= set_safe_steering_command_msg( messages->steer_cmd );
-    }
-
-    // if gear command message valid
-    if( messages->gear_cmd != NULL )
-    {
-        // set safe state
-        ret |= set_safe_gear_command_msg( messages->gear_cmd );
-    }
-
-    // if turn signal command message valid
-    if( messages->turn_signal_cmd != NULL )
-    {
-        // set safe state
-        ret |= set_safe_turn_signal_msg( messages->turn_signal_cmd );
-    }
-
-    // handle DTC
-    if( ret != DTC_NONE )
-    {
-        // treat as a configuration error
-        ret = DTC_CONFIG;
-    }
-
-
-    return ret;
-}
-
-
-//
-int commander_send_estop(
-        ps_node_ref node_ref,
-        commander_messages_s * const messages )
-{
-    // local vars
-    int ret = DTC_NONE;
-
-
-    // start with safe state
-    ret |= commander_set_safe( messages );
-
-    // enable e-stop
-    ret |= set_estop( messages );
-
-    // if throttle message valid
-    if( messages->throttle_cmd != NULL )
-    {
-        // update publish timestamp
-        ret |= psync_get_timestamp(
-                &messages->throttle_cmd->header.timestamp );
-
-        // publish
-        ret |= psync_message_publish(
-                node_ref,
-                messages->throttle_cmd );
-    }
-
-    // if brake message valid
-    if( messages->brake_cmd != NULL )
-    {
-        // update publish timestamp
-        ret |= psync_get_timestamp(
-                &messages->brake_cmd->header.timestamp );
-
-        // publish
-        ret |= psync_message_publish(
-                node_ref,
-                messages->brake_cmd );
-    }
-
-    // if steering message valid
-    if( messages->steer_cmd != NULL )
-    {
-        // update publish timestamp
-        ret |= psync_get_timestamp(
-                &messages->steer_cmd->header.timestamp );
-
-        // publish
-        ret |= psync_message_publish(
-                node_ref,
-                messages->steer_cmd );
-    }
-
-    // handle return if anything failed
-    if( ret != DTC_NONE )
-    {
-        // return protocol DTC
-        ret = DTC_PROTOCOL;
-    }
-
-
-    return ret;
-}
-
-
-//
-int commander_joystick_update(
-        joystick_device_s * const jstick,
-        commander_messages_s * const messages )
-{
-    // local vars
-    int ret = DTC_NONE;
-    double brake_setpoint = 0.0;
-    double throttle_setpoint = 0.0;
-    double steering_setpoint = 0.0;
-    ps_gear_position_kind gear_position = GEAR_POSITION_INVALID;
-    ps_platform_turn_signal_kind turn_signal = PLATFORM_TURN_SIGNAL_INVALID;
-
-
-    // update joystick readings
-    ret |= jstick_update( jstick );
-
-    // start from safe state
-    ret |= commander_set_safe( messages );
-
-    // update set points if succeeded
-    if( ret == DTC_NONE )
-    {
-        // update brake set point
-        ret |= update_brake_setpoint( jstick, &brake_setpoint );
-
-        // update throttle set point
-        ret |= update_throttle_setpoint( jstick, &throttle_setpoint );
-
-        // update steering wheel angle set point
-        ret |= update_steering_setpoint( jstick, &steering_setpoint );
-
-        // update gear selection
-        ret |= update_gear_selection( jstick, &gear_position );
-
-        // update turn signal selection
-        ret |= update_turn_signal_selection( jstick, &turn_signal );
-
-        // update enable/disable-controls state
-        ret |= update_enable_disable_controls_state(
-                jstick,
-                &messages->send_enable_controls,
-                &messages->send_disable_controls );
-
-        // chose disable if both enable and disable control buttons are pressed
-        if( messages->send_disable_controls != 0 )
-        {
-            messages->send_enable_controls = 0;
-        }
-    }
-
-    // don't allow throttle if gear command is to be sent
-    if( gear_position != GEAR_POSITION_INVALID )
-    {
-        throttle_setpoint = 0.0;
-    }
-
-    // don't allow throttle if brakes are applied
-    if( brake_setpoint > BRAKES_ENABLED_MIN )
-    {
-        throttle_setpoint = 0.0;
-
-        // enabled on-off indicator
-        messages->brake_cmd->boo_enabled = 1;
-    }
-
-    // copy into command messages if succeeded
-    if( ret == DTC_NONE )
-    {
-        // validate control kinds
-        messages->brake_cmd->brake_command_type = BRAKE_COMMAND_PEDAL;
-        messages->throttle_cmd->throttle_command_type = THROTTLE_COMMAND_PEDAL;
-        messages->steer_cmd->steering_command_kind = STEERING_COMMAND_ANGLE;
-
-        // enable controls
-        messages->brake_cmd->enabled = 1;
-        messages->throttle_cmd->enabled = 1;
-        messages->steer_cmd->enabled = 1;
-
-        // copy set points
-        messages->brake_cmd->brake_command = (DDS_float) brake_setpoint;
-        messages->throttle_cmd->throttle_command = (DDS_float) throttle_setpoint;
-        messages->steer_cmd->steering_wheel_angle = (DDS_float) steering_setpoint;
-
-        // steering rate limit
-        messages->steer_cmd->max_steering_wheel_rotation_rate = (DDS_float) STEERING_WHEEL_ANGLE_RATE_LIMIT;
-
-        // copy state commands
-        messages->gear_cmd->gear_position = gear_position;
-        messages->turn_signal_cmd->turn_signal = turn_signal;
+        ret = DTC_USAGE;
     }
     else
     {
-        // return protocol DTC
-        ret = DTC_PROTOCOL;
+        ret = commander_is_valid( commander );
+
+        if( ret == DTC_NONE )
+        {
+            ret = messages_set_default_values(
+                    commander->dest_control_node_guid,
+                    &commander->messages );
+        }
     }
 
 
@@ -1103,72 +870,378 @@ int commander_joystick_update(
 
 
 //
-int commander_send_commands(
+int commander_enumerate_control_nodes(
         ps_node_ref node_ref,
-        commander_messages_s * const messages )
+        commander_s * const commander )
 {
-    // local vars
     int ret = DTC_NONE;
-    ps_timestamp now = 0;
 
 
-    // update current timestamp
-    ret |= psync_get_timestamp( &now );
-
-    // set publish timestamp
-    messages->brake_cmd->header.timestamp = now;
-    messages->throttle_cmd->header.timestamp = now;
-    messages->steer_cmd->header.timestamp = now;
-    messages->gear_cmd->header.timestamp = now;
-    messages->turn_signal_cmd->header.timestamp = now;
-    messages->parameters_cmd->header.timestamp = now;
-
-    // publish brake command message
-    ret |= psync_message_publish( node_ref, messages->brake_cmd );
-
-    // publish throttle command message
-    ret |= psync_message_publish( node_ref, messages->throttle_cmd );
-
-    // publish steering command message
-    ret |= psync_message_publish( node_ref, messages->steer_cmd );
-
-    // if gear position command set
-    if( messages->gear_cmd->gear_position != GEAR_POSITION_INVALID )
+    if( commander == NULL )
     {
-        // publish gear position command message
-        ret |= psync_message_publish( node_ref, messages->gear_cmd );
+        ret = DTC_USAGE;
+    }
+    else
+    {
+        // safe state
+        ret = commander_set_safe( commander );
+
+        if( ret == DTC_NONE )
+        {
+            // command ID: enumerate nodes supporting the DataSpeed MKZ sensor interface
+            commander->messages.command_msg->id = COMMAND_ID_ENUMERATE_DYNAMIC_DRIVER_INTERFACE_BY_SENSOR;
+
+            // data element zero is the sensor type we want to enumerate
+            commander->messages.command_msg->data._buffer[0]._d = PARAMETER_VALUE_ULONGLONG;
+            commander->messages.command_msg->data._buffer[0]._u.ull_value =
+                    (DDS_unsigned_long_long) SENSOR_TYPE_DATASPEED_MKZ;
+            commander->messages.command_msg->data._length = 1;
+
+            // targeted to all nodes
+            commander->messages.command_msg->dest_guid = PSYNC_GUID_INVALID;
+            ret = psync_guid_set_node_type(
+                    PSYNC_NODE_TYPE_ALL,
+                    &commander->messages.command_msg->dest_guid );
+        }
+
+        // update publish timestamp
+        if( ret == DTC_NONE )
+        {
+            ret = psync_get_timestamp(
+                    &commander->messages.command_msg->header.timestamp );
+        }
+
+        // publish command
+        if( ret == DTC_NONE )
+        {
+            ret = psync_message_publish(
+                    node_ref,
+                    commander->messages.command_msg );
+        }
     }
 
-    // if turn signal command set
-    if( messages->turn_signal_cmd->turn_signal != PLATFORM_TURN_SIGNAL_INVALID )
+
+    return ret;
+}
+
+
+//
+int commander_disable_controls(
+        ps_node_ref node_ref,
+        commander_s * const commander )
+{
+    int ret = DTC_NONE;
+
+
+    psync_log_debug( "sending command to disable controls" );
+
+    if( commander == NULL )
     {
-        // publish turn signal command message
-        ret |= psync_message_publish( node_ref, messages->turn_signal_cmd );
+        ret = DTC_USAGE;
+    }
+    else
+    {
+        // safe state
+        ret = commander_set_safe( commander );
+
+        if( ret == DTC_NONE )
+        {
+            // command ID: disable controls
+            commander->messages.command_msg->id = DISABLE_CONTROLS_COMMAND_ID;
+
+            // set destination node GUID
+            commander->messages.command_msg->dest_guid = commander->dest_control_node_guid;
+
+            // update publish timestamp
+            ret = psync_get_timestamp(
+                    &commander->messages.command_msg->header.timestamp );
+        }
+
+        // publish command
+        if( ret == DTC_NONE )
+        {
+            ret = psync_message_publish(
+                    node_ref,
+                    commander->messages.command_msg );
+        }
     }
 
-    // if disable-controls set
-    if( messages->send_disable_controls == 1 )
-    {
-        // disable controls is value zero
-        messages->parameters_cmd->parameters._buffer[0].value._u.ull_value = 0;
 
-        // publish get/set command message
-        ret |= psync_message_publish( node_ref, messages->parameters_cmd );
+    return ret;
+}
+
+
+//
+int commander_enable_controls(
+        ps_node_ref node_ref,
+        commander_s * const commander )
+{
+    int ret = DTC_NONE;
+
+
+    psync_log_debug( "sending command to enable controls" );
+
+    if( commander == NULL )
+    {
+        ret = DTC_USAGE;
     }
-    else if( messages->send_enable_controls == 1 )
+    else
     {
-        // enable controls is value one
-        messages->parameters_cmd->parameters._buffer[0].value._u.ull_value = 1;
+        // safe state
+        ret = commander_set_safe( commander );
 
-        // publish get/set command message
-        ret |= psync_message_publish( node_ref, messages->parameters_cmd );
+        if( ret == DTC_NONE )
+        {
+            // command ID: disable controls
+            commander->messages.command_msg->id = ENABLE_CONTROLS_COMMAND_ID;
+
+            // set destination node GUID
+            commander->messages.command_msg->dest_guid = commander->dest_control_node_guid;
+
+            // update publish timestamp
+            ret = psync_get_timestamp(
+                    &commander->messages.command_msg->header.timestamp );
+        }
+
+        // publish command
+        if( ret == DTC_NONE )
+        {
+            ret = psync_message_publish(
+                    node_ref,
+                    commander->messages.command_msg );
+        }
     }
 
-    // handle return if anything failed
-    if( ret != DTC_NONE )
+
+    return ret;
+}
+
+
+//
+int commander_estop(
+        ps_node_ref node_ref,
+        commander_s * const commander )
+{
+    int ret = DTC_NONE;
+
+
+    psync_log_debug( "sending e-stop messages" );
+
+    if( commander == NULL )
     {
-        // return protocol DTC
-        ret = DTC_PROTOCOL;
+        ret = DTC_USAGE;
+    }
+    else
+    {
+        // safe state
+        ret = commander_set_safe( commander );
+
+        if( ret == DTC_NONE )
+        {
+            // set e-stop
+            commander->messages.brake_cmd->e_stop = 1;
+            commander->messages.throttle_cmd->e_stop = 1;
+            commander->messages.steering_cmd->e_stop = 1;
+
+            // set last known destination GUID
+            commander->messages.brake_cmd->dest_guid = commander->dest_control_node_guid;
+            commander->messages.throttle_cmd->dest_guid = commander->dest_control_node_guid;
+            commander->messages.steering_cmd->dest_guid = commander->dest_control_node_guid;
+
+            // update publish timestamp
+            ret = psync_get_timestamp(
+                    &commander->messages.command_msg->header.timestamp );
+        }
+
+        // publish brake/throttle/steering commands with e-stop enabled
+        if( ret == DTC_NONE )
+        {
+            ret = psync_message_publish(
+                    node_ref,
+                    (ps_msg_ref) commander->messages.brake_cmd );
+        }
+
+        if( ret == DTC_NONE )
+        {
+            ret = psync_message_publish(
+                    node_ref,
+                    (ps_msg_ref) commander->messages.throttle_cmd );
+        }
+
+        if( ret == DTC_NONE )
+        {
+            ret = psync_message_publish(
+                    node_ref,
+                    (ps_msg_ref) commander->messages.steering_cmd );
+        }
+    }
+
+
+    return ret;
+}
+
+
+//
+int commander_check_reenumeration(
+        ps_node_ref node_ref,
+        commander_s * const commander )
+{
+    int ret = DTC_NONE;
+    unsigned int disable_button_pressed = 0;
+
+
+    if( commander == NULL )
+    {
+        ret = DTC_USAGE;
+    }
+
+    // safe state
+    if( ret == DTC_NONE )
+    {
+        ret = commander_set_safe( commander );
+    }
+
+    // get 'disable-controls' button state
+    if( ret == DTC_NONE )
+    {
+        ret = get_disable_button(
+                &commander->joystick,
+                &disable_button_pressed );
+    }
+
+    // update joystick
+    if( ret == DTC_NONE )
+    {
+        ret = jstick_update( &commander->joystick );
+    }
+
+    // send command to enumerate nodes
+    if( ret == DTC_NONE )
+    {
+        if( disable_button_pressed != 0 )
+        {
+            psync_log_debug( "sending command to enumerate control nodes" );
+
+            ret = commander_enumerate_control_nodes(
+                    node_ref,
+                    commander );
+        }
+    }
+
+
+    return ret;
+}
+
+
+//
+int commander_update(
+        ps_node_ref node_ref,
+        commander_s * const commander )
+{
+    int ret = DTC_NONE;
+    unsigned int disable_button_pressed = 0;
+    unsigned int enable_button_pressed = 0;
+
+
+    if( commander == NULL )
+    {
+        ret = DTC_USAGE;
+    }
+
+    // safe state
+    if( ret == DTC_NONE )
+    {
+        ret = commander_set_safe( commander );
+    }
+
+    // update joystick
+    if( ret == DTC_NONE )
+    {
+        ret = jstick_update( &commander->joystick );
+    }
+
+    // get 'disable-controls' button state
+    if( ret == DTC_NONE )
+    {
+        ret = get_disable_button(
+                &commander->joystick,
+                &disable_button_pressed );
+    }
+
+    // get 'enable-controls' button state
+    if( ret == DTC_NONE )
+    {
+        ret = get_enable_button(
+                &commander->joystick,
+                &enable_button_pressed );
+    }
+
+    // only disable if both enable and disable buttons are pressed
+    if( (enable_button_pressed != 0) && (disable_button_pressed != 0) )
+    {
+        enable_button_pressed = 0;
+        disable_button_pressed = 1;
+    }
+
+    // send command if a enable/disable command
+    if( disable_button_pressed != 0 )
+    {
+        ret = commander_disable_controls(
+                node_ref,
+                commander );
+    }
+    else if( enable_button_pressed != 0 )
+    {
+        ret = commander_enable_controls(
+                node_ref,
+                commander );
+    }
+    else
+    {
+        // publish brake command continously
+        if( ret == DTC_NONE )
+        {
+            ret = publish_brake_command(
+                    node_ref,
+                    &commander->joystick,
+                    commander->messages.brake_cmd );
+        }
+
+        // publish throttle command continously
+        if( ret == DTC_NONE )
+        {
+            ret = publish_throttle_command(
+                    node_ref,
+                    &commander->joystick,
+                    commander->messages.throttle_cmd );
+        }
+
+        // publish steering command continously
+        if( ret == DTC_NONE )
+        {
+            ret = publish_steering_command(
+                    node_ref,
+                    &commander->joystick,
+                    commander->messages.steering_cmd );
+        }
+
+        // publish gear command on button event
+        if( ret == DTC_NONE )
+        {
+            ret = publish_gear_command(
+                    node_ref,
+                    &commander->joystick,
+                    commander->messages.gear_cmd );
+        }
+
+        // publish turn signal command on button event
+        if( ret == DTC_NONE )
+        {
+            ret = publish_turn_signal_command(
+                    node_ref,
+                    &commander->joystick,
+                    commander->messages.turn_signal_cmd );
+        }
     }
 
 

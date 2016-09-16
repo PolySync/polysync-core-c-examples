@@ -70,10 +70,8 @@ int jstick_init_subsystem( void )
     // error check
     if( ret < 0 )
     {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "joystick : (%u) -- SDL_Init - %s",
-                __LINE__,
+        psync_log_error(
+                "SDL_Init - %s",
                 SDL_GetError() );
         return DTC_OSERR;
     }
@@ -104,10 +102,8 @@ int jstick_get_num_devices( void )
     // error check
     if( ret < 0 )
     {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "joystick : (%u) -- SDL_NumJoysticks - %s",
-                __LINE__,
+        psync_log_error(
+                "SDL_NumJoysticks - %s",
                 SDL_GetError() );
         return -1;
     }
@@ -165,10 +161,8 @@ int jstick_open(
     // error check
     if( jstick->handle == JOYSTICK_DEVICE_HANDLE_INVALID )
     {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "joystick : (%u) -- SDL_JoystickOpen - %s",
-                __LINE__,
+        psync_log_error(
+                "SDL_JoystickOpen - %s",
                 SDL_GetError() );
         return DTC_IOERR;
     }
@@ -240,10 +234,7 @@ int jstick_update(
         // check if attached
         if( SDL_JoystickGetAttached(jstick->handle) == SDL_FALSE )
         {
-            psync_log_message(
-                    LOG_LEVEL_ERROR,
-                    "joystick : (%u) -- SDL_JoystickGetAttached - device not attached",
-                    __LINE__ );
+            psync_log_error( "SDL_JoystickGetAttached - device not attached" );
 
             // invalid handle
             ret = DTC_UNAVAILABLE;
