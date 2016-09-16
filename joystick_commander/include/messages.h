@@ -19,7 +19,7 @@
 
 
 /**
- * @brief Enable controls command identifier.
+ * @brief Disable controls command identifier.
  *
  * Sensor specific command handled by the DataSpeed MKZ interface.
  *
