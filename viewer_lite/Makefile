@@ -21,7 +21,7 @@ SRCS    :=  src/ps_interface.c \
 	    src/gui.c \
 	    src/viewer_lite.c \
 	    src/waypoint.c \
-		src/vehicle_control.c
+	    src/vehicle_control.c
 
 # object files, dep files
 OBJS    := $(SRCS:.c=.o)
@@ -88,3 +88,5 @@ clean:
 	-rm -rf doc/latex
 	-rm -rf doc/pdf
 	-rm -rf ospl-*.log
+	-rm -r bin/
+	-rm -r doc/

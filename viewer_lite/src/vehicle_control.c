@@ -60,15 +60,9 @@ int calculate_steering_angle_based_on_goal_waypoint(
             goalWaypoint->x,
             goalWaypoint->y );
     
-    printf( "waypoint angle %f\n", vehicleToWaypointAngle*RAD2DEG );
-    
-    printf( "heading        %f\n", currentPosition.heading*RAD2DEG );
-    
     double errorInHeading = calculate_smallest_interior_angle( 
             currentPosition.heading*RAD2DEG, 
             vehicleToWaypointAngle*RAD2DEG );
-    
-    printf( "interior angle %f\n", errorInHeading );
     
     double lateralError = sin( errorInHeading*DEG2RAD );
     
@@ -83,11 +77,6 @@ int findNearestWaypoint( waypoint_s * waypoints, waypoint_s current_position )
     int index = -1;
     
     double minDistance = 0;
-    
-    printf( "current position %f %f %f\n", 
-            current_position.x, 
-            current_position.y,  
-            current_position.heading );
     
     for( int i = 0; i < MAX_WAYPOINTS; i++ )
     {
@@ -114,6 +103,53 @@ int findNearestWaypoint( waypoint_s * waypoints, waypoint_s current_position )
     }
     
     return index;
+}
+
+
+int findNextWaypoint( waypoint_s * waypoints, waypoint_s * nextWaypoint, waypoint_s current_position )
+{
+    if( waypoints == NULL || nextWaypoint == NULL )
+    {
+        printf( "ERROR: Waypoints NULL\n" );
+        return 1;
+    }
+    
+    if( ! waypoints[ 0 ].valid )
+    {
+        return 1;
+    }
+    
+    nextWaypoint->x = waypoints[ 0 ].x;
+    
+    nextWaypoint->y = waypoints[ 0 ].y;
+    
+    nextWaypoint->heading = waypoints[ 0 ].heading;
+    
+    nextWaypoint->valid = waypoints[ 0 ].valid;
+    
+    double distance = calculate_distance_between_coordinates( 
+                    waypoints[ 0 ].x, 
+                    waypoints[ 0 ].y, 
+                    current_position.x, 
+                    current_position.y );
+    
+    if( distance <= REACHED_WAYPOINT_DISTANCE )
+    {
+        for( int i = 0; i < MAX_WAYPOINTS - 1; i++ )
+        {
+            waypoints[ i ].x = waypoints[ i + 1 ].x;
+
+            waypoints[ i ].y = waypoints[ i + 1 ].y;
+
+            waypoints[ i ].heading = waypoints[ i + 1 ].heading;
+
+            waypoints[ i ].valid = waypoints[ i + 1 ].valid;
+            
+            waypoints[ i + 1 ].valid = 0;
+        }
+    }
+    
+    return 0;
 }
 
 
@@ -337,24 +373,24 @@ int publish_throttle_command( ps_node_ref const node_ref, double commandedThrott
 }
 
 
-void send_psync_messages_for_vehicle_control( node_data_s * user_data, waypoint_s * waypoints )
+void send_psync_messages_for_vehicle_control( node_data_s * user_data, 
+        waypoint_s * waypoints )
 {
     // local vars
     node_data_s     *node_data  = NULL;
 
-
     // cast
-    node_data = (node_data_s*) user_data;
+    node_data = ( node_data_s* ) user_data;
 
     // ignore if not valid
-    if( (node_data == NULL) || (waypoints == NULL) )
+    if( ( node_data == NULL ) || ( waypoints == NULL ) )
     {
         return;
     }
     
-    int index = findNearestWaypoint( waypoints, node_data->current_vehicle_position );
+    waypoint_s nextWaypoint;
     
-    if( index == -1 )
+    if( findNextWaypoint( waypoints, &nextWaypoint, node_data->current_vehicle_position ) )
     {
         return;
     }
@@ -362,7 +398,7 @@ void send_psync_messages_for_vehicle_control( node_data_s * user_data, waypoint_
     double steeringAngle = 0;
     
     if( calculate_steering_angle_based_on_goal_waypoint(
-            &waypoints[ index ], 
+            &nextWaypoint, 
             node_data->current_vehicle_position,
             &steeringAngle ) )
     {
@@ -371,5 +407,5 @@ void send_psync_messages_for_vehicle_control( node_data_s * user_data, waypoint_
     
     publish_steering_command( node_data->node, steeringAngle );
     
-    publish_throttle_command( node_data->node, 5 );
+    publish_throttle_command( node_data->node, DEFAULT_THROTTLE );
 }

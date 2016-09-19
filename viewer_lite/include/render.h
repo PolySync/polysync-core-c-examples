@@ -50,6 +50,9 @@
 void render_circle_2d( const GLdouble cx, const GLdouble cy, const GLdouble radius );
 
 
+void render_line_between_points( const GLdouble cx, const GLdouble cy, const GLdouble bx, const GLdouble by );
+
+
 void render_cross_2d( const GLdouble cx, const GLdouble cy, const GLdouble length, const GLdouble width );
 
 

@@ -391,78 +391,6 @@ called: /usr/bin/gcc
 	-I/usr/lib/x86_64-linux-gnu/glib-2.0/include
 	-Iinclude
 	-MM
-	src/origin_model.c
-
-called: /usr/bin/gcc
-	/home/lbuckland/Development/turtle_demo/polysync/examples/viewer_lite
-	gcc
-	-std=gnu99
-	-Wall
-	-D_REENTRANT
-	-D__STDC_CONSTANT_MACROS
-	-DHAVE_STDINT
-	-DPSYNC_ARCH_x86_64
-	-DPSYNC_OS_ubuntu_14_04
-	-Wextra
-	-Wformat=2
-	-Wno-unused-parameter
-	-Wshadow
-	-Wwrite-strings
-	-Wstrict-prototypes
-	-Wold-style-definition
-	-Wnested-externs
-	-Wmissing-include-dirs
-	-DGL_GLEXT_PROTOTYPES
-	-DGLX_GLXEXT_PROTOTYPES
-	-I/usr/local/polysync/include
-	-I/usr/local/polysync/include/deps
-	-I/usr/local/polysync/include/deps/xsens
-	-I/usr/local/polysync/include/deps/dcps/C/SAC/
-	-I/usr/local/polysync/include/deps/sys
-	-I/usr/local/polysync/pdm
-	-I/usr/include/libxml2
-	-pthread
-	-I/usr/include/glib-2.0
-	-I/usr/lib/x86_64-linux-gnu/glib-2.0/include
-	-Iinclude
-	-o
-	src/origin_model.o
-	-c
-	src/origin_model.c
-
-called: /usr/bin/gcc
-	/home/lbuckland/Development/turtle_demo/polysync/examples/viewer_lite
-	gcc
-	-std=gnu99
-	-Wall
-	-D_REENTRANT
-	-D__STDC_CONSTANT_MACROS
-	-DHAVE_STDINT
-	-DPSYNC_ARCH_x86_64
-	-DPSYNC_OS_ubuntu_14_04
-	-Wextra
-	-Wformat=2
-	-Wno-unused-parameter
-	-Wshadow
-	-Wwrite-strings
-	-Wstrict-prototypes
-	-Wold-style-definition
-	-Wnested-externs
-	-Wmissing-include-dirs
-	-DGL_GLEXT_PROTOTYPES
-	-DGLX_GLXEXT_PROTOTYPES
-	-I/usr/local/polysync/include
-	-I/usr/local/polysync/include/deps
-	-I/usr/local/polysync/include/deps/xsens
-	-I/usr/local/polysync/include/deps/dcps/C/SAC/
-	-I/usr/local/polysync/include/deps/sys
-	-I/usr/local/polysync/pdm
-	-I/usr/include/libxml2
-	-pthread
-	-I/usr/include/glib-2.0
-	-I/usr/lib/x86_64-linux-gnu/glib-2.0/include
-	-Iinclude
-	-MM
 	src/grid.c
 
 called: /usr/bin/gcc
@@ -501,78 +429,6 @@ called: /usr/bin/gcc
 	src/grid.o
 	-c
 	src/grid.c
-
-called: /usr/bin/gcc
-	/home/lbuckland/Development/turtle_demo/polysync/examples/viewer_lite
-	gcc
-	-std=gnu99
-	-Wall
-	-D_REENTRANT
-	-D__STDC_CONSTANT_MACROS
-	-DHAVE_STDINT
-	-DPSYNC_ARCH_x86_64
-	-DPSYNC_OS_ubuntu_14_04
-	-Wextra
-	-Wformat=2
-	-Wno-unused-parameter
-	-Wshadow
-	-Wwrite-strings
-	-Wstrict-prototypes
-	-Wold-style-definition
-	-Wnested-externs
-	-Wmissing-include-dirs
-	-DGL_GLEXT_PROTOTYPES
-	-DGLX_GLXEXT_PROTOTYPES
-	-I/usr/local/polysync/include
-	-I/usr/local/polysync/include/deps
-	-I/usr/local/polysync/include/deps/xsens
-	-I/usr/local/polysync/include/deps/dcps/C/SAC/
-	-I/usr/local/polysync/include/deps/sys
-	-I/usr/local/polysync/pdm
-	-I/usr/include/libxml2
-	-pthread
-	-I/usr/include/glib-2.0
-	-I/usr/lib/x86_64-linux-gnu/glib-2.0/include
-	-Iinclude
-	-MM
-	src/entity_manager.c
-
-called: /usr/bin/gcc
-	/home/lbuckland/Development/turtle_demo/polysync/examples/viewer_lite
-	gcc
-	-std=gnu99
-	-Wall
-	-D_REENTRANT
-	-D__STDC_CONSTANT_MACROS
-	-DHAVE_STDINT
-	-DPSYNC_ARCH_x86_64
-	-DPSYNC_OS_ubuntu_14_04
-	-Wextra
-	-Wformat=2
-	-Wno-unused-parameter
-	-Wshadow
-	-Wwrite-strings
-	-Wstrict-prototypes
-	-Wold-style-definition
-	-Wnested-externs
-	-Wmissing-include-dirs
-	-DGL_GLEXT_PROTOTYPES
-	-DGLX_GLXEXT_PROTOTYPES
-	-I/usr/local/polysync/include
-	-I/usr/local/polysync/include/deps
-	-I/usr/local/polysync/include/deps/xsens
-	-I/usr/local/polysync/include/deps/dcps/C/SAC/
-	-I/usr/local/polysync/include/deps/sys
-	-I/usr/local/polysync/pdm
-	-I/usr/include/libxml2
-	-pthread
-	-I/usr/include/glib-2.0
-	-I/usr/lib/x86_64-linux-gnu/glib-2.0/include
-	-Iinclude
-	-o
-	src/entity_manager.o
-	-c
-	src/entity_manager.c
 
 called: /usr/bin/gcc
 	/home/lbuckland/Development/turtle_demo/polysync/examples/viewer_lite
@@ -717,6 +573,150 @@ called: /usr/bin/gcc
 	src/viewer_lite.o
 	-c
 	src/viewer_lite.c
+
+called: /usr/bin/gcc
+	/home/lbuckland/Development/turtle_demo/polysync/examples/viewer_lite
+	gcc
+	-std=gnu99
+	-Wall
+	-D_REENTRANT
+	-D__STDC_CONSTANT_MACROS
+	-DHAVE_STDINT
+	-DPSYNC_ARCH_x86_64
+	-DPSYNC_OS_ubuntu_14_04
+	-Wextra
+	-Wformat=2
+	-Wno-unused-parameter
+	-Wshadow
+	-Wwrite-strings
+	-Wstrict-prototypes
+	-Wold-style-definition
+	-Wnested-externs
+	-Wmissing-include-dirs
+	-DGL_GLEXT_PROTOTYPES
+	-DGLX_GLXEXT_PROTOTYPES
+	-I/usr/local/polysync/include
+	-I/usr/local/polysync/include/deps
+	-I/usr/local/polysync/include/deps/xsens
+	-I/usr/local/polysync/include/deps/dcps/C/SAC/
+	-I/usr/local/polysync/include/deps/sys
+	-I/usr/local/polysync/pdm
+	-I/usr/include/libxml2
+	-pthread
+	-I/usr/include/glib-2.0
+	-I/usr/lib/x86_64-linux-gnu/glib-2.0/include
+	-Iinclude
+	-MM
+	src/waypoint.c
+
+called: /usr/bin/gcc
+	/home/lbuckland/Development/turtle_demo/polysync/examples/viewer_lite
+	gcc
+	-std=gnu99
+	-Wall
+	-D_REENTRANT
+	-D__STDC_CONSTANT_MACROS
+	-DHAVE_STDINT
+	-DPSYNC_ARCH_x86_64
+	-DPSYNC_OS_ubuntu_14_04
+	-Wextra
+	-Wformat=2
+	-Wno-unused-parameter
+	-Wshadow
+	-Wwrite-strings
+	-Wstrict-prototypes
+	-Wold-style-definition
+	-Wnested-externs
+	-Wmissing-include-dirs
+	-DGL_GLEXT_PROTOTYPES
+	-DGLX_GLXEXT_PROTOTYPES
+	-I/usr/local/polysync/include
+	-I/usr/local/polysync/include/deps
+	-I/usr/local/polysync/include/deps/xsens
+	-I/usr/local/polysync/include/deps/dcps/C/SAC/
+	-I/usr/local/polysync/include/deps/sys
+	-I/usr/local/polysync/pdm
+	-I/usr/include/libxml2
+	-pthread
+	-I/usr/include/glib-2.0
+	-I/usr/lib/x86_64-linux-gnu/glib-2.0/include
+	-Iinclude
+	-o
+	src/waypoint.o
+	-c
+	src/waypoint.c
+
+called: /usr/bin/gcc
+	/home/lbuckland/Development/turtle_demo/polysync/examples/viewer_lite
+	gcc
+	-std=gnu99
+	-Wall
+	-D_REENTRANT
+	-D__STDC_CONSTANT_MACROS
+	-DHAVE_STDINT
+	-DPSYNC_ARCH_x86_64
+	-DPSYNC_OS_ubuntu_14_04
+	-Wextra
+	-Wformat=2
+	-Wno-unused-parameter
+	-Wshadow
+	-Wwrite-strings
+	-Wstrict-prototypes
+	-Wold-style-definition
+	-Wnested-externs
+	-Wmissing-include-dirs
+	-DGL_GLEXT_PROTOTYPES
+	-DGLX_GLXEXT_PROTOTYPES
+	-I/usr/local/polysync/include
+	-I/usr/local/polysync/include/deps
+	-I/usr/local/polysync/include/deps/xsens
+	-I/usr/local/polysync/include/deps/dcps/C/SAC/
+	-I/usr/local/polysync/include/deps/sys
+	-I/usr/local/polysync/pdm
+	-I/usr/include/libxml2
+	-pthread
+	-I/usr/include/glib-2.0
+	-I/usr/lib/x86_64-linux-gnu/glib-2.0/include
+	-Iinclude
+	-MM
+	src/vehicle_control.c
+
+called: /usr/bin/gcc
+	/home/lbuckland/Development/turtle_demo/polysync/examples/viewer_lite
+	gcc
+	-std=gnu99
+	-Wall
+	-D_REENTRANT
+	-D__STDC_CONSTANT_MACROS
+	-DHAVE_STDINT
+	-DPSYNC_ARCH_x86_64
+	-DPSYNC_OS_ubuntu_14_04
+	-Wextra
+	-Wformat=2
+	-Wno-unused-parameter
+	-Wshadow
+	-Wwrite-strings
+	-Wstrict-prototypes
+	-Wold-style-definition
+	-Wnested-externs
+	-Wmissing-include-dirs
+	-DGL_GLEXT_PROTOTYPES
+	-DGLX_GLXEXT_PROTOTYPES
+	-I/usr/local/polysync/include
+	-I/usr/local/polysync/include/deps
+	-I/usr/local/polysync/include/deps/xsens
+	-I/usr/local/polysync/include/deps/dcps/C/SAC/
+	-I/usr/local/polysync/include/deps/sys
+	-I/usr/local/polysync/pdm
+	-I/usr/include/libxml2
+	-pthread
+	-I/usr/include/glib-2.0
+	-I/usr/lib/x86_64-linux-gnu/glib-2.0/include
+	-Iinclude
+	-o
+	src/vehicle_control.o
+	-c
+	src/vehicle_control.c
 
 called: /usr/bin/gcc
 	/home/lbuckland/Development/turtle_demo/polysync/examples/viewer_lite
@@ -739,11 +739,11 @@ called: /usr/bin/gcc
 	src/ruler.o
 	src/render.o
 	src/ground_plane.o
-	src/origin_model.o
 	src/grid.o
-	src/entity_manager.o
 	src/gui.o
 	src/viewer_lite.o
+	src/waypoint.o
+	src/vehicle_control.o
 	-L/usr/local/polysync/lib
 	-lpolysync
 	-lxstypes
@@ -815,11 +815,11 @@ called: /usr/bin/ld
 	src/ruler.o
 	src/render.o
 	src/ground_plane.o
-	src/origin_model.o
 	src/grid.o
-	src/entity_manager.o
 	src/gui.o
 	src/viewer_lite.o
+	src/waypoint.o
+	src/vehicle_control.o
 	-lpolysync
 	-lxstypes
 	-lxsensdeviceapi

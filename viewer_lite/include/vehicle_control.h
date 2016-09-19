@@ -25,6 +25,8 @@
 
 #define STEERING_CONTROL_FACTOR 2000
 
+#define DEFAULT_THROTTLE 5
+
 #define STEERING_CMD_MSG_NAME "ps_platform_steering_command_msg" 
 
 #define THROTTLE_CMD_MSG_NAME "ps_platform_throttle_command_msg"

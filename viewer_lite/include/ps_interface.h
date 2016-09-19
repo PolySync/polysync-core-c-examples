@@ -27,8 +27,6 @@
  * @file ps_interface.h
  * @brief PolySync Interface.
  *
- * @todo fix docs.
- *
  */
 
 

@@ -458,15 +458,15 @@ static void on_mouse( int button, int state, int x, int y )
         }
         else if( button == GLUT_RIGHT_BUTTON )
         {
-            
+            // Do nothing
         }
         else if( button == 3 )
         {
-            
+            // Do nothing
         }
         else if( button == 4 )
         {
-            
+            // Do nothing
         }
     }
     else
