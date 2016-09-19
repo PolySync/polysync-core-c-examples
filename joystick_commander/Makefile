@@ -30,7 +30,7 @@ CC = gcc
 CCFLAGS += `pkg-config --cflags sdl2`
 
 # include directories
-INCLUDE += -Iinclude
+INCLUDE += -Iinclude -I$(PSYNC_HOME)/dynamic_driver/include
 
 # add node template library, must be first
 # add util library last, let path be found
