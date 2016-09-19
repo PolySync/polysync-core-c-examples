@@ -37,7 +37,7 @@ CCFLAGS += -DGL_GLEXT_PROTOTYPES -DGLX_GLXEXT_PROTOTYPES
 INCLUDE	+= -Iinclude
 
 # libraries
-LIBS	+= -lglut -lGLU -lGL -lX11 -lm -lpolysync_data_model -lpng -lSDL2 -lSDL2_image
+LIBS	+= -lglut -lGLU -lGL -lX11 -lm -lpolysync_data_model -lpng -lSDL2
 
 #
 all: dirs $(TARGET)

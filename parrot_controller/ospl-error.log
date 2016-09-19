@@ -1,0 +1,45 @@
+========================================================================================
+Report      : ERROR
+Date        : Mon Sep 19 16:55:16 PDT 2016
+Description : failed to increase socket receive buffer size to 10485760 bytes, continuing with 425984 bytes
+
+Node        : lbuckland
+Process     : polysync-parrot-controller <31307>
+Thread      : ddsi2 7f4e36fa9700
+Internals   : 6.6.2p1/af3a357/aec814d/ddsi2/q_nwif.c/410/0/1474329316.896262262
+========================================================================================
+Report      : ERROR
+Date        : Mon Sep 19 16:55:16 PDT 2016
+Description : failed to increase socket receive buffer size to 10485760 bytes, continuing with 425984 bytes
+
+Node        : lbuckland
+Process     : polysync-parrot-controller <31307>
+Thread      : ddsi2 7f4e36fa9700
+Internals   : 6.6.2p1/af3a357/aec814d/ddsi2/q_nwif.c/410/0/1474329316.896304150
+========================================================================================
+Report      : ERROR
+Date        : Mon Sep 19 16:55:16 PDT 2016
+Description : failed to increase socket receive buffer size to 10485760 bytes, continuing with 425984 bytes
+
+Node        : lbuckland
+Process     : polysync-parrot-controller <31307>
+Thread      : ddsi2 7f4e36fa9700
+Internals   : 6.6.2p1/af3a357/aec814d/ddsi2/q_nwif.c/410/0/1474329316.896320777
+========================================================================================
+Report      : ERROR
+Date        : Mon Sep 19 16:55:16 PDT 2016
+Description : failed to increase socket receive buffer size to 10485760 bytes, continuing with 425984 bytes
+
+Node        : lbuckland
+Process     : polysync-parrot-controller <31307>
+Thread      : ddsi2 7f4e36fa9700
+Internals   : 6.6.2p1/af3a357/aec814d/ddsi2/q_nwif.c/410/0/1474329316.896336815
+========================================================================================
+Report      : ERROR
+Date        : Mon Sep 19 16:55:16 PDT 2016
+Description : failed to increase socket receive buffer size to 10485760 bytes, continuing with 425984 bytes
+
+Node        : lbuckland
+Process     : polysync-parrot-controller <31307>
+Thread      : ddsi2 7f4e36fa9700
+Internals   : 6.6.2p1/af3a357/aec814d/ddsi2/q_nwif.c/410/0/1474329316.896349140

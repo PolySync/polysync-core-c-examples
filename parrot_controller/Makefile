@@ -9,15 +9,16 @@ PSYNC_HOME ?= /usr/local/polysync
 OSPL_HOME ?= $(PSYNC_HOME)/utils/x86_64.linux
 
 # target
-TARGET	:= bin/polysync-parrot-visualizer
+TARGET	:= bin/polysync-parrot-controller
 
 # sources
 SRCS    :=  src/ps_interface.c \
 	    src/render.c \
+	    src/grid.c \
 	    src/gui.c \
-	    src/parrot_visualizer.c \
-	    src/driver_vehicle.c \
-	    src/sliding_filter.c
+	    src/parrot_controller.c \
+	    src/waypoint.c \
+	    src/vehicle_control.c
 
 # object files, dep files
 OBJS    := $(SRCS:.c=.o)
@@ -37,7 +38,7 @@ CCFLAGS += -DGL_GLEXT_PROTOTYPES -DGLX_GLXEXT_PROTOTYPES
 INCLUDE	+= -Iinclude
 
 # libraries
-LIBS	+= -lglut -lGLU -lGL -lX11 -lm -lpolysync_data_model -lpng -lSDL2 -lSDL2_image
+LIBS	+= -lglut -lGLU -lGL -lX11 -lm -lpolysync_data_model
 
 #
 all: dirs $(TARGET)
@@ -84,5 +85,5 @@ clean:
 	-rm -rf doc/latex
 	-rm -rf doc/pdf
 	-rm -rf ospl-*.log
-	-rm -rf bin/
-	-rm -rf doc/
+	-rm -r bin/
+	-rm -r doc/

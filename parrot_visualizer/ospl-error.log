@@ -1,0 +1,54 @@
+========================================================================================
+Report      : ERROR
+Date        : Mon Sep 19 16:55:34 PDT 2016
+Description : failed to increase socket receive buffer size to 10485760 bytes, continuing with 425984 bytes
+
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : ddsi2 7f737abdc700
+Internals   : 6.6.2p1/af3a357/aec814d/ddsi2/q_nwif.c/410/0/1474329334.723942413
+========================================================================================
+Report      : ERROR
+Date        : Mon Sep 19 16:55:34 PDT 2016
+Description : failed to increase socket receive buffer size to 10485760 bytes, continuing with 425984 bytes
+
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : ddsi2 7f737abdc700
+Internals   : 6.6.2p1/af3a357/aec814d/ddsi2/q_nwif.c/410/0/1474329334.723995178
+========================================================================================
+Report      : ERROR
+Date        : Mon Sep 19 16:55:34 PDT 2016
+Description : failed to increase socket receive buffer size to 10485760 bytes, continuing with 425984 bytes
+
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : ddsi2 7f737abdc700
+Internals   : 6.6.2p1/af3a357/aec814d/ddsi2/q_nwif.c/410/0/1474329334.724017991
+========================================================================================
+Report      : ERROR
+Date        : Mon Sep 19 16:55:34 PDT 2016
+Description : failed to increase socket receive buffer size to 10485760 bytes, continuing with 425984 bytes
+
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : ddsi2 7f737abdc700
+Internals   : 6.6.2p1/af3a357/aec814d/ddsi2/q_nwif.c/410/0/1474329334.724037795
+========================================================================================
+Report      : ERROR
+Date        : Mon Sep 19 16:55:34 PDT 2016
+Description : failed to increase socket receive buffer size to 10485760 bytes, continuing with 425984 bytes
+
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : ddsi2 7f737abdc700
+Internals   : 6.6.2p1/af3a357/aec814d/ddsi2/q_nwif.c/410/0/1474329334.724061619
+========================================================================================
+Report      : ERROR
+Date        : Mon Sep 19 16:55:34 PDT 2016
+Description : failed to increase socket receive buffer size to 10485760 bytes, continuing with 425984 bytes
+
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : ddsi2 7f737abdc700
+Internals   : 6.6.2p1/af3a357/aec814d/ddsi2/q_nwif.c/410/0/1474329334.724081052

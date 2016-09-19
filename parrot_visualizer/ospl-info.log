@@ -1,0 +1,111 @@
+========================================================================================
+Report      : INFO
+Date        : Mon Sep 19 16:55:34 PDT 2016
+Description : ---------------------------------------------------------------
+              -- The service is using the following configuration settings --
+              ---------------------------------------------------------------
+              Domain (id)          : ospl_sp_ddsi (0)
+              Storage              : 0 Kbytes
+              Storage threshold    : 1024 Kbytes
+              Storage address      : Not available
+              Locking              : default
+              Memory mode          : Heap memory
+              Builtin topics       : true
+              Priority inheritance : false
+              SystemId             : 1806179175 from [1,2147483647]
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : spliced 7f7388377700
+Internals   : 6.6.2p1/af3a357/aec814d/The OpenSplice domain service/u_domain.c/630/0/1474329334.716485165
+========================================================================================
+Report      : INFO
+Date        : Mon Sep 19 16:55:34 PDT 2016
+Description : Service cmsoap disabled
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : spliced 7f7388377700
+Internals   : 6.6.2p1/af3a357/aec814d/OpenSplice domain service/sr_componentInfo.c/439/0/1474329334.716838546
+========================================================================================
+Report      : INFO
+Date        : Mon Sep 19 16:55:34 PDT 2016
+Description : Durability Client for spliced started
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : spliced 7f7388377700
+Internals   : 6.6.2p1/af3a357/aec814d/spliced::durabilityClientStart/spliced.c/350/1/1474329334.718003884
+========================================================================================
+Report      : INFO
+Date        : Mon Sep 19 16:55:34 PDT 2016
+Description : ++++++++++++++++++++++++++++++++++++++++++++++++
+              ++ The service 'splicedaemon' is now operational. 
+              ++++++++++++++++++++++++++++++++++++++++++++++++
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : spliced 7f7388377700
+Internals   : 6.6.2p1/af3a357/aec814d/v_serviceChangeState/v_service.c/286/0/1474329334.718049625
+========================================================================================
+Report      : INFO
+Date        : Mon Sep 19 16:55:34 PDT 2016
+Description : ++++++++++++++++++++++++++++++++++++++++++++++++
+              ++ The service 'ddsi2' is now operational. 
+              ++++++++++++++++++++++++++++++++++++++++++++++++
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : ddsi2 7f737abdc700
+Internals   : 6.6.2p1/af3a357/aec814d/v_serviceChangeState/v_service.c/286/0/1474329334.731287092
+========================================================================================
+Report      : INFO
+Date        : Mon Sep 19 16:55:35 PDT 2016
+Description : The durability service can be identified by ID: 1806179175
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : durability 7f737af66700
+Internals   : 6.6.2p1/af3a357/aec814d/DurabilityService/d_durability.c/676/0/1474329335.836728489
+========================================================================================
+Report      : INFO
+Date        : Mon Sep 19 16:55:43 PDT 2016
+Description : ++++++++++++++++++++++++++++++++++++++++++++++++
+              ++ The service 'durability' is now operational. 
+              ++++++++++++++++++++++++++++++++++++++++++++++++
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : durability 7f737af66700
+Internals   : 6.6.2p1/af3a357/aec814d/v_serviceChangeState/v_service.c/286/0/1474329343.242527201
+========================================================================================
+Report      : INFO
+Date        : Mon Sep 19 16:55:49 PDT 2016
+Description : ================================================
+              == The service 'ddsi2' has now terminated. 
+              ================================================
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : ddsi2 7f737abdc700
+Internals   : 6.6.2p1/af3a357/aec814d/v_serviceChangeState/v_service.c/293/0/1474329349.405414542
+========================================================================================
+Report      : INFO
+Date        : Mon Sep 19 16:55:50 PDT 2016
+Description : ================================================
+              == The service 'durability' has now terminated. 
+              ================================================
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : durability 7f737af66700
+Internals   : 6.6.2p1/af3a357/aec814d/v_serviceChangeState/v_service.c/293/0/1474329350.843492357
+========================================================================================
+Report      : INFO
+Date        : Mon Sep 19 16:55:50 PDT 2016
+Description : Durability Client for spliced stopped
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : spliced 7f7388377700
+Internals   : 6.6.2p1/af3a357/aec814d/spliced::durabilityClientStop/spliced.c/374/1/1474329350.900104999
+========================================================================================
+Report      : INFO
+Date        : Mon Sep 19 16:55:50 PDT 2016
+Description : ================================================
+              == The service 'splicedaemon' has now terminated. 
+              ================================================
+Node        : lbuckland
+Process     : polysync-parrot-visualizer <31425>
+Thread      : spliced 7f7388377700
+Internals   : 6.6.2p1/af3a357/aec814d/v_serviceChangeState/v_service.c/293/0/1474329350.900206665
