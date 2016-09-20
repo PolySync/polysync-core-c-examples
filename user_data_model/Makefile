@@ -80,8 +80,8 @@ install-pdm:
 install: all
 	cp $(TARGET) $(PSYNC_HOME)/bin/
 	cp pdm/*.so $(PSYNC_HOME)/lib/
-	cp pdm/*.h $(PSYNC_HOME)/include/
-	cp pdm/*.hpp $(PSYNC_HOME)/include/
+	cp pdm/*.h $(PSYNC_HOME)/pdm/
+	cp pdm/*.hpp $(PSYNC_HOME)/pdm/
 
 #
 clean:
