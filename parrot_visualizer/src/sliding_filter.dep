@@ -1,1 +1,0 @@
-sliding_filter.o: src/sliding_filter.c include/sliding_filter.h
