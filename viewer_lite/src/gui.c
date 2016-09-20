@@ -1016,7 +1016,7 @@ gui_context_s *gui_init( const char *win_title, const unsigned int win_width, co
 
     // default configurations
     gui->config.wireframe_width = GUI_DEFAULT_WIRE_LINE_WIDTH;
-    gui->config.zoom_scale = 5;
+    gui->config.zoom_scale = 5.0;
     gui->config.view_mode = VIEW_MODE_BIRDSEYE;
     gui->config.color_mode = COLOR_MODE_OBJECT_ID;
     gui->config.circle_visible = 1;
