@@ -44,6 +44,24 @@
 
 
 /**
+ * @brief Convert radians to degrees. [double]
+ *
+ * angle = 180 / pi
+ *
+ */
+#define         RAD_2_DEG(angle)        ((angle)*(180.0/M_PI))
+
+
+/**
+ * @brief Convert degrees to radians. [double]
+ *
+ * angle = pi / 180
+ *
+ */
+#define         DEG_2_RAD(angle)        ((angle)*(M_PI/180.0))
+
+
+/**
  * @brief Convert seconds to microseconds. [unsigned long long]
  *
  */

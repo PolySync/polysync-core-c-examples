@@ -16,6 +16,7 @@
 #include "render.h"
 #include "ps_interface.h"
 #include "sliding_filter.h"
+#include "common.h"
 #include "driver_vehicle.h"
 
 
@@ -79,14 +80,14 @@ void calculate_vehicle_position(
     double steeringAngle = STEERING_CONVERSION_FACTOR*commands.currentSteeringCommand;
     
     // contrain to possible wheel angles
-    if( steeringAngle*RAD2DEG > 40 )
+    if( RAD_2_DEG( steeringAngle ) > 40 )
     {
-        steeringAngle = 40*DEG2RAD;
+        steeringAngle = DEG_2_RAD( 40 );
     }
     
-    if( steeringAngle*RAD2DEG < -40 )
+    if( RAD_2_DEG( steeringAngle ) < -40 )
     {
-        steeringAngle = -40*DEG2RAD;
+        steeringAngle = DEG_2_RAD( -40 );
     }
     
     double throttle = THROTTLE_GAIN*commands.currentThrottleCommand;
@@ -256,7 +257,7 @@ void draw_vehicle_position( vehicle_position_s * vehicle_position, GLuint textur
     glTranslated( vehicle_position->x, vehicle_position->y, 0.0 );
     
     // convert to different heading frame
-    double heading = -vehicle_position->heading*RAD2DEG + 270.0;
+    double heading = RAD_2_DEG( -vehicle_position->heading ) + 270.0;
     
     if( heading < 0 )
     {

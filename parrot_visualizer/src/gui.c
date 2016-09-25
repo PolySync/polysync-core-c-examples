@@ -361,7 +361,7 @@ gui_context_s *gui_init( const char *win_title, const unsigned int win_width, co
         return NULL;
     }
     
-    init_render_texture_SDL( "parrot.png", NULL, NULL, &gui->renderImage );
+    init_render_texture_SDL( "res/parrot.png", NULL, NULL, &gui->renderImage );
    
     // set callbacks
     glutCloseFunc( on_close );

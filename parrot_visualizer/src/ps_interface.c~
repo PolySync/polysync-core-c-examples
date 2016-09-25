@@ -114,6 +114,12 @@ static void psync_throttle_cmd_handler(
     {
         return;
     }
+
+    // get source GUID
+    if( psync_message_get_source_guid( message, &src_guid ) != DTC_NONE )
+    {
+        return;
+    }
     
     ps_platform_throttle_command_msg * throttle_msg = 
             ( ps_platform_throttle_command_msg* ) message;

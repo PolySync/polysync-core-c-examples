@@ -13,6 +13,7 @@
 #include "polysync_node.h"
 
 #include "ps_interface.h"
+#include "common.h"
 #include "vehicle_control.h"
 
 
@@ -60,7 +61,7 @@ int calculate_steering_angle_based_on_goal_waypoint(
         waypoint_s currentPosition,
         double * steeringAngle )
 {
-    if( ! goalWaypoint->valid )
+    if( goalWaypoint->valid == 0 )
     {
         return 1;
     }
@@ -72,10 +73,10 @@ int calculate_steering_angle_based_on_goal_waypoint(
             goalWaypoint->y );
     
     double errorInHeading = calculate_smallest_interior_angle( 
-            currentPosition.heading*RAD2DEG, 
-            vehicleToWaypointAngle*RAD2DEG );
+            RAD_2_DEG( currentPosition.heading ), 
+            RAD_2_DEG( vehicleToWaypointAngle ) );
     
-    double lateralError = sin( errorInHeading*DEG2RAD );
+    double lateralError = sin( DEG_2_RAD( errorInHeading ) );
     
     ( *steeringAngle ) = -STEERING_CONTROL_FACTOR*lateralError;
     

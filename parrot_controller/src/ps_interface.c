@@ -94,12 +94,6 @@ static void psync_platform_motion_handler( const ps_msg_type msg_type, const ps_
     {
         return;
     }
-
-    // get source GUID
-    if( psync_message_get_source_guid( message, &src_guid ) != DTC_NONE )
-    {
-        return;
-    }
     
     ps_platform_motion_msg * platform_motion_msg = (ps_platform_motion_msg *) message;
     

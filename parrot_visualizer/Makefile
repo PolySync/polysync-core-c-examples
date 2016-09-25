@@ -1,5 +1,5 @@
 ##########################################################
-# makefile for viewer-lite
+# makefile for parrot-visualizer
 ##########################################################
 
 
@@ -9,7 +9,7 @@ PSYNC_HOME ?= /usr/local/polysync
 OSPL_HOME ?= $(PSYNC_HOME)/utils/x86_64.linux
 
 # target
-TARGET	:= bin/polysync-parrot-visualizer
+TARGET	:= polysync-parrot-visualizer
 
 # sources
 SRCS    :=  src/ps_interface.c \
@@ -40,19 +40,12 @@ INCLUDE	+= -Iinclude
 LIBS	+= -lglut -lGLU -lGL -lX11 -lm -lpolysync_data_model -lpng -lSDL2 -lSDL2_image
 
 #
-all: dirs $(TARGET)
+all: $(TARGET)
 
 #
 ifneq ($(XDEPS),)
 include $(XDEPS)
 endif
-
-# directories
-dirs::
-	mkdir -p doc/html
-	mkdir -p doc/latex
-	mkdir -p doc/pdf
-	mkdir -p bin
 
 #
 $(TARGET): $(OBJS)
@@ -67,22 +60,7 @@ $(DEPS): %.dep: %.c Makefile
 	$(CC) $(CCFLAGS) $(INCLUDE) -MM $< > $@
 
 #
-docs: dirs
-	cd doc && doxygen Doxyfile;
-
-# install to system
-install: all
-	cp $(TARGET) $(PSYNC_HOME)/bin/
-
-#
 clean:
 	-rm -f src/*.o
 	-rm -f src/*.dep
 	-rm -f $(TARGET)
-	-rm -f bin/*
-	-rm -rf doc/html
-	-rm -rf doc/latex
-	-rm -rf doc/pdf
-	-rm -rf ospl-*.log
-	-rm -rf bin/
-	-rm -rf doc/
