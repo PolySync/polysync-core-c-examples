@@ -238,7 +238,7 @@ int main( int argc, char **argv )
     }
 
     // arbitrary large size
-    shdmem_buffer_size = (1280 * 1080 * 3);
+    shdmem_buffer_size = (1980 * 1400 * 4);
 
     // allocate shared memory buffer, enough space for a full raw frame
     if( (shdmem_buffer = malloc( shdmem_buffer_size )) == NULL )
