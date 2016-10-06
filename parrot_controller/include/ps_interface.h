@@ -33,7 +33,7 @@
 
 
 #ifndef PS_INTERFACE_H
-#define	PS_INTERFACE_H
+#define PS_INTERFACE_H
 
 
 

@@ -40,10 +40,17 @@
 
 
 
+/**
+ * @brief Max number of waypoints stored and displayed on screen. [int]
+ *
+ */
+#define MAX_WAYPOINTS (10)
 
-#define MAX_WAYPOINTS 10
-
-#define REACHED_WAYPOINT_DISTANCE 10
+/**
+ * @brief Distance at which the parrot is considered to have arrived at its destination. [int]
+ *
+ */
+#define REACHED_WAYPOINT_DISTANCE (10)
 
 
 
@@ -56,23 +63,37 @@ typedef struct
 {
     //
     //
-    double                      x; /*!< Waypoint X coordinate. */
+    double x; /*!< Waypoint X coordinate. */
     //
     //
-    double                      y; /*!< Waypoint Y coordinate. */
+    double y; /*!< Waypoint Y coordinate. */
     //
     //
-    double                      heading; /*!< Waypoint heading. */
+    double heading; /*!< Waypoint heading. */
     //
     //
-    int                         valid; /*!< Is Waypoint valid */
+    int valid; /*!< Is Waypoint valid */
 } waypoint_s;
 
 
 
-void zero_waypoints( waypoint_s * waypoints );
+/**
+ * @brief Invalidate all waypoints in waypoint array. [void]
+ * 
+ * @param [out] waypoints Pointer to list of waypoints which have been selected by user.
+ *
+ */
+void zero_waypoints( waypoint_s * const waypoints );
 
-void add_new_waypoint( double x, double y, waypoint_s * waypoints );
+/**
+ * @brief Add new waypoint to waypoint array. [void]
+ * 
+ * @param [in] x Coordinate used to add the new waypoint to the array. 
+ * @param [in] y Coordinate used to add the new waypoint to the array. 
+ * @param [out] waypoints Pointer to list of waypoints which have been selected by user.
+ *
+ */
+void add_new_waypoint( const double x, const double y, waypoint_s * const waypoints );
 
 
 

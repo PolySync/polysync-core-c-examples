@@ -52,7 +52,7 @@ double calculate_smallest_interior_angle( double angle1, double angle2 )
 }
 
 
-void init_vehicle_position( vehicle_position_s * vehicle_position )
+void init_vehicle_position( vehicle_position_s * const vehicle_position )
 {
     vehicle_position->x = 0;
     
@@ -250,7 +250,7 @@ void publish_current_vehicle_position(
 }
 
 
-void draw_vehicle_position( vehicle_position_s * vehicle_position, GLuint textureToRender )
+void draw_vehicle_position( vehicle_position_s * const vehicle_position, const GLuint texture_to_render )
 {
     glPushMatrix();
     
@@ -281,7 +281,7 @@ void draw_vehicle_position( vehicle_position_s * vehicle_position, GLuint textur
     
     glRotatef( heading, 0, 0, 1 );
 
-    render_cube_with_texture( textureToRender );
+    render_cube_with_texture( texture_to_render );
 
     glPopMatrix();
 }

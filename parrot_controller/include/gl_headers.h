@@ -33,7 +33,7 @@
 
 
 #ifndef GL_HEADERS_H
-#define	GL_HEADERS_H
+#define GL_HEADERS_H
 
 
 

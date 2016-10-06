@@ -44,16 +44,14 @@
 // *****************************************************
 
 
+
+
 // *****************************************************
 // public definitions
 // *****************************************************
 
 
-void init_render_texture_SDL( 
-        const char * file_name, 
-        int * width, 
-        int * height, 
-        GLuint * image )
+void init_render_texture_SDL( const char * file_name, const int * const width, const int * const height, GLuint * const image )
 {
     glGenTextures( 1, image );
     
@@ -61,7 +59,7 @@ void init_render_texture_SDL(
 }
 
 
-int load_texture( GLuint textbind, const char *filename )
+int load_texture( const GLuint textbind, const char *filename)
 {
     SDL_Surface *s = IMG_Load( filename );
 
@@ -101,7 +99,7 @@ int load_texture( GLuint textbind, const char *filename )
 }
 
 
-void render_cube_with_texture( GLuint texture )
+void render_cube_with_texture( const GLuint texture )
 {    
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     

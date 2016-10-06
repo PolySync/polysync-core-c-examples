@@ -14,11 +14,11 @@
 
 
 
-void init_sliding_filter( sliding_filter_params_s * filter, int slidingArraySize )
+void init_sliding_filter( sliding_filter_params_s * filter, int sliding_array_size )
 {
-    filter->slidingFilterArray = malloc( sizeof( double ) * slidingArraySize );
+    filter->slidingFilterArray = malloc( sizeof( double ) * sliding_array_size );
     
-    filter->slidingFilterArraySize = slidingArraySize;
+    filter->slidingFilterArraySize = sliding_array_size;
     
     filter->numInputsToArray = 0;
 }

@@ -14,7 +14,7 @@
 
 
 
-void zero_waypoints( waypoint_s * waypoints )
+void zero_waypoints( waypoint_s * const waypoints )
 {
     for( int i = 0; i < MAX_WAYPOINTS; i++ )
     {
@@ -23,7 +23,7 @@ void zero_waypoints( waypoint_s * waypoints )
 }
 
 
-void add_new_waypoint( double x, double y, waypoint_s * waypoints )
+void add_new_waypoint( const double x, const double y, waypoint_s * const waypoints )
 {
     int i = 0;
     
@@ -45,7 +45,7 @@ void add_new_waypoint( double x, double y, waypoint_s * waypoints )
 }
 
 
-void draw_waypoints( waypoint_s * waypoints, gui_context_s * gui )
+void draw_waypoints( const waypoint_s * const waypoints, gui_context_s * const gui )
 {
     int i = 0;
     

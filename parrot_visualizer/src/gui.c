@@ -227,7 +227,7 @@ static void on_draw( void )
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     // reset background    
-    glClearColor( 0.1, 0.1, 0.8, 0.0);
+    glClearColor( 0.79, 0.88, 0.93, 0.0);
 
     // reset color
     glColor4d( 1.0, 1.0, 1.0, 1.0 );

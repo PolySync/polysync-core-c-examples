@@ -19,7 +19,7 @@
 
 
 
-double calculate_distance_between_coordinates( double x1, double y1, double x2, double y2 )
+double calculate_distance_between_coordinates( const double x1, const double y1, const double x2, const double y2 )
 {
       	double dx = ( x1 - x2 );
         
@@ -29,7 +29,7 @@ double calculate_distance_between_coordinates( double x1, double y1, double x2, 
 }
 
 
-double calculate_angle_between_coordinates( double x1, double y1, double x2, double y2 )
+double calculate_angle_between_coordinates( const double x1, const double y1, const double x2, const double y2 )
 {
     double dx = x2 - x1;
     
@@ -39,7 +39,7 @@ double calculate_angle_between_coordinates( double x1, double y1, double x2, dou
 }
 
 
-double calculate_smallest_interior_angle( double angle1, double angle2 )
+double calculate_smallest_interior_angle( const double angle1, const double angle2 )
 {
     if ( angle1 < 90 && angle2 > 270 ) 
     {
@@ -57,8 +57,8 @@ double calculate_smallest_interior_angle( double angle1, double angle2 )
 
 
 int calculate_steering_angle_based_on_goal_waypoint( 
-        waypoint_s * goalWaypoint, 
-        waypoint_s currentPosition,
+        const waypoint_s * const goalWaypoint, 
+        const waypoint_s currentPosition,
         double * steeringAngle )
 {
     if( goalWaypoint->valid == 0 )
@@ -84,7 +84,7 @@ int calculate_steering_angle_based_on_goal_waypoint(
 }
 
 
-int findNearestWaypoint( waypoint_s * waypoints, waypoint_s current_position )
+int findNearestWaypoint( waypoint_s * const waypoints, const waypoint_s current_position )
 {
     int index = -1;
     
@@ -118,7 +118,7 @@ int findNearestWaypoint( waypoint_s * waypoints, waypoint_s current_position )
 }
 
 
-int findNextWaypoint( waypoint_s * waypoints, waypoint_s * nextWaypoint, waypoint_s current_position )
+int findNextWaypoint( waypoint_s * const waypoints, waypoint_s * nextWaypoint, const waypoint_s current_position )
 {
     if( waypoints == NULL || nextWaypoint == NULL )
     {
@@ -165,7 +165,7 @@ int findNextWaypoint( waypoint_s * waypoints, waypoint_s * nextWaypoint, waypoin
 }
 
 
-int publish_steering_command( ps_node_ref const node_ref, double commandedSteeringAngle )
+int publish_steering_command( ps_node_ref const node_ref, const double commandedSteeringAngle )
 {
     int ret = DTC_NONE;
     
@@ -275,7 +275,7 @@ int publish_steering_command( ps_node_ref const node_ref, double commandedSteeri
 }
 
 
-int publish_throttle_command( ps_node_ref const node_ref, double commandedThrottle )
+int publish_throttle_command( ps_node_ref const node_ref, const double commandedThrottle )
 {
     int ret = DTC_NONE;
     
@@ -385,8 +385,8 @@ int publish_throttle_command( ps_node_ref const node_ref, double commandedThrott
 }
 
 
-void send_psync_messages_for_vehicle_control( node_data_s * user_data, 
-        waypoint_s * waypoints )
+void send_psync_messages_for_vehicle_control( const node_data_s * const user_data, 
+        waypoint_s * const waypoints )
 {
     // local vars
     node_data_s     *node_data  = NULL;

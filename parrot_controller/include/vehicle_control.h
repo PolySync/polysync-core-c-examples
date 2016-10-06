@@ -44,18 +44,40 @@
 
 
 
+/**
+ * @brief Proportional control factor used to do steering control. [int]
+ *
+ */
+#define STEERING_CONTROL_FACTOR (2000)
 
-#define STEERING_CONTROL_FACTOR 2000
+/**
+ * @brief Default throttle for vehicle control. [int]
+ *
+ */
+#define DEFAULT_THROTTLE (5)
 
-#define DEFAULT_THROTTLE 5
-
+/**
+ * @brief String name for steering command msg. [int]
+ *
+ */
 #define STEERING_CMD_MSG_NAME "ps_platform_steering_command_msg" 
 
+/**
+ * @brief String name for throttle command msg. [int]
+ *
+ */
 #define THROTTLE_CMD_MSG_NAME "ps_platform_throttle_command_msg"
 
 
 
-void send_psync_messages_for_vehicle_control( node_data_s * user_data, waypoint_s * waypoints );
+/**
+ * @brief Send steering and throttle messages for vehicle control.
+ * 
+ * @param [in] user_data Pointer to struct which contains global variables for this application.
+ * @param [out] waypoints Pointer to list of waypoints which have been selected by user.
+ *
+ */
+void send_psync_messages_for_vehicle_control( const node_data_s * const user_data, waypoint_s * const waypoints );
 
 
 #endif /* VEHICLE_CONTROL_H */

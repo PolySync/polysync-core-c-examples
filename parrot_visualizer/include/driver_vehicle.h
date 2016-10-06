@@ -43,13 +43,29 @@
 #include "sliding_filter.h"
 
 
-#define HEADING_SLIDING_AVG_SIZE 1000
+/**
+ * @brief Size of array to do use for sliding average. [int]
+ *
+ */
+#define HEADING_SLIDING_AVG_SIZE (1000)
 
+/**
+ * @brief Conversion factor to go from steering wheel angle to wheel angle. [double]
+ *
+ */
 #define STEERING_CONVERSION_FACTOR (40.0/360.0)
 
-#define STEERING_GAIN 0.0005
+/**
+ * @brief Proprotional gain for steering control. [double]
+ *
+ */
+#define STEERING_GAIN (0.0005)
 
-#define THROTTLE_GAIN 0.001
+/**
+ * @brief Proprotional gain for throttle control. [double]
+ *
+ */
+#define THROTTLE_GAIN (0.001)
 
 
 typedef struct
@@ -89,9 +105,23 @@ typedef struct
 } vehicle_commands_s;
 
 
-void init_vehicle_position( vehicle_position_s * vehicle_position );
+/**
+ * @brief Initialize the struct that contains current vehicle position.
+ *
+ * @param [in] vehicle_position Struct that contains the current vehicle position.
+ *
+ */
+void init_vehicle_position( vehicle_position_s * const vehicle_position );
 
-void draw_vehicle_position( vehicle_position_s * vehicle_position, GLuint textureToRender );
+
+/**
+ * @brief Draw the vehicle position given a texture to render in place.
+ *
+ * @param [in] vehicle_position Struct that contains the current vehicle position.
+ * @param [in] texture_to_render Texture to render at the current vehicle position.
+ *
+ */
+void draw_vehicle_position( vehicle_position_s * const vehicle_position, const GLuint texture_to_render );
 
 
 #endif /* DRIVER_VEHICLE_H */

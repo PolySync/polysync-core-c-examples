@@ -41,14 +41,42 @@
 #include "gl_headers.h"
 
 
-#define HALF_CUBE_WIDTH 35
+/**
+ * @brief Half size of cube to render texture on. [int]
+ *
+ */
+#define HALF_CUBE_WIDTH (35)
 
 
-void init_render_texture_SDL( const char * file_name, int * width, int * height, GLuint * image );
+/**
+ * @brief Setup the infrastructure to render texture using SDL and openGL.
+ *
+ * @param [in] file_name File name of texture to be rendered.
+ * @param [in] width Width of image.
+ * @param [in] height Height of image.
+ * @param [out] image Reference number of texture to be rendered.
+ *
+ */
+void init_render_texture_SDL( const char * file_name, const int * const width, const int * const height, GLuint * const image );
 
-int load_texture(GLuint textbind, const char *filename);
+/**
+ * @brief Load texture from file.
+ *
+ * @param [in] textbind Reference number of texture to be rendered.
+ * @param [in] filename Name of file which contains image to render to texture.
+ * 
+ * @return Error on failure, success on not failure.
+ *
+ */
+int load_texture( const GLuint textbind, const char *filename);
 
-void render_cube_with_texture( GLuint texture );
+/**
+ * @brief Render a cube with the texture on top.
+ *
+ * @param [in] texture Texture to be rendered on cube.
+ *
+ */
+void render_cube_with_texture( const GLuint texture );
 
 
 

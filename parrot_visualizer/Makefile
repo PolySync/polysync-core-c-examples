@@ -64,3 +64,4 @@ clean:
 	-rm -f src/*.o
 	-rm -f src/*.dep
 	-rm -f $(TARGET)
+	-rm -f ospl*

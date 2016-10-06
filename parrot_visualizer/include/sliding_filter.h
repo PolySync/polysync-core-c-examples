@@ -49,11 +49,33 @@ typedef struct
 
 
 
-void init_sliding_filter( sliding_filter_params_s * filter, int slidingArraySize );
+/**
+ * @brief Initialize the sliding filter. 
+ *
+ * @param [out] filter Pointer to sliding filter.
+ * @param [in] sliding_array_size Size of sliding array.
+ *
+ */
+void init_sliding_filter( sliding_filter_params_s * filter, const int sliding_array_size );
 
+/**
+ * @brief Delete the sliding filter. 
+ *
+ * @param [out] filter Pointer to sliding filter.
+ *
+ */
 void delete_sliding_array( sliding_filter_params_s * filter );
 
-double input_to_sliding_filter( sliding_filter_params_s * filter, double input );
+/**
+ * @brief Input value to sliding filter. 
+ *
+ * @param [out] filter Pointer to sliding filter.
+ * @param [in] input Input to add to sliding filter.
+ * 
+ * @return Result of doing a sliding average on the sliding filter array.
+ *
+ */
+double input_to_sliding_filter( sliding_filter_params_s * const filter, const double input );
 
 
 
