@@ -81,12 +81,12 @@ static const ps_timestamp WRITE_FREQ = 10;
 
 
 /**
- * @brief TODO message type name.
+ * @brief Record and Replay (RnR) message type name.
  *
  */
 static const char RNR_MSG_NAME[] = "ps_rnr_msg";
 
-#warning "TODO - docs on these constants and docs on declarations/updates"
+
 /**
  * @brief Event message type name.
  *
@@ -94,7 +94,12 @@ static const char RNR_MSG_NAME[] = "ps_rnr_msg";
 static const char EVENT_MSG_NAME[] = "ps_event_msg";
 
 
-//
+/**
+ * @brief Global message handler queue.
+ *
+ * Used to provide messages to the main() context from the callback handler.
+ *
+ */
 static GAsyncQueue *msg_handler_queue = NULL;
 
 
