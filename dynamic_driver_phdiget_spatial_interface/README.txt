@@ -60,3 +60,21 @@ polysync/dynamic_driver/
 ├── lib
 └── README.txt
 
+
+======================================================
+Building
+======================================================
+
+* To build the full project, first build the HAL (drivers) then the PAL (interfaces)
+
+1. Build the Hardware Abstraction Layer (HAL)
+
+$ cd drivers/phidet_spatial
+$ make
+
+2. Build the PolySync Abstraction Layer (PAL)
+
+$ cd interfaces/phidget_spatial
+$ make
+$ make install   # installs to PSYNC_HOME/lib/ 
+
