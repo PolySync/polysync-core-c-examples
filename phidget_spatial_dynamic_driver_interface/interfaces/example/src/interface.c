@@ -27,7 +27,7 @@
 #include "polysync_core.h"
 #include "polysync_node.h"
 #include "polysync_sdf.h"
-#include "util.h"
+#include "polysync_interface_util.h"
 #include "polysync_dynamic_interface.h"
 
 
