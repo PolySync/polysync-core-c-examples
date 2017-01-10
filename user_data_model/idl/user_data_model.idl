@@ -3,6 +3,12 @@
  * @brief PolySync User Data Model Example Module.
  *
  * Notes:
+ * 
+ * When used to generate a C++ API( with the '-c' flag), the tool polysync-pdm-gen
+ * will camel case types defined here. To avoid name collisions in C and C++ APIs 
+ * the tool prefers snake case in the IDL files, i.e. 'my_custom_type'. 
+ * If a type defined here uses camel case, i.e. 'MyCustomType', the generated symbol 
+ * will have '_cpp' appended to it to avoid collisions. For example 'MyCustomType_cpp'.
  *
  * Three global constants are required for all IDL data model modules and they 
  * must correspond directly with the IDL file name. 
