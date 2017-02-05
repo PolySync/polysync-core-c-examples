@@ -8,6 +8,9 @@ It has a built in system/node management tool to dynamically handle nodes coming
 ### Hardware requirements
 
 ### Dependencies
+Packages: libglib2.0-dev freeglut3-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash
