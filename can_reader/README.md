@@ -1,5 +1,5 @@
 
-### CAN reader
+### can_reader
 Using the PolySync state machine this example does a simple CAN read in OK the state.
 This example will give you experience for the times you need a node to listen to a CAN channel.
 

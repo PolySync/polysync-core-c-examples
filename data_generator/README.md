@@ -1,4 +1,4 @@
-### Data generator
+### data_generator
 This example covers how to populate and publish data from a single node into a PolySync message on the bus, 
 enable multiple nodes to subscribe to messages to access data asynchronously, and visualize all data being 
 published to the PolySync bus.

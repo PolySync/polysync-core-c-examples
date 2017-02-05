@@ -1,4 +1,4 @@
-### Joystick Commander
+### joystick_commander
 This example shows you how to use a joystick to control a vehicle.  If you want to start controlling a vehicle
 this is the best place to start.  
 

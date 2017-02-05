@@ -1,4 +1,4 @@
-### File transfers
+### file_transfer
 This example shows you how to use the PolySync file transfer API to transfer files.  It transfers
 the PolySync EULA.txt file to a destination location.
 

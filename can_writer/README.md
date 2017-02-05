@@ -1,5 +1,5 @@
 
-### CAN writer
+### can_writer
 Using the PolySync state machine this example does a simple CAN read in OK the state.
 This example will give you experience for the times you need a node to publish data to a CAN channel.
 
