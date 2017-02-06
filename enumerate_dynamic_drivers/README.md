@@ -1,13 +1,20 @@
 ### Enumerate dynamic drivers
+
 This example publishes a `ps_command_msg` to enumerate any dynamic drivers connected to the
-PolySync bus.  All dynamic drivers that include their node ID's and guids will receive a `ps_response_msg`.
+PolySync bus.  All dynamic drivers that have a GUID and valid node ID from the SDF Configurator will receive all `ps_response_msg`s that are published to the bus.
 
 ### Dependencies
+
 Packages: libglib2.0-dev
-To install on Ubuntu
-`sudo apt-get install <package>`
+
+To install on Ubuntu: 
+
+```bash
+sudo apt-get install <package>
+```
 
 ### Building and Running the Node
+
 ```bash
 $ cd data_generator
 $ make

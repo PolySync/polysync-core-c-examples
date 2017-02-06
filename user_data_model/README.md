@@ -1,14 +1,21 @@
 ### user_data_model
-This is a use-case example for modifying and regenerating the PolySync data model using `pdm-gen`, a provided tool
-An example exists for this in the Help Center
-For more information see: [Extending The Data Model](https://help.polysync.io/articles/development/application-development/extending-the-data-model/)
+
+This is a use-case example for modifying and regenerating the PolySync data model using the provided `pdm-gen` tool.
+
+For more information see: [Extending The Data Model](https://help.polysync.io/articles/development/application-development/extending-the-data-model/).
 
 ### Dependencies
+
 Packages: libglib2.0-dev
-To install on Ubuntu
-`sudo apt-get install <package>`
+
+To install on Ubuntu: 
+
+```bash
+sudo apt-get install <package>
+```
 
 ### Building and Running the Node
+
 ```bash
 $ cd user_data_model
 $ make

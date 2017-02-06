@@ -1,13 +1,21 @@
 ### socket_writer
-This is a simple example to show UDP socket communication in PS, using the PS socket API
-It writes from UDP socket using API calls and socket class
+
+This is a simple example to show UDP socket communication in PolySync, using the Socket API.
+
+This example writes data to a UDP socket.
 
 ### Dependencies
-Packages: libglib2.0-dev freeglut3-dev
-To install on Ubuntu
-`sudo apt-get install <package>`
+
+Packages: libglib2.0-dev
+
+To install on Ubuntu: 
+
+```bash
+sudo apt-get install <package>
+```
 
 ### Building and Running the Node
+
 ```bash
 $ cd socket_writer
 $ make

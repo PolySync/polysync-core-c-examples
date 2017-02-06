@@ -1,15 +1,23 @@
 ### parrot_controller
-This is a simple example to demonstrate how one would send control commands to a vehicle in PolySync
-Receives platform motion messages which indicate parrot position, and calculates `ps_platform_steering_command_msg`, and `ps_platform_throttle_command_msg` commands to get the parrot to waypoints designated on screen. 
+
+This is an example to demonstrate how to send high level control commands to a vehicle in PolySync.
+
+This example receives platform motion messages which indicate the parrots position, and calculates `ps_platform_steering_command_msg`, and `ps_platform_throttle_command_msg` commands to get the parrot to waypoints designated on screen from the `parrot_visualizer` example. 
 
 For more detailed information look at the [Vehicle Control Tutorial](https://help.polysync.io/articles/tutorials-and-examples/tutorials/vehicle-control-tutorial/)
 
 ### Dependencies
+
 Packages: libglib2.0-dev
-To install on Ubuntu
-`sudo apt-get install <package>`
+
+To install on Ubuntu: 
+
+```bash
+sudo apt-get install <package>
+```
 
 ### Building and Running the Node
+
 ```bash
 $ cd parrot_controller
 $ make

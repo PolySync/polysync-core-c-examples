@@ -1,17 +1,25 @@
 
 ### can_writer
-Using the PolySync state machine this example does a simple CAN read in OK the state.
+
+Using the PolySync state machine this example does a simple CAN write in OK the state.
 This example will give you experience for the times you need a node to publish data to a CAN channel.
 
 ### Hardware requirements
+
 - linuxcan-compatible hardware is connected, i.e. a Kvaser Leaf Light
 
 ### Dependencies
+
 Packages: libglib2.0-dev
-To install on Ubuntu
-`sudo apt-get install <package>`
+
+To install on Ubuntu: 
+
+```bash
+sudo apt-get install <package>
+```
 
 ### Building and Running the Node
+
 ```bash
 $ cd can_writer
 $ make
