@@ -1,8 +1,8 @@
 
 ### can_writer
 
-Using the PolySync state machine this example does a simple CAN write in OK the state.
-This example will give you experience for the times you need a node to publish data to a CAN channel.
+Using the PolySync state machine, this example does a simple CAN write in the OK state.
+This example also acts as a guide for when you need a node to publish data to a CAN channel.
 
 ### Hardware requirements
 
@@ -18,7 +18,7 @@ To install on Ubuntu:
 sudo apt-get install <package>
 ```
 
-### Building and Running the Node
+### Building and running the node
 
 ```bash
 $ cd can_writer
