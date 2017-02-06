@@ -7,9 +7,9 @@ If you want to create a high level control node to command a vehicle, this is th
 This example sends `ps_platform_brake_command_msg`,  `ps_platform_steering_command_msg`, and 
 `ps_platform_throttle_command_msg` out on the PS bus at 50Hz.
 
-The actuation commands are calculated from the joystick and trigger button positions for steering, brake and throttle control.
+The actuation commands are calculated from the joystick and trigger button positions for steering, brake, and throttle control.
   
-It also can do high level management of control states; “enables” and "disables" vehicle control.
+It can also do high level management of control states; “enables” and "disables" vehicle control.
 
 ### Dependencies
 
@@ -21,7 +21,7 @@ To install on Ubuntu:
 sudo apt-get install <package>
 ```
 
-### Building and Running the Node
+### Building and running the node
 
 ```bash
 $ cd joystick_commander
@@ -29,4 +29,4 @@ $ make
 $ ./bin/polysync-joystick-commander 
 ```
 
-For more API examples visit the "Turorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/)
+For more API examples, visit the "Tutorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/).
