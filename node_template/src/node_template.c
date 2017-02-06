@@ -59,7 +59,7 @@
 /**
  * @brief Node flags to be OR'd with driver/interface flags.
  *
- * Provided by the compiler so Harbrick can add build-specifics as needed.
+ * Provided by the compiler so PolySync can add build-specifics as needed.
  *
  */
 #ifndef NODE_FLAGS_VALUE

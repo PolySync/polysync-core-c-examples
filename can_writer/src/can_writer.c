@@ -14,7 +14,7 @@
  * all copies or substantial portions of the Software.
  *
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * THE SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -62,7 +62,7 @@
 /**
  * @brief Node flags to be OR'd with driver/interface flags.
  *
- * Provided by the compiler so Harbrick can add build-specifics as needed.
+ * Provided by the compiler so PolySync can add build-specifics as needed.
  *
  */
 #ifndef NODE_FLAGS_VALUE
@@ -108,7 +108,7 @@ static const char NODE_NAME[] = "polysync-can-writer-c";
  * @note Returning a DTC other than DTC_NONE will cause the node to transition
  * into the fatal state and terminate.
  *
- * @param [in] node_config A pointer to \ref ps_node_configuration_data which specifies the configuration.
+ * @param [in] node_config A pointer to \ref ps_node_configuration_data, which specifies the configuration.
  *
  * @return DTC code:
  * \li \ref DTC_NONE (zero) if success.
@@ -124,7 +124,7 @@ static int set_configuration(
  * Called once after node transitions into the INIT state.
  *
  * @param [in] node_ref Node reference, provided by node template API.
- * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
+ * @param [in] state A pointer to \ref ps_diagnostic_state, which stores the current state of the node.
  * @param [in] user_data A pointer to user data, provided by user during configuration.
  *
  */
@@ -140,7 +140,7 @@ static void on_init(
  * Called once on node exit.
  *
  * @param [in] node_ref Node reference, provided by node template API.
- * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
+ * @param [in] state A pointer to \ref ps_diagnostic_state, which stores the current state of the node.
  * @param [in] user_data A pointer to user data, provided by user during configuration.
  *
  */
@@ -156,7 +156,7 @@ static void on_release(
  * Called continously while in ERROR state.
  *
  * @param [in] node_ref Node reference, provided by node template API.
- * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
+ * @param [in] state A pointer to \ref ps_diagnostic_state, which stores the current state of the node.
  * @param [in] user_data A pointer to user data, provided by user during configuration.
  *
  */
@@ -172,7 +172,7 @@ static void on_error(
  * Called once after node transitions into the FATAL state before terminating.
  *
  * @param [in] node_ref Node reference, provided by node template API.
- * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
+ * @param [in] state A pointer to \ref ps_diagnostic_state, which stores the current state of the node.
  * @param [in] user_data A pointer to user data, provided by user during configuration.
  *
  */
@@ -188,7 +188,7 @@ static void on_fatal(
  * Called continously while in WARN state.
  *
  * @param [in] node_ref Node reference, provided by node template API.
- * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
+ * @param [in] state A pointer to \ref ps_diagnostic_state, which stores the current state of the node.
  * @param [in] user_data A pointer to user data, provided by user during configuration.
  *
  */
@@ -204,7 +204,7 @@ static void on_warn(
  * Called continously while in OK state.
  *
  * @param [in] node_ref Node reference, provided by node template API.
- * @param [in] state A pointer to \ref ps_diagnostic_state which stores the current state of the node.
+ * @param [in] state A pointer to \ref ps_diagnostic_state, which stores the current state of the node.
  * @param [in] user_data A pointer to user data, provided by user during configuration.
  *
  */
