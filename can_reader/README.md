@@ -27,4 +27,4 @@ $ make
 $ ./bin/polysync-can-reader-c 1
 ```
 
-For more API examples visit the "Tutorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/).
+For more API examples, visit the "Tutorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/).
