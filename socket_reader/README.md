@@ -2,9 +2,10 @@
 This is a simple example to show UDP socket communication in PolySync, using the PS socket API.
 It reads from UDP socket using API calls and socket class.
 
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev freeglut3-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

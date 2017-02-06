@@ -9,10 +9,10 @@ Includes:
    On_warn: called continuously when the system is in the warn state.
    On_ok: called continuously when the system is in an ok state. This is where the main code of the node should go; to be executed when everything is operating properly.
 
-
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

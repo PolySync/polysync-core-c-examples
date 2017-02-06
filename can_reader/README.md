@@ -7,6 +7,9 @@ This example will give you experience for the times you need a node to listen to
 - linuxcan-compatible hardware is connected, i.e. a Kvaser Leaf Light
 
 ### Dependencies
+Packages: libglib2.0-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

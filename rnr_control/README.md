@@ -3,10 +3,10 @@ Rnr_control is more of a tool than an example; it exposes much of the functional
 As an example this code exposes to the user how to properly access the rnr APIs functionality.
 The help output of this tool is the most effective reference for its capabilities.
 
-
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

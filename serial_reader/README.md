@@ -4,9 +4,10 @@ This example creates and reads data through a serial connection, to a hardware d
 It exercises the Serial API.
 It pairs nicely with the `serial_writer` example.
 
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

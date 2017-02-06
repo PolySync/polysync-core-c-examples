@@ -10,10 +10,10 @@ a message type doesn’t mean it logs that same message type.
 For example most CAN drivers log with `ps_can_frame_msg` but publish `ps_radar_targets_msg`, `ps_objects_msg` etc. 
 This results in them trying to cast new logfile frames to `ps_radar_targets_msg` etc instead of their actual format.
 
-### Hardware requirements
-
 ### Dependencies
-
+Packages: libglib2.0-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

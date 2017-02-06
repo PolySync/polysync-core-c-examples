@@ -4,9 +4,10 @@ Receives platform motion messages which indicate parrot position, and calculates
 
 For more detailed information look at the [Vehicle Control Tutorial](https://help.polysync.io/articles/tutorials-and-examples/tutorials/vehicle-control-tutorial/)
 
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

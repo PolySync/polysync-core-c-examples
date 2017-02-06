@@ -3,9 +3,10 @@ This is a use-case example for modifying and regenerating the PolySync data mode
 An example exists for this in the Help Center
 For more information see: [Extending The Data Model](https://help.polysync.io/articles/development/application-development/extending-the-data-model/)
 
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

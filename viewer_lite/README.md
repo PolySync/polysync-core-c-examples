@@ -6,6 +6,8 @@ The graphics were built with OpenGL and are very extendable.
 It has a built in system/node management tool to dynamically handle nodes coming on/off bus.
 
 ### Hardware requirements
+Sensors: LiDAR, RADAR
+Video Device
 
 ### Dependencies
 Packages: libglib2.0-dev freeglut3-dev

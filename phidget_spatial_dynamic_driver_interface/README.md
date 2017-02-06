@@ -5,9 +5,10 @@ Defines a Hardware Abstraction Layer (HAL)
 Defines a PolySync Abstraction Layer (PAL)
 For more information see [Creating A Dynamic Driver Interface Workflow](https://help.polysync.io/articles/development/dynamic-driver-hw-interface-development/creating-a-dynamic-driver-interface/)
 
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 * To build the full project, first build the HAL (drivers) then the PAL (interfaces)

@@ -7,10 +7,10 @@ Steps to run:
    2. Compile
    3. Run
 
-
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

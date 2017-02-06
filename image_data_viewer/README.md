@@ -1,14 +1,17 @@
 ### image_data_viewer
-This example shows you how to use the get/set API to modify node parameters.  It uses the `ps_parameters_msg`
-to get all parameters from all nodes on the bus.  It also receives a response `ps_parameters_msg` in a callback and
-prints the resulting parameters.
+This is an example that uses opengl to enable a lightweight application for viewing video data.
+It receives `ps_image_data_msg` from a node publishing to the bus.
+It renders the image data contained in `ps_image_data_msg` using opengl libraries.
+It binds to the first image data publisher it finds.
+It Expects XXXXX pixel format.
 
 ### Hardware requirements
+Video device
 
 ### Dependencies
-Install Dependencies
-`$ sudo apt-get install libgtk2.0-dev`
-`$ sudo apt-get install freeglut3-dev`
+Packages: libglib2.0-dev freeglut3-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

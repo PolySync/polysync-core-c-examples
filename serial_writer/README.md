@@ -3,9 +3,10 @@ You would use this as a reference if you needed a node to talk directly to a dev
 It pairs nicely with the `serial_reader` example.
 This example creates and writes data to a serial connection, to a hardware device, or another software application
 
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

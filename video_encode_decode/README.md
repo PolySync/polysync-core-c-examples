@@ -6,8 +6,12 @@ This DOES NOT connect to a node defined in the SDF, it connects directly to the 
 It expects XXXXX pixel format
 
 ### Hardware requirements
+Video Device:  USB webcam
 
 ### Dependencies
+Packages: libglib2.0-dev libgstreamer1.0-0
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

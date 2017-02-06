@@ -5,9 +5,10 @@ It publishes back platform motion messages to indicate parrot position.
 
 For more detailed information look at the [Vehicle Control Tutorial](https://help.polysync.io/articles/tutorials-and-examples/tutorials/vehicle-control-tutorial/)
 
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev freeglut3-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

@@ -3,9 +3,10 @@ This example shows you how to use the get/set API to modify node parameters.  It
 to get all parameters from all nodes on the bus.  It also receives a response `ps_parameters_msg` in a callback and
 prints the resulting parameters.
 
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

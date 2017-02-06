@@ -4,11 +4,10 @@ It uses the logfile iterator method to traverse an existing `plog` file.
 The PCAP file can be opened with the Velodyne VeloView application.
 The tool can be tweaked to convert other data to PCAP format, and to work with other sensors.
 
-
-
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev libpcap-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

@@ -4,9 +4,10 @@ It is an example of a node which listens and responds to the `ps_rnr_msg` messag
 You would use this example if you needed a node to log incoming messages (that it’s subscribed to), to be able to replay later
    PolySync provides the dynamic drivers that record sensor data, but you may also want to record the algorithm inputs/outputs for reasons
 
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash

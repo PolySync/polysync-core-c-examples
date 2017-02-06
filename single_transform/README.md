@@ -2,10 +2,10 @@
 This example demonstrates PolySync transform API usage.
 It pushes a transform to the stack and then shows resulting transformation.
 
-
-### Hardware requirements
-
 ### Dependencies
+Packages: libglib2.0-dev freeglut3-dev
+To install on Ubuntu
+`sudo apt-get install <package>`
 
 ### Building and Running the Node
 ```bash
