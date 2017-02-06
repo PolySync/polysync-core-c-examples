@@ -2,9 +2,9 @@
 
 This is an example of a node that uses the Logfile API routines to replay a PolySync logfile using the message queue instead of subscribing to a high-level PolySync message type.
 
-This node accesses the raw, non-abstracted `plog` data, and leverging the dynamic driver Hardware Abstraction Layer (HAL) header file to cast the raw data to low-level OEM defined C structs.
+This node accesses the raw, non-abstracted `plog` data, and leverages the dynamic driver Hardware Abstraction Layer (HAL) header file to cast the raw data to low-level OEM defined C structs.
 
-This is example is useful when you want to access the raw sensor data, just as it was sent on the wire, before the dynamic driver processes and abstracts the data
+This example also acts as a guide for when you want to access the raw sensor data, just as it was sent on the wire, before the dynamic driver processes and abstracts the data.
 
    {{% note %}} This does not effect the functionality of the dynamic driver, it will still process and publish the high-level message types, as defined in the SDF Configurator node entry. {{% /note %}}
 
@@ -20,7 +20,7 @@ To install on Ubuntu:
 sudo apt-get install <package>
 ```
 
-### Building and Running the Node
+### Building and running the node
 
 ```bash
 $ cd logfile_queue_reader
@@ -28,4 +28,4 @@ $ make
 $ ./bin/polysync-logfile-queue-reader-c 
 ```
 
-For more API examples visit the "Turorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/)
+For more API examples, visit the "Tutorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/).
