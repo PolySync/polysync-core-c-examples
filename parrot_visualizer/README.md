@@ -1,12 +1,12 @@
 ### parrot_visualizer
 
-This is a simple example to “simulate” how a vehicle would respond to actuation commands in PolySync.
+This is a simple example that “simulates” how a vehicle would respond to actuation commands in PolySync.
 
-Receives `ps_platform_steering_command_msg`, `ps_platform_throttle_command_msg`, and actuates the parrot as specified.
+It receives both `ps_platform_steering_command_msg` and `ps_platform_throttle_command_msg`, and actuates the parrot as specified.
 
-It publishes back platform motion messages to indicate the parrots position. It depends on the `parrot_controller` example running.
+It publishes back platform motion messages to indicate the parrot's position. It depends on the `parrot_controller` example running.
 
-For more detailed information look at the [Vehicle Control Tutorial](https://help.polysync.io/articles/tutorials-and-examples/tutorials/vehicle-control-tutorial/)
+For more detailed information, look at the [Vehicle Control Tutorial](https://help.polysync.io/articles/tutorials-and-examples/tutorials/vehicle-control-tutorial/).
 
 ### Dependencies
 
@@ -18,7 +18,7 @@ To install on Ubuntu:
 sudo apt-get install <package>
 ```
 
-### Building and Running the Node
+### Building and running the node
 
 ```bash
 $ cd parrot_visualizer
@@ -26,4 +26,4 @@ $ make
 $ ./polysync-parrot-visualizer
 ```
 
-For more API examples visit the "Turorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/)
+For more API examples, visit the "Tutorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/).
