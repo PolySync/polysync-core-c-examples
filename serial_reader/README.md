@@ -17,7 +17,7 @@ To install on Ubuntu:
 sudo apt-get install <package>
 ```
 
-### Building and Running the Node
+### Building and running the node
 
 ```bash
 $ cd serial_reader
@@ -25,4 +25,4 @@ $ make
 $ ./bin/polysync-serial-reader-c 
 ```
 
-For more API examples visit the "Turorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/)
+For more API examples, visit the "Tutorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/).
