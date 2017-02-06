@@ -1,6 +1,6 @@
 ### socket_writer
 
-This is a simple example to show UDP socket communication in PolySync, using the Socket API.
+This is a simple example to show UDP socket communication in PolySync when using the Socket API.
 
 This example writes data to a UDP socket.
 
@@ -14,7 +14,7 @@ To install on Ubuntu:
 sudo apt-get install <package>
 ```
 
-### Building and Running the Node
+### Building and running the mode
 
 ```bash
 $ cd socket_writer
@@ -22,4 +22,4 @@ $ make
 $ ./bin/polysync-socket-writer-c 
 ```
 
-For more API examples visit the "Turorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/)
+For more API examples, visit the "Tutorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/).
