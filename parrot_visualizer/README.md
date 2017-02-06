@@ -10,7 +10,7 @@ For more detailed information, look at the [Vehicle Control Tutorial](https://he
 
 ### Dependencies
 
-Packages: libglib2.0-dev freeglut3-dev
+Packages: libglib2.0-dev freeglut3-dev libsdl2-dev libsdl2-image-dev
 
 To install on Ubuntu: 
 
