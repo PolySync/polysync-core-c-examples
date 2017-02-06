@@ -2,7 +2,7 @@
 
 This example demonstrates PolySync Transform API usage. 
 
-It pushes a transform to the stack and then shows resulting transformation. You would use this code if you need to handle stack transformations in your applications.
+It pushes a transform to the stack and then shows the resulting transformation. You would use this code if you need to handle stack transformations in your applications.
 
 ### Dependencies
 
@@ -14,7 +14,7 @@ To install on Ubuntu:
 sudo apt-get install <package>
 ```
 
-### Building and Running the Node
+### Building and running the node
 
 ```bash
 $ cd single_transform
@@ -22,4 +22,4 @@ $ make
 $ ./bin/polysync-single-transform-c 
 ```
 
-For more API examples visit the "Turorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/)
+For more API examples, visit the "Tutorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/).
