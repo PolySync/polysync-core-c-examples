@@ -93,10 +93,6 @@ $(DEPS): %.dep: %.c Makefile
 dirs::
 	mkdir -p $(LIB_DIR)
 
-# install to system
-install: all
-	cp $(TARGET) $(PSYNC_HOME)/lib/
-
 # clean
 clean::
 	rm -f src/*.o

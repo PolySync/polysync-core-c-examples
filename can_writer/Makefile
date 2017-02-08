@@ -52,10 +52,6 @@ $(OBJS): %.o: %.c %.dep
 $(DEPS): %.dep: %.c Makefile
 	$(CC) $(CCFLAGS) $(INCLUDE) -MM $< > $@
 
-# install to system
-install: all
-	cp $(TARGET) $(PSYNC_HOME)/bin/
-
 #
 clean:
 	-rm -f src/*.o

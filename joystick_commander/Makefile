@@ -61,10 +61,6 @@ dirs::
 	mkdir -p bin
 	mkdir -p doc/html
 
-# install to system
-install: all
-	-cp $(TARGET) $(PSYNC_HOME)/bin/
-
 # clean
 clean::
 	rm -f src/*.o

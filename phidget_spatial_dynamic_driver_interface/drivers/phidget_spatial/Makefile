@@ -73,10 +73,6 @@ dirs::
 	mkdir -p $(BUILD_DIR)/bin
 	mkdir -p $(LIB_DIR)
 
-# install to system
-install: all
-	cp $(TARGET) $(PSYNC_HOME)/lib/
-
 # tests
 test:: dirs
 	$(CC) $(CCFLAGS) $(INCLUDE) -I$(BUILD_HOME)/tests/tools -o $(TEST_INTERFACE_TARGET) src/phidget_spatial_test_interface.c $(TARGET) $(LIBS) -lphidget21
