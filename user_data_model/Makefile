@@ -61,7 +61,7 @@ $(DEPS): %.dep: %.c Makefile
 
 # add our example module to the complete data model
 build-pdm:
-	$(PSYNC_HOME)/bin/pdm-gen \
+	$(PSYNC_HOME)/bin/pdm-gen -c \
 	$(PSYNC_HOME)/modules/dtc/dtc.idl \
 	$(PSYNC_HOME)/modules/sensor/sensor.idl \
 	$(PSYNC_HOME)/modules/navigation/navigation.idl \
@@ -72,16 +72,16 @@ build-pdm:
 
 # install our example data model into the system
 install-pdm:
-	cp pdm/*.so $(PSYNC_HOME)/lib/
-	cp pdm/*.h $(PSYNC_HOME)/pdm/
-	cp pdm/*.hpp $(PSYNC_HOME)/pdm/
+	sudo cp -a pdm/*.so* /usr/lib/
+	sudo cp pdm/*.h $(PSYNC_HOME)/pdm/
+	sudo cp pdm/*.hpp $(PSYNC_HOME)/pdm/
 
 # install to system
 install: all
-	cp $(TARGET) $(PSYNC_HOME)/bin/
-	cp pdm/*.so $(PSYNC_HOME)/lib/
-	cp pdm/*.h $(PSYNC_HOME)/pdm/
-	cp pdm/*.hpp $(PSYNC_HOME)/pdm/
+	sudo cp $(TARGET) $(PSYNC_HOME)/bin/
+	sudo cp -a pdm/*.so* /usr/lib/
+	sudo cp pdm/*.h $(PSYNC_HOME)/pdm/
+	sudo cp pdm/*.hpp $(PSYNC_HOME)/pdm/
 
 #
 clean:
