@@ -16,9 +16,9 @@ sudo apt-get install <package>
 ### Building and running the node
 
 ```bash
-$ cd data_generator
+$ cd enumerate_dynamic_drivers
 $ make
-$ ./bin/polysync-data-generator-c
+$ ./bin/polysync-enumerate-dynamic-drivers
 ```
 
 For more API examples, visit the "Tutorials" and "Development" sections in the PolySync Help Center [here](https://help.polysync.io/articles/).
