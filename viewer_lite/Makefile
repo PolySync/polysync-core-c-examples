@@ -74,10 +74,6 @@ $(DEPS): %.dep: %.c Makefile
 docs: dirs
 	cd doc && doxygen Doxyfile;
 
-# install to system
-install: all
-	cp $(TARGET) $(PSYNC_HOME)/bin/
-
 #
 clean:
 	-rm -f src/*.o

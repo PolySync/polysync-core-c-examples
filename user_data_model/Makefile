@@ -67,21 +67,9 @@ build-pdm:
 	$(PSYNC_HOME)/modules/navigation/navigation.idl \
 	$(PSYNC_HOME)/modules/control/control.idl \
 	idl/user_data_model.idl > pdm/version.txt
+
 # show the results
 	cat pdm/error.log
-
-# install our example data model into the system
-install-pdm:
-	sudo cp -a pdm/*.so* /usr/lib/
-	sudo cp pdm/*.h $(PSYNC_HOME)/pdm/
-	sudo cp pdm/*.hpp $(PSYNC_HOME)/pdm/
-
-# install to system
-install: all
-	sudo cp $(TARGET) $(PSYNC_HOME)/bin/
-	sudo cp -a pdm/*.so* /usr/lib/
-	sudo cp pdm/*.h $(PSYNC_HOME)/pdm/
-	sudo cp pdm/*.hpp $(PSYNC_HOME)/pdm/
 
 #
 clean:
