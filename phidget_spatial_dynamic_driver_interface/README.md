@@ -15,7 +15,7 @@ Packages: libglib2.0-dev libusb-1.0-0-dev
 To install on Ubuntu: 
 
 ```bash
-sudo apt-get install <package>
+sudo apt-get install libglib2.0-dev libusb-1.0-0-dev
 ```
 Install the Phidget libraries by following these instructions: http://www.phidgets.com/docs/OS_-_Linux#Installing
 
