@@ -15,7 +15,7 @@ Packages: libglib2.0-dev freeglut3-dev libsdl2-dev libsdl2-image-dev libpng12-de
 To install on Ubuntu: 
 
 ```bash
-sudo apt-get install <package>
+sudo apt-get install libglib2.0-dev freeglut3-dev libsdl2-dev libsdl2-image-dev libpng12-dev
 ```
 
 ### Building and running the node
