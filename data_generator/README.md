@@ -8,7 +8,7 @@ This example generates data and publishes it on the PolySync bus by generating R
 
 It does this by periodically publishing `ps_lidar_points_msg`, `ps_radar_targets_msg`, and `ps_objects_msg` to the bus in an OK state.
 
-There is a tutorial in the Help Center that describes the C++ version of this example: [Data Generation Tutorial](https://help.polysync.io/articles/tutorials-and-examples/tutorials/data-generation-tutorial/).
+There is a tutorial in the Help Center that describes the C++ version of this example: [Publishing Multiple Message Types (Adv.) Tutorial](http://docs.polysync.io/articles/tutorials-and-examples/tutorials/publishing-multiple-message-types-adv/).
 
 ### Dependencies
 
