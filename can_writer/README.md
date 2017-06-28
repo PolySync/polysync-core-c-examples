@@ -23,7 +23,7 @@ sudo apt-get install libglib2.0-dev
 ```bash
 $ cd can_writer
 $ make
-# You need to have an CAN channel to run this example see:  [Connecting To A CAN Sensor](https://help.polysync.io/articles/configuration/runtime-node-configuration/connecting-to-a-can-radar-sensor/)
+# You need to have an CAN channel to run this example see:  [Connecting To A CAN Sensor](http://docs.polysync.io/articles/configuration/runtime-node-configuration/configure-can-channels/)
 $ ./bin/polysync-can-writer-c 1
 ```
 

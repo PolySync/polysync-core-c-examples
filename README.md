@@ -4,10 +4,10 @@ Here you can find examples that demonstrate how to use PolySync's APIs.
 
 ## Core APIs
 
-- [Publish/Subscribe](https://github.com/PolySync/PolySync-Core-C-Examples/tree/master/reader_writer) - Publish and subscribe to a PolySync communications bus.
-- [Node Template](https://github.com/PolySync/C-Examples/tree/master/node_template) - Understand the standardized PolySync node state machine.
-- [Coordiniate Transform (single)](https://github.com/PolySync/C-Examples/tree/master/single_transform) - Use the Transform API to transform coordinate frames.
-- [Coordiniate Transform (stack)](https://github.com/PolySync/C-Examples/tree/master/transform_stack) - Use the Transform API to transform coordinate frames using a stack.
+- [Publish/Subscribe](https://github.com/PolySync/PolySync-Core-C-Examples/tree/master/publish_subscribe) - Publish and subscribe to a PolySync communications bus.
+- [Node Template](https://github.com/PolySync/PolySync-Core-C-Examples/tree/master/node_template) - Understand the standardized PolySync node state machine.
+- [Coordiniate Transform (single)](https://github.com/PolySync/PolySync-Core-C-Examples/tree/master/single_transform) - Use the Transform API to transform coordinate frames.
+- [Coordiniate Transform (stack)](https://github.com/PolySync/PolySync-Core-C-Examples/tree/master/transform_stack) - Use the Transform API to transform coordinate frames using a stack.
 - [Logfile Writer](https://github.com/PolySync/PolySync-Core-C-Examples/tree/master/logfile_writer) - Use the Logfile API routines to log a PolySync byte array message.
 
 ## Data Model

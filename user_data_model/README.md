@@ -2,7 +2,7 @@
 
 This is a use case example for modifying and regenerating the PolySync data model using the provided `pdm-gen` tool.
 
-For more information see: [Extending The Data Model](https://help.polysync.io/articles/development/application-development/extending-the-data-model/).
+For more information see: [Extending A Data Model Tutorial](http://docs.polysync.io/articles/tutorials-and-examples/tutorials/extending-a-data-model-tutorial/).
 
 ### Dependencies
 
