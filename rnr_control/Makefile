@@ -13,6 +13,7 @@ TARGET	:= bin/polysync-rnr-control-c
 
 # sources
 SRCS    :=  src/rnr_control.c
+#SRCS    :=  src/rnr_control-shea-edits.c
 
 # object files, dep files
 OBJS    := $(SRCS:.c=.o)

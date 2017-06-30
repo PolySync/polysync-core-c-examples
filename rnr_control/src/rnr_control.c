@@ -61,7 +61,7 @@
  * @brief Standard options string.
  *
  */
-static const char GETOPT_STRING[] = "hqwt:s:S:eE";
+static const char GETOPT_STRING[] = "hqwt:f:s:S:eE";
 
 
 /**
@@ -252,8 +252,9 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
     unsigned int quit_session = 0;
     unsigned int enumerate_all_sessions = 0;
     unsigned int enumerate_local_sessions = 0;
+    char my_path[100];
 
-
+    
     // reset scanner
     optind = 0;
 
@@ -290,6 +291,24 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
                 else
                 {
                     printf( "'t' option expects a valid RnR session ID (must be positive integer)\n" );
+                    return;
+                }
+            }
+        }
+        else if( optret == 'f' )
+        {
+            // check for argument
+            if( (optarg != NULL) && (strlen(optarg) > 0) )
+            {
+                // get path to replay sdf
+                if( optarg != NULL )
+                {
+                    snprintf(my_path,100,"%s",optarg);
+                    printf ("psync.sdf file %s \n", my_path);
+                }
+                else
+                {
+                    printf( "'f' option expects a valid path to the replay psync.sdf\n" );
                     return;
                 }
             }
@@ -689,14 +708,15 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
 
         replay_sdf_parameter_value._buffer[0]._d = PARAMETER_VALUE_STRING;
 
-        const char my_path[] = "/home/snewton/.local/share/polysync/rnr_logs/1000/psync.sdf";
+        // const char my_path[] = "/home/chris/.local/share/polysync/rnr_logs/1000/psync.sdf";
+        // my_path = "/home/chris/.local/share/polysync/rnr_logs/1000/psync.sdf";
 
         replay_sdf_parameter_value._buffer[0]._u.str_value._buffer = DDS_sequence_char_allocbuf(sizeof(my_path));;
         replay_sdf_parameter_value._buffer[0]._u.str_value._length = sizeof(my_path);
         replay_sdf_parameter_value._buffer[0]._u.str_value._maximum = sizeof(my_path);
         replay_sdf_parameter_value._buffer[0]._u.str_value._release = 1;
 
-        snprintf(replay_sdf_parameter_value._buffer[0]._u.str_value._buffer, sizeof(my_path), my_path);
+        snprintf(replay_sdf_parameter_value._buffer[0]._u.str_value._buffer, sizeof(my_path), "%s", my_path);
 
         // get command message type
         ret = psync_message_get_type_by_name(
@@ -728,6 +748,11 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         // all nodes will receive the command message
         (void) psync_guid_set_node_type( PSYNC_NODE_TYPE_MANAGER, &dest_guid );
 
+        psync_log_message(
+                LOG_LEVEL_INFO,
+                "send command to disable the manager runtime nodes, putting the system in standby mode"
+                );        
+        
         // send command to disable the manager runtime nodes, putting the system
         // in standby mode
         ret = send_basic_command(
@@ -738,15 +763,25 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
 
         // send command to set the SDF path_to_replay_sdf used by the manager and nodes it manages
         // to the replay SDF for this logfile session
-        ret = send_command_with_data(
+       ret = send_command_with_data(
                 node_ref,
                 PSYNC_COMMAND_SET_MANAGER_SDF_PATH,
                 dest_guid,
                 replay_sdf_parameter_value,
                 (ps_command_msg*) cmd_msg );
+       
+               // wait a little
+        (void) psync_sleep_micro( 5000000 );
 
         // send command to enter replay mode - manager spawns nodes defined in
         // the replay SDF
+        
+                psync_log_message(
+                LOG_LEVEL_INFO,
+                "send command to put the manager replay mode - session ID: %llu - start time: %llu",
+                session_id,
+                start_time ); 
+                
         ret = send_basic_command(
                 node_ref,
                 PSYNC_COMMAND_ENABLE_MANAGER_REPLAY_MODE,
@@ -764,7 +799,7 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         }
 
         // wait a little
-        (void) psync_sleep_micro( 500000 );
+        (void) psync_sleep_micro( 5000000 );
 
         // log
         psync_log_message(
@@ -772,7 +807,7 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
                 "sending enable replay mode command - session ID: %llu - start time: %llu",
                 session_id,
                 start_time );
-
+        
         // send command
         ret = psync_rnr_fill_logfile_set_mode(
                 node_ref,
@@ -789,10 +824,11 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
                 __FILE__,
                 __LINE__,
                 ret );
-
+            
             return;
         }
-
+        
+        printf ("publish replay mode command\n");
         // publish command
         ret = psync_message_publish( node_ref, msg );
 
@@ -875,7 +911,7 @@ static int send_basic_command(
 
     printf( "\n" );
 
-    printf( "sending command\n" );
+    printf( "sending basic command\n" );
 
     printf( "  ID: %llu\n",
             (unsigned long long) cmd );
@@ -936,7 +972,7 @@ static int send_command_with_data(
 
     printf( "\n" );
 
-    printf( "sending command\n" );
+    printf( "sending command with data\n" );
 
     printf( "  ID: %llu\n",
             (unsigned long long) cmd );
