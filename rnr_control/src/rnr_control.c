@@ -746,12 +746,7 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         ps_guid dest_guid = PSYNC_GUID_INVALID;
 
         // all nodes will receive the command message
-        (void) psync_guid_set_node_type( PSYNC_NODE_TYPE_MANAGER, &dest_guid );
-
-        psync_log_message(
-                LOG_LEVEL_INFO,
-                "send command to disable the manager runtime nodes, putting the system in standby mode"
-                );        
+        (void) psync_guid_set_node_type( PSYNC_NODE_TYPE_MANAGER, &dest_guid );      
         
         // send command to disable the manager runtime nodes, putting the system
         // in standby mode
@@ -775,12 +770,6 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
 
         // send command to enter replay mode - manager spawns nodes defined in
         // the replay SDF
-        
-                psync_log_message(
-                LOG_LEVEL_INFO,
-                "send command to put the manager replay mode - session ID: %llu - start time: %llu",
-                session_id,
-                start_time ); 
                 
         ret = send_basic_command(
                 node_ref,
