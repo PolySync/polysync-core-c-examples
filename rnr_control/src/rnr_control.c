@@ -50,8 +50,6 @@
 #include "polysync_rnr.h"
 
 
-
-
 // *****************************************************
 // static global data
 // *****************************************************
@@ -60,7 +58,7 @@
  * @brief Standard options string.
  *
  */
-static const char GETOPT_STRING[] = "hqwt:s:S:eE";
+static const char GETOPT_STRING[] = "hqwt:f:s:S:eE";
 
 
 /**
@@ -68,6 +66,20 @@ static const char GETOPT_STRING[] = "hqwt:s:S:eE";
  *
  */
 static const char NODE_NAME[] = "polysync-rnr-control-c";
+
+
+/**
+ * @brief Command message type name.
+ *
+ */
+static const char COMMAND_MSG_NAME[] = "ps_command_msg";
+
+
+/**
+ * @brief Response message type name.
+ *
+ */
+static const char RESPONSE_MSG_NAME[] = "ps_response_msg";
 
 
 
@@ -86,14 +98,77 @@ static const char NODE_NAME[] = "polysync-rnr-control-c";
  * @param [in] user_data A pointer to void which specifies a user data pointer.
  *
  */
-static void ps_rnr_sessions_msg__handler( const ps_msg_type msg_type, const ps_msg_ref const message, void * const user_data );
+static void ps_rnr_sessions_msg__handler(
+        const ps_msg_type msg_type,
+        const ps_msg_ref const message,
+        void * const user_data );
+
+
+/**
+ * @brief Response message handler.
+ *
+ * Prints all received response messages to stdout.
+ *
+ * @param [in] msg_type Message type received.
+ * @param [in] message Reference to the received message.
+ * @param [in] user_data Our node reference.
+ *
+ */
+static void ps_response_msg_handler(
+        const ps_msg_type msg_type,
+        const ps_msg_ref const message,
+        void * const user_data );
 
 
 /**
  * @brief Command line argument handler.
  *
  */
-static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv );
+static void handle_arguments(
+        ps_node_ref const node_ref,
+        int argc,
+        char **argv );
+
+
+/**
+ * @brief Send a basic command.
+ *
+ * Basic commands don't use the data section of the message.
+ *
+ * @param [in] node_ref Node reference used to publish the message.
+ * @param [in] cmd Command identifier to publish.
+ * @param [in] dest_guid Destination node GUID to target. Value \ref PSYNC_GUID_INVALID is allowed.
+ * @param [out] cmd_msg A pointer to \ref ps_command_msg which receives the data before being published.
+ *
+ * @return DTC code:
+ * \li \ref DTC_NONE (zero) if success.
+ *
+ */
+static int send_basic_command(
+        ps_node_ref node_ref,
+        const ps_command_id cmd,
+        const ps_guid dest_guid,
+        ps_command_msg * const cmd_msg );
+
+
+/**
+ * @brief Send a command with data.
+ *
+ * @param [in] node_ref Node reference used to publish the message.
+ * @param [in] cmd Command identifier to publish.
+ * @param [in] dest_guid Destination node GUID to target. Value \ref PSYNC_GUID_INVALID is allowed.
+ * @param [out] cmd_msg A pointer to \ref ps_command_msg which receives the data before being published.
+ *
+ * @return DTC code:
+ * \li \ref DTC_NONE (zero) if success.
+ *
+ */
+static int send_command_with_data(
+        ps_node_ref node_ref,
+        const ps_command_id cmd,
+        const ps_guid dest_guid,
+        const DDS_sequence_ps_parameter_value data,
+        ps_command_msg * const cmd_msg );
 
 
 
@@ -174,8 +249,8 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
     unsigned int quit_session = 0;
     unsigned int enumerate_all_sessions = 0;
     unsigned int enumerate_local_sessions = 0;
-
-
+    char my_path[PSYNC_DEFAULT_STRING_LEN];
+    
     // reset scanner
     optind = 0;
 
@@ -212,6 +287,23 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
                 else
                 {
                     printf( "'t' option expects a valid RnR session ID (must be positive integer)\n" );
+                    return;
+                }
+            }
+        }
+        else if( optret == 'f' )
+        {
+            // check for argument
+            if( (optarg != NULL) && (strlen(optarg) > 0) )
+            {
+                // get path to replay sdf
+                if( optarg != NULL )
+                {
+                    snprintf(my_path,PSYNC_DEFAULT_STRING_LEN,"%s",optarg);
+                }
+                else
+                {
+                    printf( "'f' option expects a valid path to the replay psync.sdf\n" );
                     return;
                 }
             }
@@ -591,44 +683,98 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
             return;
         }
 
-        // send command to quit first
-        ret = psync_rnr_fill_logfile_set_mode(
-                node_ref,
-                LOGFILE_MODE_OFF,
-                PSYNC_RNR_SESSION_ID_INVALID,
-                rnr_msg );
+        // message types for command/response messages
+        ps_msg_type cmd_msg_type = PSYNC_MSG_TYPE_INVALID;
 
-        // error check
+        // command message
+        ps_msg_ref cmd_msg = PSYNC_MSG_REF_INVALID;
+
+        DDS_sequence_ps_parameter_value replay_sdf_parameter_value;
+
+        replay_sdf_parameter_value._buffer = DDS_sequence_ps_parameter_value_allocbuf(1);
+        replay_sdf_parameter_value._length = 1;
+        replay_sdf_parameter_value._maximum = 1;
+        replay_sdf_parameter_value._release = 1;
+
+        replay_sdf_parameter_value._buffer[0]._d = PARAMETER_VALUE_STRING;
+        replay_sdf_parameter_value._buffer[0]._u.str_value._buffer = DDS_sequence_char_allocbuf(sizeof(my_path));;
+        replay_sdf_parameter_value._buffer[0]._u.str_value._length = sizeof(my_path);
+        replay_sdf_parameter_value._buffer[0]._u.str_value._maximum = sizeof(my_path);
+        replay_sdf_parameter_value._buffer[0]._u.str_value._release = 1;
+
+        snprintf(replay_sdf_parameter_value._buffer[0]._u.str_value._buffer, sizeof(my_path), "%s", my_path);
+
+        // get command message type
+        ret = psync_message_get_type_by_name(
+                node_ref,
+                COMMAND_MSG_NAME,
+                &cmd_msg_type );
+
         if( ret != DTC_NONE )
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_rnr_fill_logfile_set_mode returned DTC %d",
-                __FILE__,
-                __LINE__,
-                ret );
-
+            psync_log_error( "psync_message_get_type_by_name - ret: %d", ret );
             return;
         }
 
-        // publish command
-        ret = psync_message_publish( node_ref, msg );
+        // allocate command message
+        ret = psync_message_alloc(
+                node_ref,
+                cmd_msg_type,
+                &cmd_msg );
 
-        // error check
         if( ret != DTC_NONE )
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "%s : (%u) -- psync_message_publish returned DTC %d",
-                __FILE__,
-                __LINE__,
-                ret );
-
+            psync_log_error( "psync_message_alloc - ret: %d", ret );
             return;
+        }
+
+        // construct command to enumerate all dynamic driver interfaces
+        ps_guid dest_guid = PSYNC_GUID_INVALID;
+
+        // all nodes will receive the command message
+        (void) psync_guid_set_node_type( PSYNC_NODE_TYPE_MANAGER, &dest_guid );      
+        
+        // send command to disable the manager runtime nodes, putting the system
+        // in standby mode
+        ret = send_basic_command(
+                node_ref,
+                PSYNC_COMMAND_DISABLE_MANAGER_NODES,
+                dest_guid,
+                (ps_command_msg*) cmd_msg );
+
+        // send command to set the SDF path_to_replay_sdf used by the manager and nodes it manages
+        // to the replay SDF for this logfile session
+       ret = send_command_with_data(
+                node_ref,
+                PSYNC_COMMAND_SET_MANAGER_SDF_PATH,
+                dest_guid,
+                replay_sdf_parameter_value,
+                (ps_command_msg*) cmd_msg );
+       
+               // wait a little
+        (void) psync_sleep_micro( 500000 );
+
+        // send command to enter replay mode - manager spawns nodes defined in
+        // the replay SDF
+                
+        ret = send_basic_command(
+                node_ref,
+                PSYNC_COMMAND_ENABLE_MANAGER_REPLAY_MODE,
+                dest_guid,
+                (ps_command_msg*) cmd_msg );
+
+        // free the command message
+        ret = psync_message_free(
+                node_ref,
+                &cmd_msg );
+
+        if( ret != DTC_NONE )
+        {
+            psync_log_error( "psync_message_free - ret: %d", ret );
         }
 
         // wait a little
-        (void) psync_sleep_micro( 500000 );
+        (void) psync_sleep_micro( 4000000 );
 
         // log
         psync_log_message(
@@ -653,10 +799,10 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
                 __FILE__,
                 __LINE__,
                 ret );
-
+            
             return;
         }
-
+        
         // publish command
         ret = psync_message_publish( node_ref, msg );
 
@@ -719,6 +865,125 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
 }
 
 
+//
+static int send_basic_command(
+        ps_node_ref node_ref,
+        const ps_command_id cmd,
+        const ps_guid dest_guid,
+        ps_command_msg * const cmd_msg )
+{
+    int ret = DTC_NONE;
+    unsigned long dest_sdf_id = 0;
+    ps_node_type dest_node_type = 0;
+    ps_identifier dest_node_id = 0;
+
+
+    // break down the destination GUID
+    (void) psync_guid_get_sdf_id( dest_guid, &dest_sdf_id );
+    (void) psync_guid_get_node_type( dest_guid, &dest_node_type );
+    (void) psync_guid_get_node_id( dest_guid, &dest_node_id );
+
+    // set command ID and destination GUID
+    cmd_msg->dest_guid = dest_guid;
+    cmd_msg->id = cmd;
+
+    // set Tx and command timestamp
+    ret = psync_get_timestamp( &cmd_msg->header.timestamp );
+    cmd_msg->timestamp = cmd_msg->header.timestamp;
+
+    // publish
+    if( ret == DTC_NONE )
+    {
+        ret = psync_message_publish(
+                node_ref,
+                (ps_msg_ref) cmd_msg );
+    }
+
+
+    return ret;
+}
+
+
+//
+static int send_command_with_data(
+        ps_node_ref node_ref,
+        const ps_command_id cmd,
+        const ps_guid dest_guid,
+        const DDS_sequence_ps_parameter_value data,
+        ps_command_msg * const cmd_msg )
+{
+    int ret = DTC_NONE;
+    unsigned long dest_sdf_id = 0;
+    ps_node_type dest_node_type = 0;
+    ps_identifier dest_node_id = 0;
+
+
+    // break down the destination GUID
+    (void) psync_guid_get_sdf_id( dest_guid, &dest_sdf_id );
+    (void) psync_guid_get_node_type( dest_guid, &dest_node_type );
+    (void) psync_guid_get_node_id( dest_guid, &dest_node_id );
+
+
+    // set command ID and destination GUID
+    cmd_msg->dest_guid = dest_guid;
+    cmd_msg->id = cmd;
+    
+    // check length, maybe realloc, then set the data
+    //      do the same thing with the string inside 
+    
+    cmd_msg->data = data;
+
+    // set Tx and command timestamp
+    ret = psync_get_timestamp( &cmd_msg->header.timestamp );
+    cmd_msg->timestamp = cmd_msg->header.timestamp;
+
+    // publish
+    if( ret == DTC_NONE )
+    {
+        ret = psync_message_publish(
+                node_ref,
+                (ps_msg_ref) cmd_msg );
+    }
+
+
+    return ret;
+}
+
+
+//
+static void ps_response_msg_handler(
+        const ps_msg_type msg_type,
+        const ps_msg_ref const message,
+        void * const user_data )
+{
+    if( user_data == NULL )
+    {
+        return;
+    }
+
+    ps_node_ref node_ref = (ps_node_ref) user_data;
+    ps_guid my_guid = 0;
+    unsigned long src_sdf_id = 0;
+    ps_node_type src_node_type = 0;
+    ps_identifier src_node_id = 0;
+
+    const ps_response_msg * const rsp_msg = (ps_response_msg*) message;
+
+
+    // get our node's GUID
+    (void) psync_node_get_guid( node_ref, &my_guid );
+
+    // ignore our own messages
+    if( my_guid == rsp_msg->header.src_guid )
+    {
+        return;
+    }
+
+    // break down the source GUID
+    (void) psync_guid_get_sdf_id( rsp_msg->header.src_guid, &src_sdf_id );
+    (void) psync_guid_get_node_type( rsp_msg->header.src_guid, &src_node_type );
+    (void) psync_guid_get_node_id( rsp_msg->header.src_guid, &src_node_id );
+}
 
 
 // *****************************************************
@@ -731,6 +996,9 @@ int main( int argc, char **argv )
 
     // node reference
     ps_node_ref node_ref = PSYNC_NODE_REF_INVALID;
+
+    ps_msg_type rsp_msg_type = PSYNC_MSG_TYPE_INVALID;
+
 
     // getopt return
     int optret = 0;
@@ -797,10 +1065,47 @@ int main( int argc, char **argv )
         return EXIT_FAILURE;
     }
 
+    // get response message type
+     ret = psync_message_get_type_by_name(
+             node_ref,
+             RESPONSE_MSG_NAME,
+             &rsp_msg_type );
+
+     if( ret != DTC_NONE )
+     {
+         psync_log_error( "psync_message_get_type_by_name - ret: %d", ret );
+         return EXIT_FAILURE;
+     }
+
+    // set response message subscriber QoS to reliable
+    ret = psync_node_set_subscriber_reliability_qos(
+            node_ref,
+            rsp_msg_type,
+            RELIABILITY_QOS_RELIABLE );
+
+    if( ret != DTC_NONE )
+    {
+        psync_log_error( "psync_node_set_subscriber_reliability_qos - ret: %d", ret );
+        return EXIT_FAILURE;
+    }
+
+    // register a listener for response messages
+    ret = psync_message_register_listener(
+            node_ref,
+            rsp_msg_type,
+            &ps_response_msg_handler,
+            node_ref );
+
+    if( ret != DTC_NONE )
+    {
+        psync_log_error( "psync_message_register_listener - ret: %d", ret );
+        return EXIT_FAILURE;
+    }
+
     // process arguments
     handle_arguments( node_ref, argc, argv );
 
-	// release core API
+    // release core API
     ret = psync_release( &node_ref );
 
     // error check

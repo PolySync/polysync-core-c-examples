@@ -25,6 +25,7 @@ include $(PSYNC_HOME)/build_res.mk
 # compiler
 CC = gcc
 
+LIBS += -lpolysync_data_model
 #
 all: dirs $(TARGET)
 
