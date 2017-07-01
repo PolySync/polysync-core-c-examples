@@ -782,7 +782,7 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
                 "sending enable replay mode command - session ID: %llu - start time: %llu",
                 session_id,
                 start_time );
-        
+
         // send command
         ret = psync_rnr_fill_logfile_set_mode(
                 node_ref,
