@@ -249,8 +249,7 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
     unsigned int quit_session = 0;
     unsigned int enumerate_all_sessions = 0;
     unsigned int enumerate_local_sessions = 0;
-    char my_path[100];
-
+    char my_path[PSYNC_DEFAULT_STRING_LEN];
     
     // reset scanner
     optind = 0;
@@ -300,8 +299,7 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
                 // get path to replay sdf
                 if( optarg != NULL )
                 {
-                    snprintf(my_path,100,"%s",optarg);
-                    printf ("psync.sdf file %s \n", my_path);
+                    snprintf(my_path,PSYNC_DEFAULT_STRING_LEN,"%s",optarg);
                 }
                 else
                 {
@@ -691,11 +689,6 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         // command message
         ps_msg_ref cmd_msg = PSYNC_MSG_REF_INVALID;
 
-        // why not just allocate the str_value directly?
-        //
-        // DDS_sequence_char path_to_replay_sdf;
-        // path_to_replay_sdf = DDS_sequence_char_allocbuf(sizeof(my_path));;
-
         DDS_sequence_ps_parameter_value replay_sdf_parameter_value;
 
         replay_sdf_parameter_value._buffer = DDS_sequence_ps_parameter_value_allocbuf(1);
@@ -704,10 +697,6 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         replay_sdf_parameter_value._release = 1;
 
         replay_sdf_parameter_value._buffer[0]._d = PARAMETER_VALUE_STRING;
-
-        // const char my_path[] = "/home/chris/.local/share/polysync/rnr_logs/1000/psync.sdf";
-        // my_path = "/home/chris/.local/share/polysync/rnr_logs/1000/psync.sdf";
-
         replay_sdf_parameter_value._buffer[0]._u.str_value._buffer = DDS_sequence_char_allocbuf(sizeof(my_path));;
         replay_sdf_parameter_value._buffer[0]._u.str_value._length = sizeof(my_path);
         replay_sdf_parameter_value._buffer[0]._u.str_value._maximum = sizeof(my_path);
@@ -763,7 +752,7 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
                 (ps_command_msg*) cmd_msg );
        
                // wait a little
-        (void) psync_sleep_micro( 5000000 );
+        (void) psync_sleep_micro( 500000 );
 
         // send command to enter replay mode - manager spawns nodes defined in
         // the replay SDF
@@ -785,7 +774,7 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         }
 
         // wait a little
-        (void) psync_sleep_micro( 5000000 );
+        (void) psync_sleep_micro( 4000000 );
 
         // log
         psync_log_message(
@@ -814,7 +803,6 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
             return;
         }
         
-        printf ("publish replay mode command\n");
         // publish command
         ret = psync_message_publish( node_ref, msg );
 
@@ -895,27 +883,6 @@ static int send_basic_command(
     (void) psync_guid_get_node_type( dest_guid, &dest_node_type );
     (void) psync_guid_get_node_id( dest_guid, &dest_node_id );
 
-    printf( "\n" );
-
-    printf( "sending basic command\n" );
-
-    printf( "  ID: %llu\n",
-            (unsigned long long) cmd );
-
-    printf( "  dest_guid: 0x%016llX (%llu)\n",
-            (unsigned long long) dest_guid,
-            (unsigned long long) dest_guid );
-
-    printf( "    .node_type: %lu\n",
-            (unsigned long) dest_node_type );
-
-    printf( "    .sdf_id: %lu\n", dest_sdf_id );
-
-    printf( "    .node_id: %lu\n",
-            (unsigned long) dest_node_id );
-
-    printf( "\n" );
-
     // set command ID and destination GUID
     cmd_msg->dest_guid = dest_guid;
     cmd_msg->id = cmd;
@@ -956,29 +923,6 @@ static int send_command_with_data(
     (void) psync_guid_get_node_type( dest_guid, &dest_node_type );
     (void) psync_guid_get_node_id( dest_guid, &dest_node_id );
 
-    printf( "\n" );
-
-    printf( "sending command with data\n" );
-
-    printf( "  ID: %llu\n",
-            (unsigned long long) cmd );
-
-    printf( "  Data (path_to_replay_sdf to replay SDF for now): %s\n",
-             data._buffer[0]._u.str_value._buffer );
-
-    printf( "  dest_guid: 0x%016llX (%llu)\n",
-            (unsigned long long) dest_guid,
-            (unsigned long long) dest_guid );
-
-    printf( "    .node_type: %lu\n",
-            (unsigned long) dest_node_type );
-
-    printf( "    .sdf_id: %lu\n", dest_sdf_id );
-
-    printf( "    .node_id: %lu\n",
-            (unsigned long) dest_node_id );
-
-    printf( "\n" );
 
     // set command ID and destination GUID
     cmd_msg->dest_guid = dest_guid;
@@ -1039,29 +983,6 @@ static void ps_response_msg_handler(
     (void) psync_guid_get_sdf_id( rsp_msg->header.src_guid, &src_sdf_id );
     (void) psync_guid_get_node_type( rsp_msg->header.src_guid, &src_node_type );
     (void) psync_guid_get_node_id( rsp_msg->header.src_guid, &src_node_id );
-
-    printf( "received ps_response_msg - header.timestamp: %llu\n",
-            (unsigned long long) rsp_msg->header.timestamp );
-
-    printf( "  command ID: %llu\n",
-            (unsigned long long) rsp_msg->id );
-
-    printf( "  DTC: %llu\n",
-            (unsigned long long) rsp_msg->dtc );
-
-    printf( "  src_guid: 0x%016llX (%llu)\n",
-            (unsigned long long) rsp_msg->header.src_guid,
-            (unsigned long long) rsp_msg->header.src_guid );
-
-    printf( "    .node_type: %lu\n",
-            (unsigned long) src_node_type );
-
-    printf( "    .sdf_id: %lu\n", src_sdf_id );
-
-    printf( "    .node_id: %lu\n",
-            (unsigned long) src_node_id );
-
-    printf( "\n" );
 }
 
 
