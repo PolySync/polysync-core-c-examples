@@ -254,8 +254,9 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
     unsigned int quit_session = 0;
     unsigned int enumerate_all_sessions = 0;
     unsigned int enumerate_local_sessions = 0;
-    char my_path[PSYNC_DEFAULT_STRING_LEN];
-    
+    const char * const user_home = getenv( USER_HOME_VARIABLE );
+    char buffer[PSYNC_DEFAULT_STRING_LEN];
+
     // reset scanner
     optind = 0;
 
@@ -670,11 +671,9 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
 
             return;
         }
-        
+
         // build path to PSYNC_USER_HOME/rnr_logs/<session id>/psync.sdf
-        const char * const user_home = getenv( USER_HOME_VARIABLE );
-        char buffer[PSYNC_DEFAULT_STRING_LEN];
-        
+
         if( user_home != NULL )
         {
             (void) snprintf(
@@ -685,7 +684,7 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
                     session_id,
                     PSYNC_SDF_FILE_NAME );
         }
-        
+
         // message types for command/response messages
         ps_msg_type cmd_msg_type = PSYNC_MSG_TYPE_INVALID;
 
@@ -802,10 +801,10 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
                 __FILE__,
                 __LINE__,
                 ret );
-            
+
             return;
         }
-        
+
         // publish command
         ret = psync_message_publish( node_ref, msg );
 
