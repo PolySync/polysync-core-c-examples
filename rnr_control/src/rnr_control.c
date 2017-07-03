@@ -81,6 +81,11 @@ static const char COMMAND_MSG_NAME[] = "ps_command_msg";
  */
 static const char RESPONSE_MSG_NAME[] = "ps_response_msg";
 
+/**
+ * @brief User home environment variable name.
+ *
+ */
+static const char USER_HOME_VARIABLE[] = "PSYNC_USER_HOME";
 
 
 
@@ -299,7 +304,7 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
                 // get path to replay sdf
                 if( optarg != NULL )
                 {
-                    snprintf(my_path,PSYNC_DEFAULT_STRING_LEN,"%s",optarg);
+                    (void) snprintf(my_path,PSYNC_DEFAULT_STRING_LEN,"%s",optarg);
                 }
                 else
                 {
@@ -682,7 +687,22 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
 
             return;
         }
-
+        
+        // build path to PSYNC_USER_HOME/rnr_logs/<session id>/psync.sdf
+        const char * const user_home = getenv( USER_HOME_VARIABLE );
+        char buffer[PSYNC_DEFAULT_STRING_LEN];
+        
+        if( user_home != NULL )
+        {
+            (void) snprintf(
+                    buffer,
+                    PSYNC_DEFAULT_STRING_LEN,
+                    "%s/rnr_logs/%llu/%s",
+                    user_home,
+                    session_id,
+                    PSYNC_SDF_FILE_NAME );
+        }
+        
         // message types for command/response messages
         ps_msg_type cmd_msg_type = PSYNC_MSG_TYPE_INVALID;
 
@@ -697,12 +717,12 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
         replay_sdf_parameter_value._release = 1;
 
         replay_sdf_parameter_value._buffer[0]._d = PARAMETER_VALUE_STRING;
-        replay_sdf_parameter_value._buffer[0]._u.str_value._buffer = DDS_sequence_char_allocbuf(sizeof(my_path));;
-        replay_sdf_parameter_value._buffer[0]._u.str_value._length = sizeof(my_path);
-        replay_sdf_parameter_value._buffer[0]._u.str_value._maximum = sizeof(my_path);
+        replay_sdf_parameter_value._buffer[0]._u.str_value._buffer = DDS_sequence_char_allocbuf(sizeof(buffer));;
+        replay_sdf_parameter_value._buffer[0]._u.str_value._length = sizeof(buffer);
+        replay_sdf_parameter_value._buffer[0]._u.str_value._maximum = sizeof(buffer);
         replay_sdf_parameter_value._buffer[0]._u.str_value._release = 1;
 
-        snprintf(replay_sdf_parameter_value._buffer[0]._u.str_value._buffer, sizeof(my_path), "%s", my_path);
+        (void) snprintf(replay_sdf_parameter_value._buffer[0]._u.str_value._buffer, sizeof(buffer), "%s", buffer);
 
         // get command message type
         ret = psync_message_get_type_by_name(
