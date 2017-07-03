@@ -58,7 +58,7 @@
  * @brief Standard options string.
  *
  */
-static const char GETOPT_STRING[] = "hqwt:f:s:S:eE";
+static const char GETOPT_STRING[] = "hqwt:s:S:eE";
 
 
 /**
@@ -292,23 +292,6 @@ static void handle_arguments( ps_node_ref const node_ref, int argc, char **argv 
                 else
                 {
                     printf( "'t' option expects a valid RnR session ID (must be positive integer)\n" );
-                    return;
-                }
-            }
-        }
-        else if( optret == 'f' )
-        {
-            // check for argument
-            if( (optarg != NULL) && (strlen(optarg) > 0) )
-            {
-                // get path to replay sdf
-                if( optarg != NULL )
-                {
-                    (void) snprintf(my_path,PSYNC_DEFAULT_STRING_LEN,"%s",optarg);
-                }
-                else
-                {
-                    printf( "'f' option expects a valid path to the replay psync.sdf\n" );
                     return;
                 }
             }
