@@ -81,6 +81,7 @@ static const char COMMAND_MSG_NAME[] = "ps_command_msg";
  */
 static const char RESPONSE_MSG_NAME[] = "ps_response_msg";
 
+
 /**
  * @brief User home environment variable name.
  *
