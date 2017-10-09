@@ -33,7 +33,6 @@
 
 
 
-#include <png.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -145,15 +144,112 @@ static void logfile_iterator_callback(
 // static definitions
 // *****************************************************
 
-// static void mirror_data(unsigned char * in, unsigned char * out, unsigned data_len)
-// {
-//     int out_idx = 0;
-//     for( int in_idx = data_len - 1; in_idx >= 0; --in_idx)
-//     {
-//         out[out_idx] = in[in_idx];
-//         ++out_idx;
-//     }
-// }
+static void output_ppm(const ps_image_data_msg * const image_data_msg, context_s * const context)
+{
+    int ret = 0;
+    int image_size = image_data_msg->width * image_data_msg->height * 3;
+
+    uvc_frame_t yuyv;
+    yuyv.data = image_data_msg->data_buffer._buffer;
+    yuyv.data_bytes = image_data_msg->data_buffer._length;
+    yuyv.width = image_data_msg->width;
+    yuyv.height = image_data_msg->height;
+    yuyv.frame_format = UVC_FRAME_FORMAT_YUYV;
+    yuyv.library_owns_data = 0;
+
+    uvc_frame_t *rgb = uvc_allocate_frame(image_size);
+
+    /* Do the RGB conversion */
+    ret = uvc_any2rgb(&yuyv, rgb);
+    if(ret != 0)
+    {
+        uvc_perror(ret, "uvc_any2rgb");
+        uvc_free_frame(rgb);
+        return;
+    }
+
+    const size_t name_max = 1024; // lots of room
+    char img_name[name_max];
+    snprintf(img_name, name_max, "img_%llu.ppm", context->img_count);
+    ++context->img_count;
+
+    FILE * img_file = fopen(img_name, "wb");
+
+    fprintf(img_file, "P6\n%d %d\n255\n", image_data_msg->width, image_data_msg->height);
+    fwrite(
+        rgb->data,
+        sizeof(uint8_t),
+        image_size,
+        img_file);
+    fclose(img_file);
+
+}
+
+static void output_bmp(const ps_image_data_msg * const image_data_msg, context_s * const context)
+{
+    int ret = 0;
+    int image_size = image_data_msg->width * image_data_msg->height * 3;
+    uvc_frame_t yuyv;
+    yuyv.data = image_data_msg->data_buffer._buffer;
+    yuyv.data_bytes = image_data_msg->data_buffer._length;
+    yuyv.width = image_data_msg->width;
+    yuyv.height = image_data_msg->height;
+    yuyv.frame_format = UVC_FRAME_FORMAT_YUYV;
+    yuyv.library_owns_data = 0;
+
+    uvc_frame_t *bgr = uvc_allocate_frame(image_size);
+
+    /* Do the BGR conversion */
+    ret = uvc_any2bgr(&yuyv, bgr);
+    if(ret != 0)
+    {
+        uvc_perror(ret, "uvc_any2bgr");
+        uvc_free_frame(bgr);
+        return;
+    }
+
+    bitmap_file_header file_header;
+    bitmap_image_header image_header;
+    int file_size =
+        sizeof(file_header) + sizeof(image_header) + image_size;
+
+    file_header.bitmap_type = 0x4d42; //"BM"
+    file_header.file_size = file_size;
+    file_header.reserved1 = 0; // unused
+    file_header.reserved2 = 0; // unused
+    file_header.offset_bits = 0; // unused
+
+    image_header.size_header = sizeof(image_header);
+    image_header.width = image_data_msg->width;
+    image_header.height = image_data_msg->height;
+    image_header.planes = 1;
+    image_header.bit_count = 24; // The 24-bit pixel
+    image_header.compression = 0; // none
+    image_header.image_size = image_size;
+    image_header.ppm_x = 0; // unused
+    image_header.ppm_y = 0; // unused
+    image_header.clr_used = 0; // unused
+    image_header.clr_important = 0; // unused
+
+    const size_t name_max = 1024; // lots of room
+    char img_name[name_max];
+    snprintf(img_name, name_max, "img_%llu.bmp", context->img_count);
+    ++context->img_count;
+
+    FILE * img_file = fopen(img_name, "wb");
+
+    fwrite(&file_header, 1, sizeof(file_header), img_file);
+    fwrite(&image_header, 1, sizeof(image_header), img_file);
+    fwrite(
+        bgr->data,
+        sizeof(unsigned char),
+        image_size,
+        img_file);
+    fclose(img_file);
+
+    uvc_free_frame(bgr);
+}
+
 
 unsigned long GLOBAL_COUNT = 0;
 
@@ -182,82 +278,16 @@ static void logfile_iterator_callback(
 
             GLOBAL_COUNT++;
 
-            int ret = 0;
-
             const ps_msg_ref msg = (ps_msg_ref) log_record->data;
             const ps_image_data_msg * const image_data_msg = (ps_image_data_msg*) msg;
 
-            // image_data_msg->data_buffer._buffer;
-
-            int image_size = image_data_msg->width * image_data_msg->height * 3;
-
-            uvc_frame_t yuyv;
-            yuyv.data = image_data_msg->data_buffer._buffer;
-            yuyv.data_bytes = image_data_msg->data_buffer._length;
-            yuyv.width = image_data_msg->width;
-            yuyv.height = image_data_msg->height;
-            yuyv.frame_format = UVC_FRAME_FORMAT_YUYV;
-            yuyv.library_owns_data = 0;
-
-            uvc_frame_t *bgr = uvc_allocate_frame(image_size);
-
-            if(bgr == NULL)
+            if(image_data_msg->pixel_format != PIXEL_FORMAT_YUYV)
             {
-                printf("unable to allocate bgr frame!");
+                printf("Requied that logged image data is in YUYV pixel format.");
                 return;
             }
-
-
-            /* Do the BGR conversion */
-            ret = uvc_any2bgr(&yuyv, bgr);
-            if(ret != 0)
-            {
-                uvc_perror(ret, "uvc_any2bgr");
-                uvc_free_frame(bgr);
-                return;
-            }
-
-            int ppm = 96 * 39.375;
-            bitmap_file_header file_header;
-            bitmap_image_header image_header;
-            int file_size = sizeof(file_header) + sizeof(image_header) + image_size;
-
-            printf("\n14 v %lu\n", sizeof(file_header));
-            file_header.bitmap_type = 0x4d42; //"BM"
-            file_header.file_size       = file_size ;
-            file_header.reserved1       = 0;
-            file_header.reserved2       = 0;
-            // file_header.offset_bits     = 0;
-
-            image_header.size_header     = sizeof(image_header);
-            image_header.width           = image_data_msg->width;
-            image_header.height          = image_data_msg->height;
-            image_header.planes          = 1;
-            image_header.bit_count       = 24;
-            image_header.compression     = 0;
-            image_header.image_size      = image_size;
-            image_header.ppm_x           = ppm;
-            image_header.ppm_y           = ppm;
-            image_header.clr_used        = 0;
-            image_header.clr_important   = 0;
-
-            const size_t name_max = 16;
-            char img_name[name_max];
-            snprintf(img_name, name_max, "img_%llu.bmp", context->img_count);
-            ++context->img_count;
-
-            FILE * img_file = fopen(img_name, "wb");
-
-            fwrite(&file_header, 1, sizeof(file_header), img_file);
-            fwrite(&image_header, 1, sizeof(image_header), img_file);
-            fwrite(
-                bgr->data,
-                sizeof(unsigned char),
-                image_size,
-                img_file);
-            fclose(img_file);
-
-            uvc_free_frame(bgr);
+            // output_bmp(image_data_msg, context);
+            output_ppm(image_data_msg, context);
         }
     }
 }
@@ -355,11 +385,6 @@ int main(int argc, char **argv)
                 "main -- psync_release - ret: %d",
                 ret);
     }
-
-    // if(context.enocded_buffer != NULL)
-    // {
-    //     free(context.enocded_buffer);
-    // }
 
     return EXIT_SUCCESS;
 }
