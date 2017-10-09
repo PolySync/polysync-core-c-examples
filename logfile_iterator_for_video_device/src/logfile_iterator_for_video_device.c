@@ -69,7 +69,7 @@ static const char NODE_NAME[] = "polysync-logfile-iterator-for-video-device-c";
  * This is the path to the sample logfile session that's shipped with the release
  *
  */
-static const char LOGFILE_PATH[] = "/home/snewton/Downloads/70802/video-device.1688895556945937.plog";
+static const char LOGFILE_PATH[] = "/home/snewton/.local/share/polysync/rnr_logs/555/video-device.1688854689402078.plog";
 
 
 /**
@@ -78,8 +78,6 @@ static const char LOGFILE_PATH[] = "/home/snewton/Downloads/70802/video-device.1
  */
 static const char IMAGE_DATA_MSG_NAME[] = "ps_image_data_msg";
 
-
-const ps_pixel_format_kind desired_decoder_format = PIXEL_FORMAT_BGR24;
 
 typedef struct
 {
@@ -95,33 +93,29 @@ typedef struct
     unsigned long enocded_frame_size;
 } context_s;
 
+#pragma pack(push,1)
 typedef struct {
-    float r, g, b;
-} rgb_data;
+    uint16_t bitmap_type;
+    int32_t file_size;
+    int16_t reserved1;
+    int16_t reserved2;
+    uint32_t offset_bits;
+} bitmap_file_header;
 
 typedef struct {
-    unsigned char   bitmap_type[2];     // 2 bytes
-    int             file_size;          // 4 bytes
-    short           reserved1;          // 2 bytes
-    short           reserved2;          // 2 bytes
-    unsigned int    offset_bits;        // 4 bytes
-} bfh;
-
-// bitmap image header (40 bytes)
-typedef struct {
-    unsigned int    size_header;        // 4 bytes
-    unsigned int    width;              // 4 bytes
-    unsigned int    height;             // 4 bytes
-    short int       planes;             // 2 bytes
-    short int       bit_count;          // 2 bytes
-    unsigned int    compression;        // 4 bytes
-    unsigned int    image_size;         // 4 bytes
-    unsigned int    ppm_x;              // 4 bytes
-    unsigned int    ppm_y;              // 4 bytes
-    unsigned int    clr_used;           // 4 bytes
-    unsigned int    clr_important;      // 4 bytes
-} bih;
-
+    uint32_t size_header;
+    uint32_t width;
+    uint32_t height;
+    int16_t planes;
+    int16_t bit_count;
+    uint32_t compression;
+    uint32_t image_size;
+    uint32_t ppm_x;
+    uint32_t ppm_y;
+    uint32_t clr_used;
+    uint32_t clr_important;
+} bitmap_image_header;
+#pragma pack(pop)
 
 // *****************************************************
 // static declarations
@@ -150,6 +144,16 @@ static void logfile_iterator_callback(
 // *****************************************************
 // static definitions
 // *****************************************************
+
+// static void mirror_data(unsigned char * in, unsigned char * out, unsigned data_len)
+// {
+//     int out_idx = 0;
+//     for( int in_idx = data_len - 1; in_idx >= 0; --in_idx)
+//     {
+//         out[out_idx] = in[in_idx];
+//         ++out_idx;
+//     }
+// }
 
 unsigned long GLOBAL_COUNT = 0;
 
@@ -213,16 +217,17 @@ static void logfile_iterator_callback(
                 return;
             }
 
-            int file_size = 54 + 4 * image_size;
             int ppm = 96 * 39.375;
-            bfh file_header;
-            bih image_header;
+            bitmap_file_header file_header;
+            bitmap_image_header image_header;
+            int file_size = sizeof(file_header) + sizeof(image_header) + image_size;
 
-            memcpy(&file_header.bitmap_type, "BM", 2);
-            file_header.file_size       = file_size;
+            printf("\n14 v %lu\n", sizeof(file_header));
+            file_header.bitmap_type = 0x4d42; //"BM"
+            file_header.file_size       = file_size ;
             file_header.reserved1       = 0;
             file_header.reserved2       = 0;
-            file_header.offset_bits     = 0;
+            // file_header.offset_bits     = 0;
 
             image_header.size_header     = sizeof(image_header);
             image_header.width           = image_data_msg->width;
@@ -236,18 +241,19 @@ static void logfile_iterator_callback(
             image_header.clr_used        = 0;
             image_header.clr_important   = 0;
 
-            char img_name[16] = {0};
-            snprintf(img_name, 16, "img_%llu.bmp", context->img_count);
+            const size_t name_max = 16;
+            char img_name[name_max];
+            snprintf(img_name, name_max, "img_%llu.bmp", context->img_count);
             ++context->img_count;
 
             FILE * img_file = fopen(img_name, "wb");
 
-            fwrite(&file_header, 1, 14, img_file);
+            fwrite(&file_header, 1, sizeof(file_header), img_file);
             fwrite(&image_header, 1, sizeof(image_header), img_file);
             fwrite(
                 bgr->data,
                 sizeof(unsigned char),
-                bgr->data_bytes,
+                image_size,
                 img_file);
             fclose(img_file);
 
