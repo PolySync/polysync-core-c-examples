@@ -170,7 +170,7 @@ static void output_ppm(const ps_image_data_msg * const image_data_msg, context_s
 
     const size_t name_max = 1024; // lots of room
     char img_name[name_max];
-    snprintf(img_name, name_max, "img_%llu.ppm", context->img_count);
+    snprintf(img_name, name_max, "images/img_%llu.ppm", context->img_count);
     ++context->img_count;
 
     FILE * img_file = fopen(img_name, "wb");
@@ -233,7 +233,7 @@ static void output_bmp(const ps_image_data_msg * const image_data_msg, context_s
 
     const size_t name_max = 1024; // lots of room
     char img_name[name_max];
-    snprintf(img_name, name_max, "img_%llu.bmp", context->img_count);
+    snprintf(img_name, name_max, "images/img_%llu.bmp", context->img_count);
     ++context->img_count;
 
     FILE * img_file = fopen(img_name, "wb");
@@ -251,7 +251,7 @@ static void output_bmp(const ps_image_data_msg * const image_data_msg, context_s
 }
 
 
-unsigned long GLOBAL_COUNT = 0;
+// unsigned long GLOBAL_COUNT = 0;
 
 //
 static void logfile_iterator_callback(
@@ -271,12 +271,12 @@ static void logfile_iterator_callback(
         // is typically stored
         if(msg_type == context->image_data_msg_type)
         {
-            if(GLOBAL_COUNT > 4)
-            {
-                return;
-            }
+            // if(GLOBAL_COUNT > 4)
+            // {
+            //     return;
+            // }
 
-            GLOBAL_COUNT++;
+            // GLOBAL_COUNT++;
 
             const ps_msg_ref msg = (ps_msg_ref) log_record->data;
             const ps_image_data_msg * const image_data_msg = (ps_image_data_msg*) msg;

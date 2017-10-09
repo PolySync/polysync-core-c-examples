@@ -1,0 +1,1 @@
+logfile images output directory
