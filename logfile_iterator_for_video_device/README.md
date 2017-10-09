@@ -12,7 +12,7 @@ Packages: libglib2.0-dev
 To install on Ubuntu:
 
 ```bash
-sudo apt-get install libglib2.0-dev
+sudo apt-get install libusb-1.0
 ```
 
 ### Building and running the node

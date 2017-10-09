@@ -19,7 +19,6 @@ OBJS    := $(SRCS:.c=.o)
 DEPS    := $(SRCS:.c=.dep)
 XDEPS   := $(wildcard $(DEPS))
 
-LIB_PIXMAP = lib/pixmap.a
 # get standard PolySync build resources
 include $(PSYNC_HOME)/build_res.mk
 
@@ -30,7 +29,7 @@ INCLUDE += -Iinclude
 CC = gcc
 
 # add data model library
-LIBS += -lpolysync_data_model $(LIB_PIXMAP) -ljpeg -lpng -lz
+LIBS += -lpolysync_data_model -lusb-1.0 -lpng -lz lib/libuvc.a
 
 #
 all: dirs $(TARGET)

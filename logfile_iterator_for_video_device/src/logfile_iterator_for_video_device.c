@@ -39,6 +39,9 @@
 #include <signal.h>
 #include <unistd.h>
 
+
+#include "libuvc/libuvc.h"
+
 // API headers
 #include "polysync_core.h"
 #include "polysync_sdf.h"
@@ -47,10 +50,7 @@
 #include "polysync_logfile.h"
 #include "polysync_video.h"
 
-#include "pixmap_ppm.h"
-#include "pixmap_ppm_gz.h"
-#include "pixmap_png.h"
-#include "pixmap_jpg.h"
+
 
 // *****************************************************
 // static global types/macros
@@ -79,10 +79,8 @@ static const char LOGFILE_PATH[] = "/home/snewton/Downloads/70802/video-device.1
 static const char IMAGE_DATA_MSG_NAME[] = "ps_image_data_msg";
 
 
-/**
- * @brief Structure to store the byte array message type
- *
- */
+const ps_pixel_format_kind desired_decoder_format = PIXEL_FORMAT_BGR24;
+
 typedef struct
 {
     ps_node_ref node_ref;
@@ -90,7 +88,39 @@ typedef struct
     char in_file[PSYNC_DEFAULT_STRING_LEN];
     char out_file[PSYNC_DEFAULT_STRING_LEN];
     unsigned long long img_count;
+    unsigned int initialized;
+
+    ps_video_encoder video_encoder;
+    unsigned char *enocded_buffer;
+    unsigned long enocded_frame_size;
 } context_s;
+
+typedef struct {
+    float r, g, b;
+} rgb_data;
+
+typedef struct {
+    unsigned char   bitmap_type[2];     // 2 bytes
+    int             file_size;          // 4 bytes
+    short           reserved1;          // 2 bytes
+    short           reserved2;          // 2 bytes
+    unsigned int    offset_bits;        // 4 bytes
+} bfh;
+
+// bitmap image header (40 bytes)
+typedef struct {
+    unsigned int    size_header;        // 4 bytes
+    unsigned int    width;              // 4 bytes
+    unsigned int    height;             // 4 bytes
+    short int       planes;             // 2 bytes
+    short int       bit_count;          // 2 bytes
+    unsigned int    compression;        // 4 bytes
+    unsigned int    image_size;         // 4 bytes
+    unsigned int    ppm_x;              // 4 bytes
+    unsigned int    ppm_y;              // 4 bytes
+    unsigned int    clr_used;           // 4 bytes
+    unsigned int    clr_important;      // 4 bytes
+} bih;
 
 
 // *****************************************************
@@ -117,15 +147,12 @@ static void logfile_iterator_callback(
         const ps_rnr_log_record * const log_record,
         void * const user_data);
 
-
-
-
 // *****************************************************
 // static definitions
 // *****************************************************
 
-
 unsigned long GLOBAL_COUNT = 0;
+
 //
 static void logfile_iterator_callback(
         const ps_logfile_attributes * const file_attributes,
@@ -140,17 +167,10 @@ static void logfile_iterator_callback(
     // if logfile is empty, only attributes are provided
     if(log_record != NULL)
     {
-        printf("log record - index: %lu - size: %lu bytes - prev_size: %lu bytes - RnR timestamp (header.timestamp): %llu\n",
-            (unsigned long) log_record->index,
-            (unsigned long) log_record->size,
-            (unsigned long) log_record->prev_size,
-            (unsigned long long) log_record->timestamp);
-
         // we only want to read byte array messages, where the sensors payload
         // is typically stored
         if(msg_type == context->image_data_msg_type)
         {
-
             if(GLOBAL_COUNT > 4)
             {
                 return;
@@ -158,23 +178,80 @@ static void logfile_iterator_callback(
 
             GLOBAL_COUNT++;
 
+            int ret = 0;
+
             const ps_msg_ref msg = (ps_msg_ref) log_record->data;
             const ps_image_data_msg * const image_data_msg = (ps_image_data_msg*) msg;
 
-            struct pixmap* img = pixmap_alloc(image_data_msg->width, image_data_msg->height);
+            // image_data_msg->data_buffer._buffer;
 
-            img->bytes = image_data_msg->data_buffer._buffer;
+            int image_size = image_data_msg->width * image_data_msg->height * 3;
 
-            char png_name[16] = {0};
-            char jpg_name[16] = {0};
-            snprintf(png_name, 16, "img_%llu.png", context->img_count);
-            snprintf(jpg_name, 16, "img_%llu.jpg", context->img_count);
+            uvc_frame_t yuyv;
+            yuyv.data = image_data_msg->data_buffer._buffer;
+            yuyv.data_bytes = image_data_msg->data_buffer._length;
+            yuyv.width = image_data_msg->width;
+            yuyv.height = image_data_msg->height;
+            yuyv.frame_format = UVC_FRAME_FORMAT_YUYV;
+            yuyv.library_owns_data = 0;
 
+            uvc_frame_t *bgr = uvc_allocate_frame(image_size);
+
+            if(bgr == NULL)
+            {
+                printf("unable to allocate bgr frame!");
+                return;
+            }
+
+
+            /* Do the BGR conversion */
+            ret = uvc_any2bgr(&yuyv, bgr);
+            if(ret != 0)
+            {
+                uvc_perror(ret, "uvc_any2bgr");
+                uvc_free_frame(bgr);
+                return;
+            }
+
+            int file_size = 54 + 4 * image_size;
+            int ppm = 96 * 39.375;
+            bfh file_header;
+            bih image_header;
+
+            memcpy(&file_header.bitmap_type, "BM", 2);
+            file_header.file_size       = file_size;
+            file_header.reserved1       = 0;
+            file_header.reserved2       = 0;
+            file_header.offset_bits     = 0;
+
+            image_header.size_header     = sizeof(image_header);
+            image_header.width           = image_data_msg->width;
+            image_header.height          = image_data_msg->height;
+            image_header.planes          = 1;
+            image_header.bit_count       = 24;
+            image_header.compression     = 0;
+            image_header.image_size      = image_size;
+            image_header.ppm_x           = ppm;
+            image_header.ppm_y           = ppm;
+            image_header.clr_used        = 0;
+            image_header.clr_important   = 0;
+
+            char img_name[16] = {0};
+            snprintf(img_name, 16, "img_%llu.bmp", context->img_count);
             ++context->img_count;
 
-            pixmap_write_png(img, png_name);
-            pixmap_write_jpg(img, jpg_name);
+            FILE * img_file = fopen(img_name, "wb");
 
+            fwrite(&file_header, 1, 14, img_file);
+            fwrite(&image_header, 1, sizeof(image_header), img_file);
+            fwrite(
+                bgr->data,
+                sizeof(unsigned char),
+                bgr->data_bytes,
+                img_file);
+            fclose(img_file);
+
+            uvc_free_frame(bgr);
         }
     }
 }
@@ -197,6 +274,7 @@ int main(int argc, char **argv)
 
 
     context.img_count = 0;
+    context.initialized = 0;
 
     // init core API
     if((ret = psync_init(
@@ -271,6 +349,11 @@ int main(int argc, char **argv)
                 "main -- psync_release - ret: %d",
                 ret);
     }
+
+    // if(context.enocded_buffer != NULL)
+    // {
+    //     free(context.enocded_buffer);
+    // }
 
     return EXIT_SUCCESS;
 }
