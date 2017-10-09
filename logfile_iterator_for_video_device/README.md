@@ -7,13 +7,15 @@ individual image files.
 
 ### Dependencies
 
-Packages: libglib2.0-dev
-
 To install on Ubuntu:
 
 ```bash
 sudo apt-get install libusb-1.0
 ```
+
+- libuvc
+    - If you're not on amd64, Ubuntu 16.04 you'll need to build this library yourself. Follow the instructions [here](https://github.com/ktossell/libuvc) but instead of `sudo make install` as the last step, copy the `libuvc.a` that project builds to this project's `lib` directory.
+
 
 ### Building and running the node
 
