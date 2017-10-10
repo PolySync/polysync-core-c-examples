@@ -22,12 +22,31 @@ sudo apt install libpopt-dev
     - If you're not on amd64, Ubuntu 16.04 you'll need to build this library yourself. Follow the instructions [here](https://github.com/ktossell/libuvc) but instead of `sudo make install` as the last step, copy the `libuvc.a` that project builds to this project's `lib` directory.
 
 
-### Building and running the node
+### Building
 
 ```bash
 $ cd logfile_iterator_for_video_device
 $ make
-$ ./bin/polysync-logfile-iterator-for-video_device-c
+```
+
+### Running
+```
+$ ./bin/polysync-logfile-iterator-for-video_device-c -p <PATH> -o <PATH> -f <FORMAT>
+```
+
+### Usage
+```
+Usage: polysync-logfile-iterator-for-video-device-c [OPTION...]
+  -p, --path=PATH         required, path to video-device plog
+  -o, --outdir=PATH       specifiy image file output directory path, defaults
+                          to /tmp
+  -f, --format=FORMAT     specifiy file format 'bmp' or 'ppm', defaults to
+                          'ppm'
+
+Help options:
+  -?, --help              Show this help message
+      --usage             Display brief usage message
+
 ```
 
 For more API examples, visit the "Tutorials" and "Development" sections in the PolySync Help Center [here](http://docs.polysync.io/articles/).
