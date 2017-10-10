@@ -38,9 +38,6 @@
 #include <signal.h>
 #include <unistd.h>
 
-
-#include "libuvc/libuvc.h"
-
 // API headers
 #include "polysync_core.h"
 #include "polysync_sdf.h"
@@ -49,6 +46,8 @@
 #include "polysync_logfile.h"
 #include "polysync_video.h"
 
+#include "libuvc/libuvc.h"
+#include "video_log_utils.h"
 
 
 // *****************************************************
@@ -65,11 +64,8 @@ static const char NODE_NAME[] = "polysync-logfile-iterator-for-video-device-c";
 /**
  * @brief Logfile path we'll use instead of the automatic API-generated name.
  *
- * This is the path to the sample logfile session that's shipped with the release
- *
  */
 static const char LOGFILE_PATH[] = "/home/snewton/.local/share/polysync/rnr_logs/555/video-device.1688854689402078.plog";
-
 
 /**
  * @brief PolySync 'ps_byte_array_msg' type name.
@@ -77,48 +73,6 @@ static const char LOGFILE_PATH[] = "/home/snewton/.local/share/polysync/rnr_logs
  */
 static const char IMAGE_DATA_MSG_NAME[] = "ps_image_data_msg";
 
-
-typedef struct
-{
-    ps_node_ref node_ref;
-    ps_msg_type image_data_msg_type;
-    char in_file[PSYNC_DEFAULT_STRING_LEN];
-    char out_file[PSYNC_DEFAULT_STRING_LEN];
-    unsigned long long img_count;
-    unsigned int initialized;
-
-    ps_video_encoder video_encoder;
-    unsigned char *enocded_buffer;
-    unsigned long enocded_frame_size;
-} context_s;
-
-#pragma pack(push,1)
-typedef struct {
-    uint16_t bitmap_type;
-    int32_t file_size;
-    int16_t reserved1;
-    int16_t reserved2;
-    uint32_t offset_bits;
-} bitmap_file_header;
-
-typedef struct {
-    uint32_t size_header;
-    uint32_t width;
-    uint32_t height;
-    int16_t planes;
-    int16_t bit_count;
-    uint32_t compression;
-    uint32_t image_size;
-    uint32_t ppm_x;
-    uint32_t ppm_y;
-    uint32_t clr_used;
-    uint32_t clr_important;
-} bitmap_image_header;
-#pragma pack(pop)
-
-// *****************************************************
-// static declarations
-// *****************************************************
 
 /**
  * @brief Logfile iterator callback.
@@ -140,13 +94,59 @@ static void logfile_iterator_callback(
         const ps_rnr_log_record * const log_record,
         void * const user_data);
 
-// *****************************************************
-// static definitions
-// *****************************************************
 
-static void output_ppm(const ps_image_data_msg * const image_data_msg, context_s * const context)
+static void logfile_iterator_callback(
+    const ps_logfile_attributes * const file_attributes,
+    const ps_msg_type msg_type,
+    const ps_rnr_log_record * const log_record,
+    void * const user_data)
 {
-    int ret = 0;
+
+    // int ret = DTC_NONE;
+    context_s * const context = (context_s*) user_data;
+
+    // if logfile is empty, only attributes are provided
+    if(log_record != NULL)
+    {
+        // we only want to read image data messages
+        if(msg_type == context->image_data_msg_type)
+        {
+            const ps_msg_ref msg = (ps_msg_ref) log_record->data;
+            const ps_image_data_msg * const image_data_msg = (ps_image_data_msg*) msg;
+
+            (void) output_bmp(image_data_msg, context);
+            (void) output_ppm(image_data_msg, context);
+        }
+    }
+}
+
+
+int set_uvc_frame_format(
+    const ps_pixel_format_kind ps_format,
+    enum uvc_frame_format * uvc_format)
+{
+    int ret = DTC_NONE;
+
+    if(ps_format == PIXEL_FORMAT_YUYV)
+    {
+        *uvc_format = UVC_FRAME_FORMAT_YUYV;
+    }
+    else
+    {
+        psync_log_message(
+            LOG_LEVEL_ERROR,
+            "logged pixel format %d unsupported by this tool", ps_format);
+        ret = DTC_DATAERR;
+    }
+
+    return ret;
+}
+
+int output_ppm(
+    const ps_image_data_msg * const image_data_msg,
+    context_s * const context)
+{
+    int ret = DTC_NONE;
     int image_size = image_data_msg->width * image_data_msg->height * 3;
 
     uvc_frame_t yuyv;
@@ -154,58 +154,118 @@ static void output_ppm(const ps_image_data_msg * const image_data_msg, context_s
     yuyv.data_bytes = image_data_msg->data_buffer._length;
     yuyv.width = image_data_msg->width;
     yuyv.height = image_data_msg->height;
-    yuyv.frame_format = UVC_FRAME_FORMAT_YUYV;
     yuyv.library_owns_data = 0;
+    ret = set_uvc_frame_format(
+        image_data_msg->pixel_format,
+        &yuyv.frame_format);
+
+    if(ret != DTC_NONE)
+    {
+        return ret;
+    }
 
     uvc_frame_t *rgb = uvc_allocate_frame(image_size);
 
-    /* Do the RGB conversion */
     ret = uvc_any2rgb(&yuyv, rgb);
+
     if(ret != 0)
     {
         uvc_perror(ret, "uvc_any2rgb");
         uvc_free_frame(rgb);
-        return;
+        return DTC_DATAERR;
     }
 
     const size_t name_max = 1024; // lots of room
     char img_name[name_max];
-    snprintf(img_name, name_max, "images/img_%llu.ppm", context->img_count);
+    ret = snprintf(
+        img_name,
+        name_max,
+        "images/img_%llu.ppm",
+        context->img_count);
+
+    if(ret < 0)
+    {
+        psync_log_message(
+            LOG_LEVEL_ERROR,
+            "error setting output image name! snprintf returned %d", ret);
+        return DTC_DATAERR;
+    }
+
     ++context->img_count;
 
     FILE * img_file = fopen(img_name, "wb");
 
-    fprintf(img_file, "P6\n%d %d\n255\n", image_data_msg->width, image_data_msg->height);
+    if(img_file == NULL)
+    {
+        psync_log_message(
+            LOG_LEVEL_ERROR,
+            "failed to open %s for writing", img_name);
+        return DTC_DATAERR;
+    }
+
+    fprintf(
+        img_file,
+        "P6\n%d %d\n255\n",
+        image_data_msg->width,
+        image_data_msg->height);
+
     fwrite(
         rgb->data,
         sizeof(uint8_t),
         image_size,
         img_file);
-    fclose(img_file);
 
+    if(ferror(img_file) != 0)
+    {
+        psync_log_message(
+            LOG_LEVEL_ERROR,
+            "failed to write to %s", img_name);
+        return DTC_IOERR;
+    }
+
+    ret = fclose(img_file);
+
+    if(ret != 0)
+    {
+        psync_log_message(
+            LOG_LEVEL_ERROR,
+            "something is wrong! fclose failed on %s", img_name);
+        return DTC_IOERR;
+    }
+
+    return ret;
 }
 
-static void output_bmp(const ps_image_data_msg * const image_data_msg, context_s * const context)
+int output_bmp(
+    const ps_image_data_msg * const image_data_msg,
+    context_s * const context)
 {
-    int ret = 0;
+    int ret = DTC_NONE;
     int image_size = image_data_msg->width * image_data_msg->height * 3;
     uvc_frame_t yuyv;
     yuyv.data = image_data_msg->data_buffer._buffer;
     yuyv.data_bytes = image_data_msg->data_buffer._length;
     yuyv.width = image_data_msg->width;
     yuyv.height = image_data_msg->height;
-    yuyv.frame_format = UVC_FRAME_FORMAT_YUYV;
     yuyv.library_owns_data = 0;
+    ret = set_uvc_frame_format(
+        image_data_msg->pixel_format,
+        &yuyv.frame_format);
+
+    if(ret != DTC_NONE)
+    {
+        return ret;
+    }
 
     uvc_frame_t *bgr = uvc_allocate_frame(image_size);
 
-    /* Do the BGR conversion */
     ret = uvc_any2bgr(&yuyv, bgr);
+
     if(ret != 0)
     {
         uvc_perror(ret, "uvc_any2bgr");
         uvc_free_frame(bgr);
-        return;
+        return DTC_DATAERR;
     }
 
     bitmap_file_header file_header;
@@ -233,79 +293,87 @@ static void output_bmp(const ps_image_data_msg * const image_data_msg, context_s
 
     const size_t name_max = 1024; // lots of room
     char img_name[name_max];
-    snprintf(img_name, name_max, "images/img_%llu.bmp", context->img_count);
+    ret = snprintf(
+        img_name,
+        name_max,
+        "images/img_%llu.bmp",
+        context->img_count);
+
+    if(ret < 0)
+    {
+        psync_log_message(
+            LOG_LEVEL_ERROR,
+            "error setting output image name! snprintf returned %d", ret);
+        return DTC_DATAERR;
+    }
+
     ++context->img_count;
 
     FILE * img_file = fopen(img_name, "wb");
 
+    if(img_file == NULL)
+    {
+        psync_log_message(
+            LOG_LEVEL_ERROR,
+            "failed to open %s for writing", img_name);
+        return DTC_DATAERR;
+    }
+
     fwrite(&file_header, 1, sizeof(file_header), img_file);
+
+    if(ferror(img_file) != 0)
+    {
+        psync_log_message(
+            LOG_LEVEL_ERROR,
+            "failed to write to %s", img_name);
+        return DTC_IOERR;
+    }
+
     fwrite(&image_header, 1, sizeof(image_header), img_file);
+
+    if(ferror(img_file) != 0)
+    {
+        psync_log_message(
+            LOG_LEVEL_ERROR,
+            "failed to write to %s", img_name);
+        return DTC_IOERR;
+    }
+
     fwrite(
         bgr->data,
         sizeof(unsigned char),
         image_size,
         img_file);
-    fclose(img_file);
+
+    if(ferror(img_file) != 0)
+    {
+        psync_log_message(
+            LOG_LEVEL_ERROR,
+            "failed to write to %s", img_name);
+        return DTC_IOERR;
+    }
+
+    ret = fclose(img_file);
+
+    if(ret != 0)
+    {
+        psync_log_message(
+            LOG_LEVEL_ERROR,
+            "something is wrong! fclose failed on %s", img_name);
+        return DTC_IOERR;
+    }
 
     uvc_free_frame(bgr);
+
+    return ret;
 }
 
+#ifndef NOMAIN
 
-// unsigned long GLOBAL_COUNT = 0;
-
-//
-static void logfile_iterator_callback(
-        const ps_logfile_attributes * const file_attributes,
-        const ps_msg_type msg_type,
-        const ps_rnr_log_record * const log_record,
-        void * const user_data)
-{
-
-    // int ret = DTC_NONE;
-    context_s * const context = (context_s*) user_data;
-
-    // if logfile is empty, only attributes are provided
-    if(log_record != NULL)
-    {
-        // we only want to read byte array messages, where the sensors payload
-        // is typically stored
-        if(msg_type == context->image_data_msg_type)
-        {
-            // if(GLOBAL_COUNT > 4)
-            // {
-            //     return;
-            // }
-
-            // GLOBAL_COUNT++;
-
-            const ps_msg_ref msg = (ps_msg_ref) log_record->data;
-            const ps_image_data_msg * const image_data_msg = (ps_image_data_msg*) msg;
-
-            if(image_data_msg->pixel_format != PIXEL_FORMAT_YUYV)
-            {
-                printf("Requied that logged image data is in YUYV pixel format.");
-                return;
-            }
-            // output_bmp(image_data_msg, context);
-            output_ppm(image_data_msg, context);
-        }
-    }
-}
-
-
-
-
-// *****************************************************
-// main
-// *****************************************************
 int main(int argc, char **argv)
 {
-    // polysync return status
     int ret = DTC_NONE;
-
-    // context data
     context_s context;
-
     memset(&context, 0, sizeof(context));
 
 
@@ -313,78 +381,114 @@ int main(int argc, char **argv)
     context.initialized = 0;
 
     // init core API
-    if((ret = psync_init(
+    ret = psync_init(
             NODE_NAME,
             PSYNC_NODE_TYPE_API_USER,
             PSYNC_DEFAULT_DOMAIN,
             PSYNC_SDF_ID_INVALID,
             PSYNC_INIT_FLAG_STDOUT_LOGGING,
-            &context.node_ref)) != DTC_NONE)
+            &context.node_ref);
+
+    if(ret != DTC_NONE)
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
                 "main -- psync_init - ret: %d",
                 ret);
-        return EXIT_FAILURE;
+        ret = DTC_CONFIG;
     }
 
-     // get the message type for 'ps_image_data_msg'
-    ret = psync_message_get_type_by_name(
+    if(ret == DTC_NONE)
+    {
+        // get the message type for 'ps_image_data_msg'
+        ret = psync_message_get_type_by_name(
             context.node_ref,
             IMAGE_DATA_MSG_NAME,
             &context.image_data_msg_type);
+    }
 
     if(ret != DTC_NONE)
     {
         psync_log_error("psync_message_get_type_by_name - ret: %d", ret);
-        (void) psync_release(&context.node_ref);
-        return EXIT_FAILURE;
+        ret = DTC_CONFIG;
     }
 
-    // initialize logfile API resources
-    if((ret = psync_logfile_init(context.node_ref)) != DTC_NONE)
+    if(ret == DTC_NONE)
+    {
+        // initialize logfile API resources
+        ret = psync_logfile_init(context.node_ref);
+    }
+
+    if(ret != DTC_NONE)
     {
         psync_log_message(
-                LOG_LEVEL_ERROR,
-                "main -- psync_logfile_init - ret: %d",
-                ret);
-        goto GRACEFUL_EXIT_STMNT;
+            LOG_LEVEL_ERROR,
+            "main -- psync_logfile_init - ret: %d",
+            ret);
+        ret = DTC_CONFIG;
     }
 
-    // iterate over the logfile data
-    if((ret = psync_logfile_foreach_iterator(
+    if(ret == DTC_NONE)
+    {
+        // initialize logfile API resources
+        ret = psync_logfile_foreach_iterator(
             context.node_ref,
             LOGFILE_PATH,
             logfile_iterator_callback,
-            &context)) != DTC_NONE)
+            &context);
+    }
+
+    // iterate over the logfile data
+    if(ret != DTC_NONE)
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
                 "main -- psync_logfile_foreach_iterator - ret: %d",
                 ret);
-        goto GRACEFUL_EXIT_STMNT;
+        ret = DTC_CONFIG;
     }
 
-    // using 'goto' to allow for an easy example exit
-    GRACEFUL_EXIT_STMNT:
+    if(ret == DTC_NONE)
+    {
+        // release logfile API resources
+        ret = psync_logfile_release(context.node_ref);
+    }
 
-    // release logfile API resources
-    if((ret = psync_logfile_release(context.node_ref)) != DTC_NONE)
+    // iterate over the logfile data
+    if(ret != DTC_NONE)
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
                 "main -- psync_logfile_release - ret: %d",
                 ret);
+        ret = DTC_CONFIG;
     }
 
+    if(ret == DTC_NONE)
+    {
+        // release logfile API resources
+        ret = psync_release(&context.node_ref);
+    }
 	// release core API
-    if((ret = psync_release(&context.node_ref)) != DTC_NONE)
+    if(ret != DTC_NONE)
     {
         psync_log_message(
                 LOG_LEVEL_ERROR,
                 "main -- psync_release - ret: %d",
                 ret);
+        ret = DTC_CONFIG;
     }
 
-    return EXIT_SUCCESS;
+    if(ret == DTC_NONE)
+    {
+        ret = EXIT_SUCCESS;
+    }
+    else
+    {
+        ret = EXIT_FAILURE;
+    }
+
+    return ret;
 }
+
+#endif // NOMAIN
