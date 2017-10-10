@@ -544,7 +544,8 @@ static int parse_options(
             POPT_ARG_STRING,
             &outdir,
             OPT_OUTDIR_PATH,
-            "specifiy image file output directory path, defaults to /tmp",
+            "specifiy image file output directory path, defaults to "
+            "/tmp/plog_images.XXXXXX where `XXXXXX` represents a random string",
             "PATH"
         },
         {

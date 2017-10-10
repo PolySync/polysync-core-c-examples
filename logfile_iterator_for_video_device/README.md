@@ -38,23 +38,28 @@ $ make
 ```
 
 ### Running
-```
+```bash
 $ ./bin/polysync-logfile-iterator-for-video_device-c -p <PATH> -o <PATH> -f <FORMAT>
 ```
-
-### Usage
+### Example Usage
+```bash
+$ ./bin/polysync-logfile-iterator-for-video_device-c -p ~/.local/share/polysync/rnr_logs/70802/video-device.1688895556945937.plog
 ```
+This will write `.ppm` image files generated from the video-device log in session 70802 to a `/tmp/plog_images.XXXXXX` where `XXXXXX` represents a random string.
+
+### Usage Details
+```bash
 Usage: polysync-logfile-iterator-for-video-device-c [OPTION...]
   -p, --path=PATH         required, path to video-device plog
   -o, --outdir=PATH       specifiy image file output directory path, defaults
-                          to /tmp
+                          to /tmp/plog_images.XXXXXX where `XXXXXX` represents
+                          a random string
   -f, --format=FORMAT     specifiy file format 'bmp' or 'ppm', defaults to
                           'ppm'
 
 Help options:
   -?, --help              Show this help message
       --usage             Display brief usage message
-
 ```
 
 For more API examples, visit the "Tutorials" and "Development" sections in the PolySync Help Center [here](http://docs.polysync.io/articles/).
