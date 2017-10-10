@@ -14,7 +14,7 @@ This example requries that the image data was logged with YUYV pixel formatting.
 To install on Ubuntu:
 
 ```bash
-sudo apt-get install libusb-1.0
+sudo apt install libusb-1.0
 sudo apt install libpopt-dev
 ```
 
