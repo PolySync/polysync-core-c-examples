@@ -27,7 +27,7 @@ mkdir build
 cd build
 cmake ..
 make
-cp libuvc.a /path/to/this/example/lib
+cp libuvc.a /path/to/logfile_iterator_for_video_device/lib
 ```
 
 ### Building
