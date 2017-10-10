@@ -53,10 +53,6 @@
 #include "video_log_utils.h"
 
 
-// *****************************************************
-// static global types/macros
-// *****************************************************
-
 /**
  * @brief PolySync node name.
  *
@@ -88,10 +84,10 @@ static const char IMAGE_DATA_MSG_NAME[] = "ps_image_data_msg";
  *
  */
 static void logfile_iterator_callback(
-        const ps_logfile_attributes * const file_attributes,
-        const ps_msg_type msg_type,
-        const ps_rnr_log_record * const log_record,
-        void * const user_data);
+    const ps_logfile_attributes * const file_attributes,
+    const ps_msg_type msg_type,
+    const ps_rnr_log_record * const log_record,
+    void * const user_data);
 
 
 static void logfile_iterator_callback(
@@ -105,7 +101,7 @@ static void logfile_iterator_callback(
     context_s * const context = (context_s*) user_data;
 
     // if logfile is empty, only attributes are provided
-    if(log_record != NULL)
+    if((log_record != NULL) && (context != NULL))
     {
         // we only want to read image data messages
         if(msg_type == context->image_data_msg_type)
@@ -128,20 +124,28 @@ static void logfile_iterator_callback(
 
 int set_uvc_frame_format(
     const ps_pixel_format_kind ps_format,
-    enum uvc_frame_format * uvc_format)
+    enum uvc_frame_format * const uvc_format)
 {
     int ret = DTC_NONE;
 
-    if(ps_format == PIXEL_FORMAT_YUYV)
+    if(uvc_format == NULL)
     {
-        *uvc_format = UVC_FRAME_FORMAT_YUYV;
+        ret = DTC_USAGE;
     }
-    else
+
+    if(ret == DTC_NONE)
     {
-        psync_log_message(
-            LOG_LEVEL_ERROR,
-            "logged pixel format %d unsupported by this tool", ps_format);
-        ret = DTC_DATAERR;
+        if(ps_format == PIXEL_FORMAT_YUYV)
+        {
+            *uvc_format = UVC_FRAME_FORMAT_YUYV;
+        }
+        else
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "logged pixel format %d unsupported by this tool", ps_format);
+            ret = DTC_DATAERR;
+        }
     }
 
     return ret;
@@ -152,91 +156,133 @@ int output_ppm(
     context_s * const context)
 {
     int ret = DTC_NONE;
+    int print_ret = 0;
+    int uvc_ret = 0;
     int image_size = image_data_msg->width * image_data_msg->height * 3;
-
+    const size_t name_max = 1024; // lots of room
+    char img_name[name_max];
+    FILE * img_file = NULL;
     uvc_frame_t yuyv;
+    uvc_frame_t * rgb = NULL;
     yuyv.data = image_data_msg->data_buffer._buffer;
     yuyv.data_bytes = image_data_msg->data_buffer._length;
     yuyv.width = image_data_msg->width;
     yuyv.height = image_data_msg->height;
     yuyv.library_owns_data = 0;
-    ret = set_uvc_frame_format(
-        image_data_msg->pixel_format,
-        &yuyv.frame_format);
 
-    if(ret != DTC_NONE)
+    if((image_data_msg == NULL) || (context == NULL))
     {
-        return ret;
+        ret = DTC_USAGE;
     }
 
-    uvc_frame_t *rgb = uvc_allocate_frame(image_size);
-
-    ret = uvc_any2rgb(&yuyv, rgb);
-
-    if(ret != 0)
+    if(ret == DTC_NONE)
     {
-        uvc_perror(ret, "uvc_any2rgb");
+        uvc_ret = set_uvc_frame_format(
+            image_data_msg->pixel_format,
+            &yuyv.frame_format);
+
+        if(uvc_ret != 0)
+        {
+            ret = DTC_DATAERR;
+        }
+    }
+    if(ret == DTC_NONE)
+    {
+        rgb = uvc_allocate_frame(image_size);
+
+        uvc_ret = uvc_any2rgb(&yuyv, rgb);
+
+        if(uvc_ret != 0)
+        {
+            uvc_perror(uvc_ret, "uvc_any2rgb");
+            uvc_free_frame(rgb);
+            ret = DTC_DATAERR;
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        print_ret = snprintf(
+            img_name,
+            name_max,
+            "%s/img_%llu.ppm",
+            context->output_dir,
+            context->img_count);
+
+        if(print_ret < 0)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "error setting output image name! snprintf returned %d", print_ret);
+            ret = DTC_DATAERR;
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        ++context->img_count;
+
+        img_file = fopen(img_name, "wb");
+
+        if(img_file == NULL)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "failed to open %s for writing", img_name);
+            ret = DTC_DATAERR;
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        print_ret = fprintf(
+            img_file,
+            "P6\n%d %d\n255\n",
+            image_data_msg->width,
+            image_data_msg->height);
+
+        if(print_ret < 0)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "error writing file header! fprintf returned %d", print_ret);
+            ret = DTC_DATAERR;
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        fwrite(
+            rgb->data,
+            sizeof(uint8_t),
+            image_size,
+            img_file);
+
+        if(ferror(img_file) != 0)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "failed to write to %s", img_name);
+            ret = DTC_IOERR;
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        ret = fclose(img_file);
+
+        if(ret != 0)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "something is wrong! fclose failed on %s", img_name);
+            ret = DTC_IOERR;
+        }
+    }
+
+    if(rgb != NULL)
+    {
         uvc_free_frame(rgb);
-        return DTC_DATAERR;
-    }
-
-    const size_t name_max = 1024; // lots of room
-    char img_name[name_max];
-    ret = snprintf(
-        img_name,
-        name_max,
-        "%s/img_%llu.ppm",
-        context->output_dir,
-        context->img_count);
-
-    if(ret < 0)
-    {
-        psync_log_message(
-            LOG_LEVEL_ERROR,
-            "error setting output image name! snprintf returned %d", ret);
-        return DTC_DATAERR;
-    }
-
-    ++context->img_count;
-
-    FILE * img_file = fopen(img_name, "wb");
-
-    if(img_file == NULL)
-    {
-        psync_log_message(
-            LOG_LEVEL_ERROR,
-            "failed to open %s for writing", img_name);
-        return DTC_DATAERR;
-    }
-
-    fprintf(
-        img_file,
-        "P6\n%d %d\n255\n",
-        image_data_msg->width,
-        image_data_msg->height);
-
-    fwrite(
-        rgb->data,
-        sizeof(uint8_t),
-        image_size,
-        img_file);
-
-    if(ferror(img_file) != 0)
-    {
-        psync_log_message(
-            LOG_LEVEL_ERROR,
-            "failed to write to %s", img_name);
-        return DTC_IOERR;
-    }
-
-    ret = fclose(img_file);
-
-    if(ret != 0)
-    {
-        psync_log_message(
-            LOG_LEVEL_ERROR,
-            "something is wrong! fclose failed on %s", img_name);
-        return DTC_IOERR;
     }
 
     return ret;
@@ -247,130 +293,219 @@ int output_bmp(
     context_s * const context)
 {
     int ret = DTC_NONE;
+    int print_ret = 0;
+    int uvc_ret = 0;
     int image_size = image_data_msg->width * image_data_msg->height * 3;
+    int file_size = 0;
+    FILE * img_file = NULL;
+    bitmap_file_header file_header;
+    bitmap_image_header image_header;
+    const size_t name_max = 1024; // lots of room
+    char img_name[name_max];
     uvc_frame_t yuyv;
+    uvc_frame_t * bgr = NULL;
     yuyv.data = image_data_msg->data_buffer._buffer;
     yuyv.data_bytes = image_data_msg->data_buffer._length;
     yuyv.width = image_data_msg->width;
     yuyv.height = image_data_msg->height;
     yuyv.library_owns_data = 0;
-    ret = set_uvc_frame_format(
-        image_data_msg->pixel_format,
-        &yuyv.frame_format);
 
-    if(ret != DTC_NONE)
+    if((image_data_msg == NULL) || (context == NULL))
     {
-        return ret;
+        ret = DTC_USAGE;
     }
 
-    uvc_frame_t *bgr = uvc_allocate_frame(image_size);
-
-    ret = uvc_any2bgr(&yuyv, bgr);
-
-    if(ret != 0)
+    if(ret == DTC_NONE)
     {
-        uvc_perror(ret, "uvc_any2bgr");
+        uvc_ret = set_uvc_frame_format(
+            image_data_msg->pixel_format,
+            &yuyv.frame_format);
+
+        if(uvc_ret != DTC_NONE)
+        {
+            ret = DTC_DATAERR;
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        bgr = uvc_allocate_frame(image_size);
+
+        ret = uvc_any2bgr(&yuyv, bgr);
+
+        if(uvc_ret != 0)
+        {
+            uvc_perror(uvc_ret, "uvc_any2bgr");
+            uvc_free_frame(bgr);
+            ret =  DTC_DATAERR;
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        file_size =
+            sizeof(file_header) + sizeof(image_header) + image_size;
+
+        file_header.bitmap_type = 0x4d42; //"BM"
+        file_header.file_size = file_size;
+        file_header.reserved1 = 0; // unused
+        file_header.reserved2 = 0; // unused
+        file_header.offset_bits = 0; // unused
+
+        image_header.size_header = sizeof(image_header);
+        image_header.width = image_data_msg->width;
+        image_header.height = image_data_msg->height;
+        image_header.planes = 1;
+        image_header.bit_count = 24; // The 24-bit pixel
+        image_header.compression = 0; // none
+        image_header.image_size = image_size;
+        image_header.ppm_x = 0; // unused
+        image_header.ppm_y = 0; // unused
+        image_header.clr_used = 0; // unused
+        image_header.clr_important = 0; // unused
+
+        print_ret = snprintf(
+            img_name,
+            name_max,
+            "%s/img_%llu.ppm",
+            context->output_dir,
+            context->img_count);
+
+        if(print_ret < 0)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "error setting output image name! snprintf returned %d", print_ret);
+            ret = DTC_DATAERR;
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        ++context->img_count;
+
+        img_file = fopen(img_name, "wb");
+
+        if(img_file == NULL)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "failed to open %s for writing", img_name);
+            ret = DTC_DATAERR;
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        fwrite(&file_header, 1, sizeof(file_header), img_file);
+
+        if(ferror(img_file) != 0)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "failed to write to %s", img_name);
+            ret = DTC_IOERR;
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        fwrite(&image_header, 1, sizeof(image_header), img_file);
+
+        if(ferror(img_file) != 0)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "failed to write to %s", img_name);
+            ret = DTC_IOERR;
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        fwrite(
+            bgr->data,
+            sizeof(unsigned char),
+            image_size,
+            img_file);
+
+        if(ferror(img_file) != 0)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "failed to write to %s", img_name);
+            ret = DTC_IOERR;
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        ret = fclose(img_file);
+
+        if(ret != 0)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "something is wrong! fclose failed on %s", img_name);
+            ret = DTC_IOERR;
+        }
+    }
+
+    if(bgr != NULL)
+    {
         uvc_free_frame(bgr);
-        return DTC_DATAERR;
     }
 
-    bitmap_file_header file_header;
-    bitmap_image_header image_header;
-    int file_size =
-        sizeof(file_header) + sizeof(image_header) + image_size;
+    return ret;
+}
 
-    file_header.bitmap_type = 0x4d42; //"BM"
-    file_header.file_size = file_size;
-    file_header.reserved1 = 0; // unused
-    file_header.reserved2 = 0; // unused
-    file_header.offset_bits = 0; // unused
+int init_context(context_s * const context, const char * logfile_path)
+{
+    int ret = DTC_NONE;
+    int print_ret = 0;
+    char fmt[] = "/tmp/plog_images.XXXXXX";
+    char *dir_name = NULL;
 
-    image_header.size_header = sizeof(image_header);
-    image_header.width = image_data_msg->width;
-    image_header.height = image_data_msg->height;
-    image_header.planes = 1;
-    image_header.bit_count = 24; // The 24-bit pixel
-    image_header.compression = 0; // none
-    image_header.image_size = image_size;
-    image_header.ppm_x = 0; // unused
-    image_header.ppm_y = 0; // unused
-    image_header.clr_used = 0; // unused
-    image_header.clr_important = 0; // unused
+    context->img_count = 0;
+    context->output_format = OUTPUT_PPM; // default
 
-    const size_t name_max = 1024; // lots of room
-    char img_name[name_max];
-    ret = snprintf(
-        img_name,
-        name_max,
-        "%s/img_%llu.ppm",
-        context->output_dir,
-        context->img_count);
-
-    if(ret < 0)
+    if(logfile_path != NULL)
     {
-        psync_log_message(
-            LOG_LEVEL_ERROR,
-            "error setting output image name! snprintf returned %d", ret);
-        return DTC_DATAERR;
+        print_ret = snprintf(
+            context->logfile_path,
+            sizeof(context->logfile_path) - 1,
+            "%s",
+            logfile_path);
+
+        if(print_ret < 0)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "error setting logfile_path! snprintf returned %d",
+                print_ret);
+            ret = DTC_DATAERR;
+        }
     }
 
-    ++context->img_count;
-
-    FILE * img_file = fopen(img_name, "wb");
-
-    if(img_file == NULL)
+    if(ret == DTC_NONE)
     {
-        psync_log_message(
-            LOG_LEVEL_ERROR,
-            "failed to open %s for writing", img_name);
-        return DTC_DATAERR;
+        dir_name = mkdtemp(fmt);
+
+        print_ret = snprintf(
+            context->output_dir,
+            sizeof(context->output_dir) - 1,
+            "%s",
+            dir_name);
+
+        if(print_ret < 0)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "error setting default outdir! snprintf returned %d",
+                print_ret);
+            ret = DTC_DATAERR;
+        }
     }
-
-    fwrite(&file_header, 1, sizeof(file_header), img_file);
-
-    if(ferror(img_file) != 0)
-    {
-        psync_log_message(
-            LOG_LEVEL_ERROR,
-            "failed to write to %s", img_name);
-        return DTC_IOERR;
-    }
-
-    fwrite(&image_header, 1, sizeof(image_header), img_file);
-
-    if(ferror(img_file) != 0)
-    {
-        psync_log_message(
-            LOG_LEVEL_ERROR,
-            "failed to write to %s", img_name);
-        return DTC_IOERR;
-    }
-
-    fwrite(
-        bgr->data,
-        sizeof(unsigned char),
-        image_size,
-        img_file);
-
-    if(ferror(img_file) != 0)
-    {
-        psync_log_message(
-            LOG_LEVEL_ERROR,
-            "failed to write to %s", img_name);
-        return DTC_IOERR;
-    }
-
-    ret = fclose(img_file);
-
-    if(ret != 0)
-    {
-        psync_log_message(
-            LOG_LEVEL_ERROR,
-            "something is wrong! fclose failed on %s", img_name);
-        return DTC_IOERR;
-    }
-
-    uvc_free_frame(bgr);
 
     return ret;
 }
@@ -385,21 +520,19 @@ enum
     OPT_SHOW_HELP
 };
 
-int main(int argc, char **argv)
+static int parse_options(
+    const int argc,
+    char ** const argv,
+    context_s * const context)
 {
     int ret = DTC_NONE;
     poptContext opt_ctx;
-    context_s context;
-    memset(&context, 0, sizeof(context));
     char * outputformat = NULL;
     char * logfilepath = NULL;
     char * outdir = NULL;
     int outputformat_set = 0;
     int logfilepath_set = 0;
     int outdir_set = 0;
-
-    context.img_count = 0;
-    context.output_format = OUTPUT_PPM; // default
 
     const struct poptOption OPTIONS_TABLE[] =
     {
@@ -434,18 +567,21 @@ int main(int argc, char **argv)
         POPT_TABLEEND
     };
 
-    opt_ctx = poptGetContext(
-        NULL,
-        argc,
-        (const char**) argv,
-        OPTIONS_TABLE,
-        0);
-
-    if(argc < 2)
+    if(ret == DTC_NONE)
     {
-        ret = DTC_USAGE;
-        poptPrintUsage(opt_ctx, stderr, 0);
-        poptFreeContext(opt_ctx);
+        opt_ctx = poptGetContext(
+            NULL,
+            argc,
+            (const char**) argv,
+            OPTIONS_TABLE,
+            0);
+
+        if(argc < 2)
+        {
+            ret = DTC_USAGE;
+            poptPrintUsage(opt_ctx, stderr, 0);
+            poptFreeContext(opt_ctx);
+        }
     }
 
     if(ret == DTC_NONE)
@@ -493,7 +629,7 @@ int main(int argc, char **argv)
         {
             if(strncmp(outputformat, "bmp", 3) == 0)
             {
-                context.output_format = OUTPUT_BMP;
+                context->output_format = OUTPUT_BMP;
             }
             else if(strncmp(outputformat, "ppm", 3) != 0)
             {
@@ -515,6 +651,25 @@ int main(int argc, char **argv)
                 "path to logfile required");
             poptPrintUsage(opt_ctx, stderr, 0);
         }
+        else
+        {
+            int print_ret = 0;
+
+            print_ret = snprintf(
+                context->logfile_path,
+                sizeof(context->logfile_path),
+                "%s",
+                logfilepath);
+
+                if(print_ret < 0)
+            {
+                psync_log_message(
+                    LOG_LEVEL_ERROR,
+                    "error setting logfile path! snprintf returned %d",
+                    print_ret);
+                ret = DTC_DATAERR;
+            }
+        }
     }
 
     if(ret == DTC_NONE)
@@ -523,53 +678,50 @@ int main(int argc, char **argv)
         {
             int print_ret = 0;
             print_ret = snprintf(
-                context.output_dir,
-                sizeof(context.output_dir) - 1,
+                context->output_dir,
+                sizeof(context->output_dir) - 1,
                 "%s", outdir);
 
             // Minimal effort path cleanup
-            size_t len = strlen(context.output_dir);
+            size_t len = strlen(context->output_dir);
 
-            if(context.output_dir[len-1] == '/')
+            if(context->output_dir[len-1] == '/')
             {
-                context.output_dir[len-1] = '\0';
+                context->output_dir[len-1] = '\0';
             }
 
             if(print_ret < 0)
             {
                 psync_log_message(
                     LOG_LEVEL_ERROR,
-                    "error setting output image name! snprintf returned %d", ret);
+                    "error setting outdir! snprintf returned %d",
+                    print_ret);
                 ret = DTC_DATAERR;
             }
         }
-        else
-        {
-            char fmt[] = "/tmp/plog_images.XXXXXX";
-            char *dir_name = mkdtemp(fmt);
+    }
 
-            int print_ret = 0;
-            print_ret = snprintf(
-                context.output_dir,
-                sizeof(context.output_dir) - 1,
-                "%s",
-                dir_name);
+    return ret;
+}
 
-            if(print_ret < 0)
-            {
-                psync_log_message(
-                    LOG_LEVEL_ERROR,
-                    "error setting output image name! snprintf returned %d", ret);
-                ret = DTC_DATAERR;
-            }
-        }
+int main(int argc, char **argv)
+{
+    int ret = DTC_NONE;
+    context_s context;
+    memset(&context, 0, sizeof(context));
+
+    ret = init_context(&context, NULL);
+
+    if(ret == DTC_NONE)
+    {
+        ret = parse_options(argc, argv, &context);
     }
 
     if(ret == DTC_NONE)
     {
         psync_log_message(
             LOG_LEVEL_INFO,
-            "image files written to %s", context.output_dir);
+            "writing image files to %s", context.output_dir);
     }
 
     if(ret == DTC_NONE)
@@ -628,7 +780,7 @@ int main(int argc, char **argv)
         // iterate over logfile
         ret = psync_logfile_foreach_iterator(
             context.node_ref,
-            logfilepath,
+            context.logfile_path,
             logfile_iterator_callback,
             &context);
 
@@ -686,3 +838,4 @@ int main(int argc, char **argv)
 }
 
 #endif // NOMAIN
+
