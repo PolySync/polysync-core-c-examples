@@ -19,7 +19,7 @@ sudo apt install libpopt-dev
 ```
 
 - libuvc
-    - If you're not on amd64, Ubuntu 16.04 you'll need to build this library yourself. Follow the instructions [here](https://github.com/ktossell/libuvc) but instead of `sudo make install` as the last step, copy the `libuvc.a` that project builds to this project's `lib` directory.
+    - If you're not on amd64, Ubuntu 16.04 you'll need to build this library yourself. Follow the instructions [here](https://github.com/ktossell/libuvc). **NOTE: Instead of `sudo make install` as the last step in the above process, copy the `libuvc.a` that project builds to this project's `lib` directory (if you already installed it, copy the library and you'll be fine).
 
 
 ### Building
