@@ -32,8 +32,7 @@
  *
  */
 
-
-
+// System headers
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -53,22 +52,17 @@
 #include "libuvc/libuvc.h"
 #include "video_log_utils.h"
 
-
 /**
  * @brief PolySync node name.
  *
  */
 static const char NODE_NAME[] = "polysync-logfile-iterator-for-video-device-c";
 
-
-// static const char LOGFILE_PATH[] = "/home/snewton/.local/share/polysync/rnr_logs/555/video-device.1688854689402078.plog";
-
 /**
  * @brief PolySync 'ps_byte_array_msg' type name.
  *
  */
 static const char IMAGE_DATA_MSG_NAME[] = "ps_image_data_msg";
-
 
 /**
  * @brief Logfile iterator callback.
@@ -89,7 +83,6 @@ static void logfile_iterator_callback(
     const ps_msg_type msg_type,
     const ps_rnr_log_record * const log_record,
     void * const user_data);
-
 
 static void logfile_iterator_callback(
     const ps_logfile_attributes * const file_attributes,
@@ -838,4 +831,3 @@ int main(int argc, char **argv)
 }
 
 #endif // NOMAIN
-

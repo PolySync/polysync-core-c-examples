@@ -73,6 +73,15 @@ typedef struct {
 } bitmap_image_header;
 #pragma pack(pop)
 
+/**
+ * @brief Convert ps_pixel_format_kind to uvc_frame_format.
+ *
+ * @param [in] ps_format PolySync image data pixel format.
+ * @param [out] uvc_frame_format libuvc frame format.
+ *
+ * @return DTC code:
+ * \li DTC_NONE (zero) if success.
+*/
 int set_uvc_frame_format(
     const ps_pixel_format_kind ps_format,
     enum uvc_frame_format * const uvc_format);
