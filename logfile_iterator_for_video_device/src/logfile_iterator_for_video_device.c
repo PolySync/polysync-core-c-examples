@@ -37,6 +37,8 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <popt.h>
 
 // API headers
 #include "polysync_core.h"
@@ -46,6 +48,7 @@
 #include "polysync_logfile.h"
 #include "polysync_video.h"
 
+// Example specific headers
 #include "libuvc/libuvc.h"
 #include "video_log_utils.h"
 
@@ -61,11 +64,7 @@
 static const char NODE_NAME[] = "polysync-logfile-iterator-for-video-device-c";
 
 
-/**
- * @brief Logfile path we'll use instead of the automatic API-generated name.
- *
- */
-static const char LOGFILE_PATH[] = "/home/snewton/.local/share/polysync/rnr_logs/555/video-device.1688854689402078.plog";
+// static const char LOGFILE_PATH[] = "/home/snewton/.local/share/polysync/rnr_logs/555/video-device.1688854689402078.plog";
 
 /**
  * @brief PolySync 'ps_byte_array_msg' type name.
@@ -114,8 +113,14 @@ static void logfile_iterator_callback(
             const ps_msg_ref msg = (ps_msg_ref) log_record->data;
             const ps_image_data_msg * const image_data_msg = (ps_image_data_msg*) msg;
 
-            (void) output_bmp(image_data_msg, context);
-            (void) output_ppm(image_data_msg, context);
+            if(context->output_format == OUTPUT_BMP)
+            {
+                (void) output_bmp(image_data_msg, context);
+            }
+            else if(context->output_format == OUTPUT_PPM)
+            {
+                (void) output_ppm(image_data_msg, context);
+            }
         }
     }
 }
@@ -180,7 +185,8 @@ int output_ppm(
     ret = snprintf(
         img_name,
         name_max,
-        "images/img_%llu.ppm",
+        "%s/img_%llu.ppm",
+        context->output_dir,
         context->img_count);
 
     if(ret < 0)
@@ -296,7 +302,8 @@ int output_bmp(
     ret = snprintf(
         img_name,
         name_max,
-        "images/img_%llu.bmp",
+        "%s/img_%llu.ppm",
+        context->output_dir,
         context->img_count);
 
     if(ret < 0)
@@ -370,18 +377,205 @@ int output_bmp(
 
 #ifndef NOMAIN
 
+enum
+{
+    OPT_OUTPUT_FORMAT = 1,
+    OPT_LOGFILE_PATH,
+    OPT_OUTDIR_PATH,
+    OPT_SHOW_HELP
+};
+
 int main(int argc, char **argv)
 {
     int ret = DTC_NONE;
+    poptContext opt_ctx;
     context_s context;
     memset(&context, 0, sizeof(context));
-
+    char * outputformat = NULL;
+    char * logfilepath = NULL;
+    char * outdir = NULL;
+    int outputformat_set = 0;
+    int logfilepath_set = 0;
+    int outdir_set = 0;
 
     context.img_count = 0;
-    context.initialized = 0;
+    context.output_format = OUTPUT_PPM; // default
 
-    // init core API
-    ret = psync_init(
+    const struct poptOption OPTIONS_TABLE[] =
+    {
+        {
+            "path",
+            'p',
+            POPT_ARG_STRING,
+            &logfilepath,
+            OPT_LOGFILE_PATH,
+            "required, path to video-device plog",
+            "PATH"
+        },
+        {
+            "outdir",
+            'o',
+            POPT_ARG_STRING,
+            &outdir,
+            OPT_OUTDIR_PATH,
+            "specifiy image file output directory path, defaults to /tmp",
+            "PATH"
+        },
+        {
+            "format",
+            'f',
+            POPT_ARG_STRING,
+            &outputformat,
+            OPT_OUTPUT_FORMAT,
+            "specifiy file format 'bmp' or 'ppm', defaults to 'ppm'",
+            "FORMAT"
+        },
+        POPT_AUTOHELP
+        POPT_TABLEEND
+    };
+
+    opt_ctx = poptGetContext(
+        NULL,
+        argc,
+        (const char**) argv,
+        OPTIONS_TABLE,
+        0);
+
+    if(argc < 2)
+    {
+        ret = DTC_USAGE;
+        poptPrintUsage(opt_ctx, stderr, 0);
+        poptFreeContext(opt_ctx);
+    }
+
+    if(ret == DTC_NONE)
+    {
+        int opt = 0;
+
+        while((opt = poptGetNextOpt(opt_ctx)) >= 0)
+        {
+            if(opt == OPT_LOGFILE_PATH)
+            {
+                logfilepath_set = 1;
+            }
+            else if(opt == OPT_OUTDIR_PATH)
+            {
+                outdir_set = 1;
+            }
+            else if(opt == OPT_OUTPUT_FORMAT)
+            {
+                outputformat_set = 1;
+            }
+            else if(opt == OPT_SHOW_HELP)
+            {
+                poptPrintHelp(opt_ctx, stdout, 0);
+                poptFreeContext(opt_ctx);
+                ret = DTC_NOINTERFACE;
+                break;
+            }
+        }
+
+        if(opt < -1)
+        {
+            (void) fprintf(
+                    stderr,
+                    "argument error '%s': %s\n\n",
+                    poptBadOption(opt_ctx, POPT_BADOPTION_NOALIAS),
+                    poptStrerror(ret));
+            ret = DTC_USAGE;
+            poptPrintUsage(opt_ctx, stderr, 0);
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        if(outputformat_set != 0)
+        {
+            if(strncmp(outputformat, "bmp", 3) == 0)
+            {
+                context.output_format = OUTPUT_BMP;
+            }
+            else if(strncmp(outputformat, "ppm", 3) != 0)
+            {
+                psync_log_message(
+                    LOG_LEVEL_ERROR,
+                    "unsupported output format, supported formats are bmp and ppm");
+                ret = DTC_USAGE;
+                poptPrintUsage(opt_ctx, stderr, 0);
+            }
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        if(logfilepath_set == 0)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "path to logfile required");
+            poptPrintUsage(opt_ctx, stderr, 0);
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        if(outdir_set != 0)
+        {
+            int print_ret = 0;
+            print_ret = snprintf(
+                context.output_dir,
+                sizeof(context.output_dir) - 1,
+                "%s", outdir);
+
+            // Minimal effort path cleanup
+            size_t len = strlen(context.output_dir);
+
+            if(context.output_dir[len-1] == '/')
+            {
+                context.output_dir[len-1] = '\0';
+            }
+
+            if(print_ret < 0)
+            {
+                psync_log_message(
+                    LOG_LEVEL_ERROR,
+                    "error setting output image name! snprintf returned %d", ret);
+                ret = DTC_DATAERR;
+            }
+        }
+        else
+        {
+            char fmt[] = "/tmp/plog_images.XXXXXX";
+            char *dir_name = mkdtemp(fmt);
+
+            int print_ret = 0;
+            print_ret = snprintf(
+                context.output_dir,
+                sizeof(context.output_dir) - 1,
+                "%s",
+                dir_name);
+
+            if(print_ret < 0)
+            {
+                psync_log_message(
+                    LOG_LEVEL_ERROR,
+                    "error setting output image name! snprintf returned %d", ret);
+                ret = DTC_DATAERR;
+            }
+        }
+    }
+
+    if(ret == DTC_NONE)
+    {
+        psync_log_message(
+            LOG_LEVEL_INFO,
+            "image files written to %s", context.output_dir);
+    }
+
+    if(ret == DTC_NONE)
+    {
+        // init core API
+        ret = psync_init(
             NODE_NAME,
             PSYNC_NODE_TYPE_API_USER,
             PSYNC_DEFAULT_DOMAIN,
@@ -389,14 +583,15 @@ int main(int argc, char **argv)
             PSYNC_INIT_FLAG_STDOUT_LOGGING,
             &context.node_ref);
 
-    if(ret != DTC_NONE)
-    {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "main -- psync_init - ret: %d",
-                ret);
-        ret = DTC_CONFIG;
-    }
+            if(ret != DTC_NONE)
+            {
+                psync_log_message(
+                        LOG_LEVEL_ERROR,
+                        "main -- psync_init - ret: %d",
+                        ret);
+                ret = DTC_CONFIG;
+            }
+        }
 
     if(ret == DTC_NONE)
     {
@@ -405,78 +600,77 @@ int main(int argc, char **argv)
             context.node_ref,
             IMAGE_DATA_MSG_NAME,
             &context.image_data_msg_type);
-    }
 
-    if(ret != DTC_NONE)
-    {
-        psync_log_error("psync_message_get_type_by_name - ret: %d", ret);
-        ret = DTC_CONFIG;
+        if(ret != DTC_NONE)
+        {
+            psync_log_error("psync_message_get_type_by_name - ret: %d", ret);
+            ret = DTC_CONFIG;
+        }
     }
 
     if(ret == DTC_NONE)
     {
         // initialize logfile API resources
         ret = psync_logfile_init(context.node_ref);
-    }
 
-    if(ret != DTC_NONE)
-    {
-        psync_log_message(
-            LOG_LEVEL_ERROR,
-            "main -- psync_logfile_init - ret: %d",
-            ret);
-        ret = DTC_CONFIG;
+        if(ret != DTC_NONE)
+        {
+            psync_log_message(
+                LOG_LEVEL_ERROR,
+                "main -- psync_logfile_init - ret: %d",
+                ret);
+            ret = DTC_CONFIG;
+        }
     }
 
     if(ret == DTC_NONE)
     {
-        // initialize logfile API resources
+        // iterate over logfile
         ret = psync_logfile_foreach_iterator(
             context.node_ref,
-            LOGFILE_PATH,
+            logfilepath,
             logfile_iterator_callback,
             &context);
-    }
 
-    // iterate over the logfile data
-    if(ret != DTC_NONE)
-    {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "main -- psync_logfile_foreach_iterator - ret: %d",
-                ret);
-        ret = DTC_CONFIG;
+        if(ret != DTC_NONE)
+        {
+            psync_log_message(
+                    LOG_LEVEL_ERROR,
+                    "main -- psync_logfile_foreach_iterator - ret: %d",
+                    ret);
+            ret = DTC_CONFIG;
+        }
     }
 
     if(ret == DTC_NONE)
     {
         // release logfile API resources
         ret = psync_logfile_release(context.node_ref);
-    }
 
-    // iterate over the logfile data
-    if(ret != DTC_NONE)
-    {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "main -- psync_logfile_release - ret: %d",
-                ret);
-        ret = DTC_CONFIG;
+        if(ret != DTC_NONE)
+        {
+            psync_log_message(
+                    LOG_LEVEL_ERROR,
+                    "main -- psync_logfile_release - ret: %d",
+                    ret);
+            ret = DTC_CONFIG;
+        }
     }
 
     if(ret == DTC_NONE)
     {
         // release logfile API resources
         ret = psync_release(&context.node_ref);
-    }
-	// release core API
-    if(ret != DTC_NONE)
-    {
-        psync_log_message(
-                LOG_LEVEL_ERROR,
-                "main -- psync_release - ret: %d",
-                ret);
-        ret = DTC_CONFIG;
+
+        // release core API
+        if(ret != DTC_NONE)
+        {
+            psync_log_message(
+                    LOG_LEVEL_ERROR,
+                    "main -- psync_release - ret: %d",
+                    ret);
+            ret = DTC_CONFIG;
+        }
     }
 
     if(ret == DTC_NONE)

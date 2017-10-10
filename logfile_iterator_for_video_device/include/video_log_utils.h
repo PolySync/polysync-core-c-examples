@@ -2,18 +2,18 @@
 #ifndef PS_VIDEO_LOG_UTILS
 #define PS_VIDEO_LOG_UTILS
 
+typedef enum {
+    OUTPUT_BMP = 1,
+    OUTPUT_PPM
+} output_format_e;
+
 typedef struct
 {
     ps_node_ref node_ref;
     ps_msg_type image_data_msg_type;
-    char in_file[PSYNC_DEFAULT_STRING_LEN];
-    char out_file[PSYNC_DEFAULT_STRING_LEN];
     unsigned long long img_count;
-    unsigned int initialized;
-
-    ps_video_encoder video_encoder;
-    unsigned char *enocded_buffer;
-    unsigned long enocded_frame_size;
+    output_format_e output_format;
+    char output_dir[1024];
 } context_s;
 
 #pragma pack(push,1)
