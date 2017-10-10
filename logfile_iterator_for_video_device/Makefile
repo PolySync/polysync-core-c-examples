@@ -29,7 +29,7 @@ INCLUDE += -Iinclude
 CC = gcc
 
 # add data model library
-LIBS += -lpolysync_data_model -lusb-1.0 -lpng -lz -lpopt lib/libuvc.a
+LIBS += -lpolysync_data_model -lusb-1.0 -lz -lpopt lib/libuvc.a
 
 #
 all: dirs $(TARGET)
