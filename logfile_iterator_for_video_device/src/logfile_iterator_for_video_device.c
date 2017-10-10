@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 PolySync
+ * Copyright (c) 2017 PolySync
  *
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,10 +24,11 @@
  */
 
 /**
- * \example logfile_iterator_for_velodyne_hdl.c
+ * \example logfile_iterator_for_video_device.c
  *
- * Shows how to use the Logfile API routines to iterate over a Velodyne HDL
- * PolySync logfile and access the raw data, outside the normal replay time domain.
+ * Shows how to use the Logfile API routines to iterate over a video device
+ * PolySync logfile and convert raw image data to image files,
+ * outside the normal replay time domain.
  *
  */
 
@@ -120,7 +121,6 @@ static void logfile_iterator_callback(
         }
     }
 }
-
 
 int set_uvc_frame_format(
     const ps_pixel_format_kind ps_format,
