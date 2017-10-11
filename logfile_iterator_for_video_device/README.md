@@ -17,7 +17,7 @@ To install on Ubuntu:
 sudo apt install libusb-1.0
 sudo apt install libpopt-dev
 ```
-If you're on an amb64 Ubuntu 16.04 machine you're good to go.
+__If you're on an amb64 Ubuntu 16.04 machine you're good to go.__
 
 Otherwise: we've got to build this one ourselves
 - libuvc

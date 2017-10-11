@@ -136,7 +136,7 @@ int set_uvc_frame_format(
         {
             psync_log_message(
                 LOG_LEVEL_ERROR,
-                "logged pixel format %d unsupported by this tool", ps_format);
+                "logged pixel format %d not supported by this tool", ps_format);
             ret = DTC_DATAERR;
         }
     }
@@ -155,13 +155,13 @@ int output_ppm(
     const size_t name_max = 1024; // lots of room
     char img_name[name_max];
     FILE * img_file = NULL;
-    uvc_frame_t yuyv;
+    uvc_frame_t in_format;
     uvc_frame_t * rgb = NULL;
-    yuyv.data = image_data_msg->data_buffer._buffer;
-    yuyv.data_bytes = image_data_msg->data_buffer._length;
-    yuyv.width = image_data_msg->width;
-    yuyv.height = image_data_msg->height;
-    yuyv.library_owns_data = 0;
+    in_format.data = image_data_msg->data_buffer._buffer;
+    in_format.data_bytes = image_data_msg->data_buffer._length;
+    in_format.width = image_data_msg->width;
+    in_format.height = image_data_msg->height;
+    in_format.library_owns_data = 0;
 
     if((image_data_msg == NULL) || (context == NULL))
     {
@@ -172,18 +172,19 @@ int output_ppm(
     {
         uvc_ret = set_uvc_frame_format(
             image_data_msg->pixel_format,
-            &yuyv.frame_format);
+            &in_format.frame_format);
 
         if(uvc_ret != 0)
         {
             ret = DTC_DATAERR;
         }
     }
+
     if(ret == DTC_NONE)
     {
         rgb = uvc_allocate_frame(image_size);
 
-        uvc_ret = uvc_any2rgb(&yuyv, rgb);
+        uvc_ret = uvc_any2rgb(&in_format, rgb);
 
         if(uvc_ret != 0)
         {
@@ -295,13 +296,13 @@ int output_bmp(
     bitmap_image_header image_header;
     const size_t name_max = 1024; // lots of room
     char img_name[name_max];
-    uvc_frame_t yuyv;
+    uvc_frame_t in_format;
     uvc_frame_t * bgr = NULL;
-    yuyv.data = image_data_msg->data_buffer._buffer;
-    yuyv.data_bytes = image_data_msg->data_buffer._length;
-    yuyv.width = image_data_msg->width;
-    yuyv.height = image_data_msg->height;
-    yuyv.library_owns_data = 0;
+    in_format.data = image_data_msg->data_buffer._buffer;
+    in_format.data_bytes = image_data_msg->data_buffer._length;
+    in_format.width = image_data_msg->width;
+    in_format.height = image_data_msg->height;
+    in_format.library_owns_data = 0;
 
     if((image_data_msg == NULL) || (context == NULL))
     {
@@ -312,7 +313,7 @@ int output_bmp(
     {
         uvc_ret = set_uvc_frame_format(
             image_data_msg->pixel_format,
-            &yuyv.frame_format);
+            &in_format.frame_format);
 
         if(uvc_ret != DTC_NONE)
         {
@@ -324,7 +325,7 @@ int output_bmp(
     {
         bgr = uvc_allocate_frame(image_size);
 
-        ret = uvc_any2bgr(&yuyv, bgr);
+        ret = uvc_any2bgr(&in_format, bgr);
 
         if(uvc_ret != 0)
         {
