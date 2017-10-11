@@ -38,11 +38,20 @@ cp libuvc.a /path/to/logfile_iterator_for_video_device/lib
 $ cd logfile_iterator_for_video_device
 $ make
 ```
+Alternatively, if you want to use this example's utilities in another
+application you can use `make static_lib` to generate a `libpolysync_image_data_logfile_utils.a`
+rather than an executable.
 
 ### Running
 ```bash
 $ ./bin/polysync-logfile-iterator-for-video_device-c -p <PATH> -o <PATH> -f <FORMAT>
 ```
+
+NOTE: To ensure that any PolySync information is reported to stdout, verify that
+the line `polysync.*    >stdout; std_node_format` exists and is uncommented in your
+`$PSYNC_USER_HOME/config/polysync_logger.conf`. Otherwise you can monitor
+activity in the log at `$PSYNC_USER_HOME/polysync.log`.
+
 ### Example Usage
 ```bash
 $ ./bin/polysync-logfile-iterator-for-video_device-c -p ~/.local/share/polysync/rnr_logs/70802/video-device.1688895556945937.plog

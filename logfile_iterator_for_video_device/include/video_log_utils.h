@@ -34,6 +34,17 @@
  * raw video data into images.
  */
 
+#include <unistd.h>
+
+// API headers
+#include "polysync_core.h"
+#include "polysync_node.h"
+#include "polysync_message.h"
+
+// Example specific headers
+#include "libuvc/libuvc.h"
+#include "libuvc/libuvc_config.h"
+
 typedef enum {
     OUTPUT_BMP = 1,
     OUTPUT_PPM
@@ -45,6 +56,7 @@ typedef struct
     ps_msg_type image_data_msg_type;
     unsigned long long img_count;
     output_format_e output_format;
+    unsigned int bytes_per_pixel;
     char output_dir[1024];
     char logfile_path[1024];
 } context_s;
@@ -78,13 +90,15 @@ typedef struct {
  *
  * @param [in] ps_format PolySync image data pixel format.
  * @param [out] uvc_frame_format libuvc frame format.
+ * @param [out] context format specific 'bytes_per_pixel' field is set.
  *
  * @return DTC code:
  * \li DTC_NONE (zero) if success.
 */
 int set_uvc_frame_format(
     const ps_pixel_format_kind ps_format,
-    enum uvc_frame_format * const uvc_format);
+    enum uvc_frame_format * const uvc_format,
+    context_s * const context);
 
 /**
  * @brief Write ps_image_data_msg to ppm (portable pixmap) image file.

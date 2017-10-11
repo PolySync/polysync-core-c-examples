@@ -52,72 +52,10 @@
 #include "libuvc/libuvc.h"
 #include "video_log_utils.h"
 
-/**
- * @brief PolySync node name.
- *
- */
-static const char NODE_NAME[] = "polysync-logfile-iterator-for-video-device-c";
-
-/**
- * @brief PolySync 'ps_byte_array_msg' type name.
- *
- */
-static const char IMAGE_DATA_MSG_NAME[] = "ps_image_data_msg";
-
-/**
- * @brief Logfile iterator callback.
- *
- * @warning When logfile is empty, expect:
- * \li \ref ps_logfile_attributes.data_count == 0
- * \li msg_type == \ref PSYNC_MSG_TYPE_INVALID
- * \li log_record == NULL
- *
- * @param [in] file_attributes Logfile attributes loaded by the logfile API.
- * @param [in] msg_type Message type identifier for the message in \ref ps_rnr_log_record.data, as seen by this data model.
- * @param [in] log_record Logfile record loaded by the logfile API.
- * @param [in] user_data A pointer to user data, provided by \ref psync_logfile_foreach_iterator.
- *
- */
-static void logfile_iterator_callback(
-    const ps_logfile_attributes * const file_attributes,
-    const ps_msg_type msg_type,
-    const ps_rnr_log_record * const log_record,
-    void * const user_data);
-
-static void logfile_iterator_callback(
-    const ps_logfile_attributes * const file_attributes,
-    const ps_msg_type msg_type,
-    const ps_rnr_log_record * const log_record,
-    void * const user_data)
-{
-
-    // int ret = DTC_NONE;
-    context_s * const context = (context_s*) user_data;
-
-    // if logfile is empty, only attributes are provided
-    if((log_record != NULL) && (context != NULL))
-    {
-        // we only want to read image data messages
-        if(msg_type == context->image_data_msg_type)
-        {
-            const ps_msg_ref msg = (ps_msg_ref) log_record->data;
-            const ps_image_data_msg * const image_data_msg = (ps_image_data_msg*) msg;
-
-            if(context->output_format == OUTPUT_BMP)
-            {
-                (void) output_bmp(image_data_msg, context);
-            }
-            else if(context->output_format == OUTPUT_PPM)
-            {
-                (void) output_ppm(image_data_msg, context);
-            }
-        }
-    }
-}
-
 int set_uvc_frame_format(
     const ps_pixel_format_kind ps_format,
-    enum uvc_frame_format * const uvc_format)
+    enum uvc_frame_format * const uvc_format,
+    context_s * const context)
 {
     int ret = DTC_NONE;
 
@@ -131,12 +69,14 @@ int set_uvc_frame_format(
         if(ps_format == PIXEL_FORMAT_YUYV)
         {
             *uvc_format = UVC_FRAME_FORMAT_YUYV;
+            context->bytes_per_pixel = 3;
         }
         else
         {
             psync_log_message(
                 LOG_LEVEL_ERROR,
-                "logged pixel format %d not supported by this tool", ps_format);
+                "logged pixel format %d not supported by this tool",
+                (int)ps_format);
             ret = DTC_DATAERR;
         }
     }
@@ -151,7 +91,8 @@ int output_ppm(
     int ret = DTC_NONE;
     int print_ret = 0;
     int uvc_ret = 0;
-    int image_size = image_data_msg->width * image_data_msg->height * 3;
+    int image_size = image_data_msg->width *
+        image_data_msg->height * context->bytes_per_pixel;
     const size_t name_max = 1024; // lots of room
     char img_name[name_max];
     FILE * img_file = NULL;
@@ -172,7 +113,8 @@ int output_ppm(
     {
         uvc_ret = set_uvc_frame_format(
             image_data_msg->pixel_format,
-            &in_format.frame_format);
+            &in_format.frame_format,
+            context);
 
         if(uvc_ret != 0)
         {
@@ -289,7 +231,8 @@ int output_bmp(
     int ret = DTC_NONE;
     int print_ret = 0;
     int uvc_ret = 0;
-    int image_size = image_data_msg->width * image_data_msg->height * 3;
+    int image_size = image_data_msg->width
+        * image_data_msg->height * context->bytes_per_pixel;
     int file_size = 0;
     FILE * img_file = NULL;
     bitmap_file_header file_header;
@@ -313,7 +256,8 @@ int output_bmp(
     {
         uvc_ret = set_uvc_frame_format(
             image_data_msg->pixel_format,
-            &in_format.frame_format);
+            &in_format.frame_format,
+            context);
 
         if(uvc_ret != DTC_NONE)
         {
@@ -513,6 +457,67 @@ enum
     OPT_OUTDIR_PATH,
     OPT_SHOW_HELP
 };
+
+/**
+ * @brief PolySync node name.
+ *
+ */
+static const char NODE_NAME[] = "polysync-logfile-iterator-for-video-device-c";
+
+/**
+ * @brief PolySync 'ps_byte_array_msg' type name.
+ *
+ */
+static const char IMAGE_DATA_MSG_NAME[] = "ps_image_data_msg";
+
+/**
+ * @brief Logfile iterator callback.
+ *
+ * @warning When logfile is empty, expect:
+ * \li \ref ps_logfile_attributes.data_count == 0
+ * \li msg_type == \ref PSYNC_MSG_TYPE_INVALID
+ * \li log_record == NULL
+ *
+ * @param [in] file_attributes Logfile attributes loaded by the logfile API.
+ * @param [in] msg_type Message type identifier for the message in \ref ps_rnr_log_record.data, as seen by this data model.
+ * @param [in] log_record Logfile record loaded by the logfile API.
+ * @param [in] user_data A pointer to user data, provided by \ref psync_logfile_foreach_iterator.
+ *
+ */
+static void logfile_iterator_callback(
+    const ps_logfile_attributes * const file_attributes,
+    const ps_msg_type msg_type,
+    const ps_rnr_log_record * const log_record,
+    void * const user_data);
+
+static void logfile_iterator_callback(
+    const ps_logfile_attributes * const file_attributes,
+    const ps_msg_type msg_type,
+    const ps_rnr_log_record * const log_record,
+    void * const user_data)
+{
+    context_s * const context = (context_s*) user_data;
+
+    // if logfile is empty, only attributes are provided
+    if((log_record != NULL) && (context != NULL))
+    {
+        // we only want to read image data messages
+        if(msg_type == context->image_data_msg_type)
+        {
+            const ps_msg_ref msg = (ps_msg_ref) log_record->data;
+            const ps_image_data_msg * const image_data_msg = (ps_image_data_msg*) msg;
+
+            if(context->output_format == OUTPUT_BMP)
+            {
+                (void) output_bmp(image_data_msg, context);
+            }
+            else if(context->output_format == OUTPUT_PPM)
+            {
+                (void) output_ppm(image_data_msg, context);
+            }
+        }
+    }
+}
 
 static int parse_options(
     const int argc,
