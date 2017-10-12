@@ -69,8 +69,7 @@ int set_uvc_frame_format(
         }
         else
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
+            psync_log_error(
                 "logged pixel format %d not supported by this tool",
                 (int)ps_format);
             ret = DTC_DATAERR;
@@ -143,9 +142,9 @@ int output_ppm(
 
         if(print_ret < 0)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "error setting output image name! snprintf returned %d", print_ret);
+            psync_log_error(
+                "error setting output image name! snprintf returned %d",
+                print_ret);
             ret = DTC_DATAERR;
         }
     }
@@ -158,9 +157,7 @@ int output_ppm(
 
         if(img_file == NULL)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "failed to open %s for writing", img_name);
+            psync_log_error("failed to open %s for writing", img_name);
             ret = DTC_DATAERR;
         }
     }
@@ -175,9 +172,9 @@ int output_ppm(
 
         if(print_ret < 0)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "error writing file header! fprintf returned %d", print_ret);
+            psync_log_error(
+                "error writing file header! fprintf returned %d",
+                print_ret);
             ret = DTC_DATAERR;
         }
     }
@@ -192,9 +189,7 @@ int output_ppm(
 
         if(ferror(img_file) != 0)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "failed to write to %s", img_name);
+            psync_log_error("failed to write to %s", img_name);
             ret = DTC_IOERR;
         }
     }
@@ -205,9 +200,9 @@ int output_ppm(
 
         if(ret != 0)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "something is wrong! fclose failed on %s", img_name);
+            psync_log_error(
+                "something is wrong! fclose failed on %s",
+                img_name);
             ret = DTC_IOERR;
         }
     }
@@ -307,9 +302,9 @@ int output_bmp(
 
         if(print_ret < 0)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "error setting output image name! snprintf returned %d", print_ret);
+            psync_log_error(
+                "error setting output image name! snprintf returned %d",
+                print_ret);
             ret = DTC_DATAERR;
         }
     }
@@ -322,9 +317,7 @@ int output_bmp(
 
         if(img_file == NULL)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "failed to open %s for writing", img_name);
+            psync_log_error("failed to open %s for writing", img_name);
             ret = DTC_DATAERR;
         }
     }
@@ -335,9 +328,7 @@ int output_bmp(
 
         if(ferror(img_file) != 0)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "failed to write to %s", img_name);
+            psync_log_error("failed to write to %s", img_name);
             ret = DTC_IOERR;
         }
     }
@@ -348,9 +339,7 @@ int output_bmp(
 
         if(ferror(img_file) != 0)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "failed to write to %s", img_name);
+            psync_log_error("failed to write to %s", img_name);
             ret = DTC_IOERR;
         }
     }
@@ -365,9 +354,7 @@ int output_bmp(
 
         if(ferror(img_file) != 0)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "failed to write to %s", img_name);
+            psync_log_error("failed to write to %s", img_name);
             ret = DTC_IOERR;
         }
     }
@@ -378,9 +365,9 @@ int output_bmp(
 
         if(ret != 0)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "something is wrong! fclose failed on %s", img_name);
+            psync_log_error(
+                "something is wrong! fclose failed on %s",
+                img_name);
             ret = DTC_IOERR;
         }
     }
@@ -413,8 +400,7 @@ int init_context(context_s * const context, const char * logfile_path)
 
         if(print_ret < 0)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
+            psync_log_error(
                 "error setting logfile_path! snprintf returned %d",
                 print_ret);
             ret = DTC_DATAERR;
@@ -433,8 +419,7 @@ int init_context(context_s * const context, const char * logfile_path)
 
         if(print_ret < 0)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
+            psync_log_error(
                 "error setting default outdir! snprintf returned %d",
                 print_ret);
             ret = DTC_DATAERR;

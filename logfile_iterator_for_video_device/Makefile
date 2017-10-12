@@ -14,7 +14,9 @@ BIN_TARGET := bin/polysync-logfile-iterator-for-video-device-c
 # static library target
 LIB_TARGET := libpolysync_image_data_logfile_utils.a
 
+# Example's header disticnt from external dependency headers
 UTILS_HEADER := include/video_log_utils.h
+
 # sources
 SRCS := src/main.c src/video_log_utils.c
 

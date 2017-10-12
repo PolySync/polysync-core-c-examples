@@ -226,9 +226,9 @@ static int parse_options(
             }
             else if(strncmp(outputformat, "ppm", 3) != 0)
             {
-                psync_log_message(
-                    LOG_LEVEL_ERROR,
-                    "unsupported output format, supported formats are bmp and ppm");
+                psync_log_error(
+                    "unsupported output format, "
+                    "supported formats are bmp and ppm");
                 ret = DTC_USAGE;
                 poptPrintUsage(opt_ctx, stderr, 0);
             }
@@ -239,9 +239,7 @@ static int parse_options(
     {
         if(logfilepath_set == 0)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "path to logfile required");
+            psync_log_error("path to logfile required");
             poptPrintUsage(opt_ctx, stderr, 0);
         }
         else
@@ -256,8 +254,7 @@ static int parse_options(
 
                 if(print_ret < 0)
             {
-                psync_log_message(
-                    LOG_LEVEL_ERROR,
+                psync_log_error(
                     "error setting logfile path! snprintf returned %d",
                     print_ret);
                 ret = DTC_DATAERR;
@@ -285,10 +282,10 @@ static int parse_options(
 
             if(print_ret < 0)
             {
-                psync_log_message(
-                    LOG_LEVEL_ERROR,
+                psync_log_error(
                     "error setting outdir! snprintf returned %d",
                     print_ret);
+
                 ret = DTC_DATAERR;
             }
         }
@@ -312,9 +309,7 @@ int main(int argc, char **argv)
 
     if(ret == DTC_NONE)
     {
-        psync_log_message(
-            LOG_LEVEL_INFO,
-            "writing image files to %s", context.output_dir);
+        psync_log_info("writing image files to %s", context.output_dir);
     }
 
     if(ret == DTC_NONE)
@@ -330,10 +325,8 @@ int main(int argc, char **argv)
 
             if(ret != DTC_NONE)
             {
-                psync_log_message(
-                        LOG_LEVEL_ERROR,
-                        "main -- psync_init - ret: %d",
-                        ret);
+                psync_log_error(
+                    "failed to initialize PolySync - ret: %d", ret);
                 ret = DTC_CONFIG;
             }
         }
@@ -348,7 +341,10 @@ int main(int argc, char **argv)
 
         if(ret != DTC_NONE)
         {
-            psync_log_error("psync_message_get_type_by_name - ret: %d", ret);
+            psync_log_error(
+                "failed to get %s message type - ret: %d",
+                IMAGE_DATA_MSG_NAME,
+                ret);
             ret = DTC_CONFIG;
         }
     }
@@ -360,10 +356,7 @@ int main(int argc, char **argv)
 
         if(ret != DTC_NONE)
         {
-            psync_log_message(
-                LOG_LEVEL_ERROR,
-                "main -- psync_logfile_init - ret: %d",
-                ret);
+            psync_log_error("failed in logfile intialization - ret: %d", ret);
             ret = DTC_CONFIG;
         }
     }
@@ -379,10 +372,7 @@ int main(int argc, char **argv)
 
         if(ret != DTC_NONE)
         {
-            psync_log_message(
-                    LOG_LEVEL_ERROR,
-                    "main -- psync_logfile_foreach_iterator - ret: %d",
-                    ret);
+            psync_log_error("failed to create logfile iterator - ret: %d", ret);
             ret = DTC_CONFIG;
         }
     }
@@ -394,10 +384,7 @@ int main(int argc, char **argv)
 
         if(ret != DTC_NONE)
         {
-            psync_log_message(
-                    LOG_LEVEL_ERROR,
-                    "main -- psync_logfile_release - ret: %d",
-                    ret);
+            psync_log_error("failed to release logfile - ret: %d", ret);
             ret = DTC_CONFIG;
         }
     }
@@ -410,10 +397,7 @@ int main(int argc, char **argv)
         // release core API
         if(ret != DTC_NONE)
         {
-            psync_log_message(
-                    LOG_LEVEL_ERROR,
-                    "main -- psync_release - ret: %d",
-                    ret);
+            psync_log_error("failed to release PolySync - ret: %d", ret);
             ret = DTC_CONFIG;
         }
     }
