@@ -14,12 +14,13 @@ BIN_TARGET := bin/polysync-logfile-iterator-for-video-device-c
 # static library target
 LIB_TARGET := libpolysync_image_data_logfile_utils.a
 
+UTILS_HEADER := include/video_log_utils.h
 # sources
-SRCS := src/logfile_iterator_for_video_device.c
+SRCS := src/main.c src/video_log_utils.c
 
 # object files, dep files
+UTILS_OBJ := src/video_log_utils.o
 OBJS := $(SRCS:.c=.o)
-LIB_OBJS := $(SRCS:.c=-lib.o)
 DEPS := $(SRCS:.c=.dep)
 XDEPS := $(wildcard $(DEPS))
 
@@ -44,18 +45,15 @@ endif
 dirs::
 	mkdir -p bin
 
-$(BIN_TARGET): $(OBJS)
+$(BIN_TARGET): $(OBJS) $(UTILS_HEADER)
 	$(CC) $(LDFLAGS) $(INCLUDE) -o $@ $^ $(LIBS)
 
 $(OBJS): %.o: %.c %.dep
 	$(CC) $(CCFLAGS) $(INCLUDE) -o $@ -c $<
 
-static_lib: $(LIB_OBJS)
+static_lib: $(UTILS_OBJ) $(UTILS_HEADER)
 	cd lib && ar -x libuvc.a && cd ..
 	ar rcs $(LIB_TARGET) $^ lib/*.o
-
-$(LIB_OBJS): %-lib.o: %.c
-	$(CC) -fpic -shared -DNOMAIN $(CCFLAGS) $(INCLUDE) -o $@ -c $<
 
 $(DEPS): %.dep: %.c Makefile
 	$(CC) $(CCFLAGS) $(INCLUDE) -MM $< > $@
