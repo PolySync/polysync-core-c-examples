@@ -49,9 +49,9 @@
 #include "video_log_utils.h"
 
 int set_uvc_frame_format(
-    const ps_pixel_format_kind ps_format,
-    enum uvc_frame_format * const uvc_format,
-    context_s * const context)
+        const ps_pixel_format_kind ps_format,
+        enum uvc_frame_format * const uvc_format,
+        context_s * const context)
 {
     int ret = DTC_NONE;
 
@@ -70,8 +70,8 @@ int set_uvc_frame_format(
         else
         {
             psync_log_error(
-                "logged pixel format %d not supported by this tool",
-                (int)ps_format);
+                    "logged pixel format %d not supported by this tool",
+                    (int)ps_format);
             ret = DTC_DATAERR;
         }
     }
@@ -80,14 +80,14 @@ int set_uvc_frame_format(
 }
 
 int output_ppm(
-    const ps_image_data_msg * const image_data_msg,
-    context_s * const context)
+        const ps_image_data_msg * const image_data_msg,
+        context_s * const context)
 {
     int ret = DTC_NONE;
     int print_ret = 0;
     int uvc_ret = 0;
     int image_size = image_data_msg->width *
-        image_data_msg->height * context->bytes_per_pixel;
+            image_data_msg->height * context->bytes_per_pixel;
     const size_t name_max = 1024; // lots of room
     char img_name[name_max];
     FILE * img_file = NULL;
@@ -107,9 +107,9 @@ int output_ppm(
     if(ret == DTC_NONE)
     {
         uvc_ret = set_uvc_frame_format(
-            image_data_msg->pixel_format,
-            &in_format.frame_format,
-            context);
+                image_data_msg->pixel_format,
+                &in_format.frame_format,
+                context);
 
         if(uvc_ret != 0)
         {
@@ -134,17 +134,17 @@ int output_ppm(
     if(ret == DTC_NONE)
     {
         print_ret = snprintf(
-            img_name,
-            name_max,
-            "%s/img_%llu.ppm",
-            context->output_dir,
-            context->img_count);
+                img_name,
+                name_max,
+                "%s/img_%llu.ppm",
+                context->output_dir,
+                context->img_count);
 
         if(print_ret < 0)
         {
             psync_log_error(
-                "error setting output image name! snprintf returned %d",
-                print_ret);
+                    "error setting output image name! snprintf returned %d",
+                    print_ret);
             ret = DTC_DATAERR;
         }
     }
@@ -165,16 +165,16 @@ int output_ppm(
     if(ret == DTC_NONE)
     {
         print_ret = fprintf(
-            img_file,
-            "P6\n%d %d\n255\n",
-            image_data_msg->width,
-            image_data_msg->height);
+                img_file,
+                "P6\n%d %d\n255\n",
+                image_data_msg->width,
+                image_data_msg->height);
 
         if(print_ret < 0)
         {
             psync_log_error(
-                "error writing file header! fprintf returned %d",
-                print_ret);
+                    "error writing file header! fprintf returned %d",
+                    print_ret);
             ret = DTC_DATAERR;
         }
     }
@@ -201,8 +201,8 @@ int output_ppm(
         if(ret != 0)
         {
             psync_log_error(
-                "something is wrong! fclose failed on %s",
-                img_name);
+                    "something is wrong! fclose failed on %s",
+                    img_name);
             ret = DTC_IOERR;
         }
     }
@@ -223,7 +223,7 @@ int output_bmp(
     int print_ret = 0;
     int uvc_ret = 0;
     int image_size = image_data_msg->width
-        * image_data_msg->height * context->bytes_per_pixel;
+            * image_data_msg->height * context->bytes_per_pixel;
     int file_size = 0;
     FILE * img_file = NULL;
     bitmap_file_header file_header;
@@ -246,9 +246,9 @@ int output_bmp(
     if(ret == DTC_NONE)
     {
         uvc_ret = set_uvc_frame_format(
-            image_data_msg->pixel_format,
-            &in_format.frame_format,
-            context);
+                image_data_msg->pixel_format,
+                &in_format.frame_format,
+                context);
 
         if(uvc_ret != DTC_NONE)
         {
@@ -294,17 +294,17 @@ int output_bmp(
         image_header.clr_important = 0; // unused
 
         print_ret = snprintf(
-            img_name,
-            name_max,
-            "%s/img_%llu.ppm",
-            context->output_dir,
-            context->img_count);
+                img_name,
+                name_max,
+                "%s/img_%llu.ppm",
+                context->output_dir,
+                context->img_count);
 
         if(print_ret < 0)
         {
             psync_log_error(
-                "error setting output image name! snprintf returned %d",
-                print_ret);
+                    "error setting output image name! snprintf returned %d",
+                    print_ret);
             ret = DTC_DATAERR;
         }
     }
@@ -366,8 +366,8 @@ int output_bmp(
         if(ret != 0)
         {
             psync_log_error(
-                "something is wrong! fclose failed on %s",
-                img_name);
+                    "something is wrong! fclose failed on %s",
+                    img_name);
             ret = DTC_IOERR;
         }
     }
@@ -393,16 +393,16 @@ int init_context(context_s * const context, const char * logfile_path)
     if(logfile_path != NULL)
     {
         print_ret = snprintf(
-            context->logfile_path,
-            sizeof(context->logfile_path) - 1,
-            "%s",
-            logfile_path);
+                context->logfile_path,
+                sizeof(context->logfile_path) - 1,
+                "%s",
+                logfile_path);
 
         if(print_ret < 0)
         {
             psync_log_error(
-                "error setting logfile_path! snprintf returned %d",
-                print_ret);
+                    "error setting logfile_path! snprintf returned %d",
+                    print_ret);
             ret = DTC_DATAERR;
         }
     }
@@ -412,16 +412,16 @@ int init_context(context_s * const context, const char * logfile_path)
         dir_name = mkdtemp(fmt);
 
         print_ret = snprintf(
-            context->output_dir,
-            sizeof(context->output_dir) - 1,
-            "%s",
-            dir_name);
+                context->output_dir,
+                sizeof(context->output_dir) - 1,
+                "%s",
+                dir_name);
 
         if(print_ret < 0)
         {
             psync_log_error(
-                "error setting default outdir! snprintf returned %d",
-                print_ret);
+                    "error setting default outdir! snprintf returned %d",
+                    print_ret);
             ret = DTC_DATAERR;
         }
     }

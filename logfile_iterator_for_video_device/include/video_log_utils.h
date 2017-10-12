@@ -96,9 +96,9 @@ typedef struct {
  * \li DTC_NONE (zero) if success.
 */
 int set_uvc_frame_format(
-    const ps_pixel_format_kind ps_format,
-    enum uvc_frame_format * const uvc_format,
-    context_s * const context);
+        const ps_pixel_format_kind ps_format,
+        enum uvc_frame_format * const uvc_format,
+        context_s * const context);
 
 /**
  * @brief Write ps_image_data_msg to ppm (portable pixmap) image file.
@@ -110,8 +110,8 @@ int set_uvc_frame_format(
  * \li DTC_NONE (zero) if success.
 */
 int output_ppm(
-    const ps_image_data_msg * const image_data_msg,
-    context_s * const context);
+        const ps_image_data_msg * const image_data_msg,
+        context_s * const context);
 
 /**
  * @brief Write ps_image_data_msg to ppm (bitmap) image file.
@@ -123,8 +123,8 @@ int output_ppm(
  * \li DTC_NONE (zero) if success.
 */
 int output_bmp(
-    const ps_image_data_msg * const image_data_msg,
-    context_s * const context);
+        const ps_image_data_msg * const image_data_msg,
+        context_s * const context);
 
 /**
  * @brief Initialize application context.

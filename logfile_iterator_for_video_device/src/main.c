@@ -84,10 +84,10 @@ static const char IMAGE_DATA_MSG_NAME[] = "ps_image_data_msg";
  *
  */
 static void logfile_iterator_callback(
-    const ps_logfile_attributes * const file_attributes,
-    const ps_msg_type msg_type,
-    const ps_rnr_log_record * const log_record,
-    void * const user_data)
+        const ps_logfile_attributes * const file_attributes,
+        const ps_msg_type msg_type,
+        const ps_rnr_log_record * const log_record,
+        void * const user_data)
 {
     context_s * const context = (context_s*) user_data;
 
@@ -98,7 +98,8 @@ static void logfile_iterator_callback(
         if(msg_type == context->image_data_msg_type)
         {
             const ps_msg_ref msg = (ps_msg_ref) log_record->data;
-            const ps_image_data_msg * const image_data_msg = (ps_image_data_msg*) msg;
+            const ps_image_data_msg * const image_data_msg =
+                    (ps_image_data_msg*) msg;
 
             if(context->output_format == OUTPUT_BMP)
             {
@@ -113,9 +114,9 @@ static void logfile_iterator_callback(
 }
 
 static int parse_options(
-    const int argc,
-    char ** const argv,
-    context_s * const context)
+        const int argc,
+        char ** const argv,
+        context_s * const context)
 {
     int ret = DTC_NONE;
     poptContext opt_ctx;
@@ -163,11 +164,11 @@ static int parse_options(
     if(ret == DTC_NONE)
     {
         opt_ctx = poptGetContext(
-            NULL,
-            argc,
-            (const char**) argv,
-            OPTIONS_TABLE,
-            0);
+                NULL,
+                argc,
+                (const char**) argv,
+                OPTIONS_TABLE,
+                0);
 
         if(argc < 2)
         {
@@ -207,10 +208,10 @@ static int parse_options(
         if(opt < -1)
         {
             (void) fprintf(
-                    stderr,
-                    "argument error '%s': %s\n\n",
-                    poptBadOption(opt_ctx, POPT_BADOPTION_NOALIAS),
-                    poptStrerror(ret));
+                        stderr,
+                        "argument error '%s': %s\n\n",
+                        poptBadOption(opt_ctx, POPT_BADOPTION_NOALIAS),
+                        poptStrerror(ret));
             ret = DTC_USAGE;
             poptPrintUsage(opt_ctx, stderr, 0);
         }
@@ -227,8 +228,8 @@ static int parse_options(
             else if(strncmp(outputformat, "ppm", 3) != 0)
             {
                 psync_log_error(
-                    "unsupported output format, "
-                    "supported formats are bmp and ppm");
+                        "unsupported output format, "
+                        "supported formats are bmp and ppm");
                 ret = DTC_USAGE;
                 poptPrintUsage(opt_ctx, stderr, 0);
             }
@@ -247,16 +248,16 @@ static int parse_options(
             int print_ret = 0;
 
             print_ret = snprintf(
-                context->logfile_path,
-                sizeof(context->logfile_path),
-                "%s",
-                logfilepath);
+                    context->logfile_path,
+                    sizeof(context->logfile_path),
+                    "%s",
+                    logfilepath);
 
                 if(print_ret < 0)
             {
                 psync_log_error(
-                    "error setting logfile path! snprintf returned %d",
-                    print_ret);
+                        "error setting logfile path! snprintf returned %d",
+                        print_ret);
                 ret = DTC_DATAERR;
             }
         }
@@ -268,9 +269,9 @@ static int parse_options(
         {
             int print_ret = 0;
             print_ret = snprintf(
-                context->output_dir,
-                sizeof(context->output_dir) - 1,
-                "%s", outdir);
+                    context->output_dir,
+                    sizeof(context->output_dir) - 1,
+                    "%s", outdir);
 
             // Minimal effort path cleanup
             size_t len = strlen(context->output_dir);
@@ -283,8 +284,8 @@ static int parse_options(
             if(print_ret < 0)
             {
                 psync_log_error(
-                    "error setting outdir! snprintf returned %d",
-                    print_ret);
+                        "error setting outdir! snprintf returned %d",
+                        print_ret);
 
                 ret = DTC_DATAERR;
             }
@@ -316,12 +317,12 @@ int main(int argc, char **argv)
     {
         // init core API
         ret = psync_init(
-            NODE_NAME,
-            PSYNC_NODE_TYPE_API_USER,
-            PSYNC_DEFAULT_DOMAIN,
-            PSYNC_SDF_ID_INVALID,
-            PSYNC_INIT_FLAG_STDOUT_LOGGING,
-            &context.node_ref);
+                NODE_NAME,
+                PSYNC_NODE_TYPE_API_USER,
+                PSYNC_DEFAULT_DOMAIN,
+                PSYNC_SDF_ID_INVALID,
+                PSYNC_INIT_FLAG_STDOUT_LOGGING,
+                &context.node_ref);
 
             if(ret != DTC_NONE)
             {
@@ -335,16 +336,16 @@ int main(int argc, char **argv)
     {
         // get the message type for 'ps_image_data_msg'
         ret = psync_message_get_type_by_name(
-            context.node_ref,
-            IMAGE_DATA_MSG_NAME,
-            &context.image_data_msg_type);
+                context.node_ref,
+                IMAGE_DATA_MSG_NAME,
+                &context.image_data_msg_type);
 
         if(ret != DTC_NONE)
         {
             psync_log_error(
-                "failed to get %s message type - ret: %d",
-                IMAGE_DATA_MSG_NAME,
-                ret);
+                    "failed to get %s message type - ret: %d",
+                    IMAGE_DATA_MSG_NAME,
+                    ret);
             ret = DTC_CONFIG;
         }
     }
