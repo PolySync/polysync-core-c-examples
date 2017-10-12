@@ -19,7 +19,6 @@ SRCS := src/logfile_iterator_for_video_device.c
 
 # object files, dep files
 OBJS := $(SRCS:.c=.o)
-# LIB_OBJS := $(SRCS:.c=-lib.o)
 LIB_OBJS := $(SRCS:.c=-lib.o)
 DEPS := $(SRCS:.c=.dep)
 XDEPS := $(wildcard $(DEPS))
